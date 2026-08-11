@@ -1,1 +1,89 @@
-Salam, bu menim ilk layihemdir!
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Vebsayt</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Modern Şrift -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-white text-slate-900 antialiased selection:bg-blue-900 selection:text-white">
+
+    <!-- Navbar Bölməsi -->
+    <header class="fixed w-full top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="#" class="text-2xl font-bold tracking-tighter text-slate-900">
+                        Logo<span class="text-blue-900">.</span>
+                    </a>
+                </div>
+
+                <!-- Desktop Menyu -->
+                <nav class="hidden md:flex space-x-10">
+                    <a href="#" class="text-sm font-medium text-slate-600 hover:text-blue-900 transition-colors duration-200">Ana Səhifə</a>
+                    <a href="#" class="text-sm font-medium text-slate-600 hover:text-blue-900 transition-colors duration-200">Xidmətlər</a>
+                    <a href="#" class="text-sm font-medium text-slate-600 hover:text-blue-900 transition-colors duration-200">Haqqımızda</a>
+                    <a href="#" class="text-sm font-medium text-slate-600 hover:text-blue-900 transition-colors duration-200">Əlaqə</a>
+                </nav>
+
+                <!-- Düymə (Call to Action) -->
+                <div class="hidden md:flex items-center">
+                    <a href="#" class="inline-flex items-center justify-center px-6 py-2.5 border border-transparent text-sm font-medium rounded-full text-white bg-blue-900 hover:bg-blue-950 transition-all duration-200 shadow-sm hover:shadow-md">
+                        Başla
+                    </a>
+                </div>
+
+                <!-- Mobil Menyu Düyməsi -->
+                <div class="md:hidden flex items-center">
+                    <button type="button" class="text-slate-600 hover:text-blue-900 focus:outline-none transition-colors">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Qəhrəman (Hero) Bölməsi -->
+    <main class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-white min-h-screen flex items-center">
+        <!-- Dekorativ Arxa Plan Elementləri -->
+        <div class="absolute inset-0 -z-10 pointer-events-none">
+            <div class="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-blue-50/50 blur-3xl opacity-60"></div>
+            <div class="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-slate-50/80 blur-3xl opacity-60"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+            <div class="text-center max-w-4xl mx-auto">
+                <h1 class="text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 mb-8 leading-tight">
+                    Biznesinizi yeni <br class="hidden sm:block">
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-900 to-blue-700">yüksəkliklərə daşıyın.</span>
+                </h1>
+                
+                <p class="text-lg md:text-xl text-slate-500 mb-10 max-w-2xl mx-auto font-light leading-relaxed">
+                    Müasir, sürətli və etibarlı həllərimizlə rəqəmsal dünyada fərq yaradın. Minimalist dizayn və yüksək performans bir arada.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6">
+                    <a href="#" class="inline-flex items-center justify-center px-8 py-3.5 border border-transparent text-base font-medium rounded-full text-white bg-blue-900 hover:bg-blue-950 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+                        İndi Qoşul
+                    </a>
+                    <a href="#" class="inline-flex items-center justify-center px-8 py-3.5 border border-slate-200 text-base font-medium rounded-full text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all duration-300">
+                        Daha Ətraflı
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
