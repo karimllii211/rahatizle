@@ -55,7 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const showConfirmModal = (message) => {
         return new Promise((resolve) => {
             if (!customConfirm || !confirmMessage) {
-                // Əgər modal HTML-də yoxdursa standart confirm işləsin
                 resolve(confirm(message));
                 return;
             }
@@ -106,27 +105,51 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- BÖLMƏLƏR (SECTIONS) ---
-    const loginSection = document.getElementById('login-section');
-    const registerSection = document.getElementById('register-section');
-    const dashboardSection = document.getElementById('dashboard-section');
+    // --- MODAL İDARƏETMƏSİ (AUTH) ---
+    const loginModal = document.getElementById('login-modal');
+    const registerModal = document.getElementById('register-modal');
 
-    const showSection = (sectionToShow) => {
-        if(loginSection) loginSection.classList.add('hidden');
-        if(registerSection) registerSection.classList.add('hidden');
-        if(dashboardSection) dashboardSection.classList.add('hidden');
-        
-        if (sectionToShow) sectionToShow.classList.remove('hidden');
+    const showModal = (modal) => {
+        if (loginModal) { loginModal.classList.add('hidden'); loginModal.classList.remove('flex'); }
+        if (registerModal) { registerModal.classList.add('hidden'); registerModal.classList.remove('flex'); }
+        if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
     };
+    
+    const closeAuthModals = () => {
+        showModal(null);
+    };
+
+    // Modal açmaq üçün düymələr
+    document.querySelectorAll('.open-login-modal').forEach(btn => {
+        btn.addEventListener('click', () => showModal(loginModal));
+    });
+    
+    document.querySelectorAll('.open-register-modal').forEach(btn => {
+        btn.addEventListener('click', () => showModal(registerModal));
+    });
+
+    // Modal bağlamaq üçün X düymələri
+    document.querySelectorAll('.close-auth-modal').forEach(btn => {
+        btn.addEventListener('click', closeAuthModals);
+    });
+
+    // Arxa fona kliklədikdə bağlansın
+    [loginModal, registerModal].forEach(modal => {
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeAuthModals();
+            });
+        }
+    });
 
     const switchToRegisterBtn = document.getElementById('switchToRegisterBtn');
     if (switchToRegisterBtn) {
-        switchToRegisterBtn.addEventListener('click', () => showSection(registerSection));
+        switchToRegisterBtn.addEventListener('click', () => showModal(registerModal));
     }
 
     const switchToLoginBtn = document.getElementById('switchToLoginBtn');
     if (switchToLoginBtn) {
-        switchToLoginBtn.addEventListener('click', () => showSection(loginSection));
+        switchToLoginBtn.addEventListener('click', () => showModal(loginModal));
     }
 
     // --- GİRİŞ (LOGIN) ---
@@ -220,6 +243,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- DASHBOARD (İDARƏ PANELİ) ---
     const dashboardUserName = document.getElementById('dashboardUserName');
+    const navGuestView = document.getElementById('nav-guest-view');
+    const navUserView = document.getElementById('nav-user-view');
+    const footerGuestLinks = document.getElementById('footer-guest-links');
+
     const logoutBtn = document.getElementById('logoutBtn');
     const deleteAccountBtn = document.getElementById('deleteAccountBtn');
     const createRoomBtn = document.getElementById('createRoomBtn');
@@ -231,12 +258,17 @@ document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(user => {
         currentUser = user;
         if (user) {
-            showSection(dashboardSection);
+            closeAuthModals();
+            if (navUserView) { navUserView.classList.remove('hidden'); navUserView.classList.add('flex'); }
+            if (navGuestView) { navGuestView.classList.add('hidden'); navGuestView.classList.remove('flex'); }
+            if (footerGuestLinks) { footerGuestLinks.classList.add('hidden'); footerGuestLinks.classList.remove('flex'); }
             if (dashboardUserName) {
                 dashboardUserName.textContent = user.displayName || user.email.split('@')[0] || "İstifadəçi";
             }
         } else {
-            showSection(loginSection);
+            if (navUserView) { navUserView.classList.add('hidden'); navUserView.classList.remove('flex'); }
+            if (navGuestView) { navGuestView.classList.remove('hidden'); navGuestView.classList.add('flex'); }
+            if (footerGuestLinks) { footerGuestLinks.classList.remove('hidden'); footerGuestLinks.classList.add('flex'); }
         }
     });
 
