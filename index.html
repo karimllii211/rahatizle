@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Vebsayt</title>
+    <title>Video Otaqları</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Firebase SDK (compat versions) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
-    <!-- Modern Şrift -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body {
@@ -18,134 +17,109 @@
         }
     </style>
 </head>
-<body class="bg-white text-slate-900 antialiased selection:bg-blue-900 selection:text-white">
+<body class="bg-slate-950 text-slate-200 antialiased selection:bg-blue-600 selection:text-white min-h-screen flex flex-col">
 
-    <!-- Navbar Bölməsi -->
-    <header class="fixed w-full top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
+    <header class="fixed w-full top-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <!-- Logo -->
+            <div class="flex justify-center sm:justify-between items-center h-20">
                 <div class="flex-shrink-0 flex items-center">
-                    <a href="#" class="text-2xl font-bold tracking-tighter text-slate-900">
-                        Logo<span class="text-blue-900">.</span>
+                    <a href="#" class="text-2xl font-bold tracking-tighter text-white">
+                        Rave<span class="text-blue-500">.</span>
                     </a>
-                </div>
-
-                <!-- Desktop Menyu -->
-                <nav class="hidden md:flex space-x-10">
-                    <a href="#" class="text-sm font-medium text-slate-600 hover:text-blue-900 transition-colors duration-200">Ana Səhifə</a>
-                    <a href="#" class="text-sm font-medium text-slate-600 hover:text-blue-900 transition-colors duration-200">Xidmətlər</a>
-                    <a href="#" class="text-sm font-medium text-slate-600 hover:text-blue-900 transition-colors duration-200">Haqqımızda</a>
-                    <a href="#" class="text-sm font-medium text-slate-600 hover:text-blue-900 transition-colors duration-200">Əlaqə</a>
-                </nav>
-
-                <!-- İstifadəçi Düymələri (Boş) -->
-                <div class="hidden md:flex items-center gap-4">
-                </div>
-
-                <!-- Mobil Menyu Düyməsi -->
-                <div class="md:hidden flex items-center">
-                    <button type="button" class="text-slate-600 hover:text-blue-900 focus:outline-none transition-colors">
-                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                    </button>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- Qəhrəman (Hero) Bölməsi -->
-    <main class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-white min-h-screen flex items-center">
-        <!-- Dekorativ Arxa Plan Elementləri -->
-        <div class="absolute inset-0 -z-10 pointer-events-none">
-            <div class="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-blue-50/50 blur-3xl opacity-60"></div>
-            <div class="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-slate-50/80 blur-3xl opacity-60"></div>
+    <main class="flex-1 flex flex-col items-center justify-center pt-24 pb-12 px-4 relative w-full">
+        <!-- Dekorativ Arxa Plan -->
+        <div class="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
+            <div class="absolute top-1/4 right-1/4 w-96 h-96 rounded-full bg-blue-900/20 blur-3xl"></div>
+            <div class="absolute bottom-1/4 left-1/4 w-96 h-96 rounded-full bg-indigo-900/20 blur-3xl"></div>
         </div>
 
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
-            <div class="text-center max-w-4xl mx-auto">
-                <h1 class="text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 mb-8 leading-tight">
-                    Biznesinizi yeni <br class="hidden sm:block">
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-900 to-blue-700">yüksəkliklərə daşıyın.</span>
-                </h1>
-                
-                <p class="text-lg md:text-xl text-slate-500 mb-10 max-w-2xl mx-auto font-light leading-relaxed">
-                    Müasir, sürətli və etibarlı həllərimizlə rəqəmsal dünyada fərq yaradın. Minimalist dizayn və yüksək performans bir arada.
-                </p>
-                
-                <!-- Auth Paneli -->
-                <div id="authPanel" class="max-w-md mx-auto w-full bg-slate-900 rounded-3xl p-8 shadow-2xl border border-slate-800 mt-8 relative overflow-hidden hidden">
-                    <div class="absolute inset-0 bg-gradient-to-b from-blue-900/20 to-transparent pointer-events-none"></div>
-                    <h2 class="text-2xl font-bold text-white mb-6 text-center">Hesaba Giriş</h2>
-                    
-                    <form id="authForm" class="space-y-4 relative z-10" onsubmit="event.preventDefault();">
-                        <div>
-                            <input type="email" id="emailInput" placeholder="E-poçt ünvanı" class="w-full px-5 py-3.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
-                        </div>
-                        <div>
-                            <input type="password" id="passwordInput" placeholder="Şifrə" class="w-full px-5 py-3.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
-                        </div>
-                        <div class="flex justify-end">
-                            <button type="button" id="resetPasswordBtn" class="text-sm text-blue-400 hover:text-blue-300 transition-colors">Şifrəni unutmusan?</button>
-                        </div>
-                        <div class="flex flex-col gap-3 pt-2">
-                            <button type="button" id="loginBtn" class="w-full flex items-center justify-center px-8 py-3.5 border border-transparent text-base font-medium rounded-xl text-white bg-blue-600 hover:bg-blue-500 transition-all duration-300 shadow-lg shadow-blue-900/20">
-                                Daxil ol
-                            </button>
-                            <button type="button" id="registerBtn" class="w-full flex items-center justify-center px-8 py-3.5 border border-slate-700 text-base font-medium rounded-xl text-slate-300 bg-transparent hover:bg-slate-800 transition-all duration-300">
-                                Qeydiyyatdan keç
-                            </button>
-                        </div>
-                    </form>
-
-                    <div class="mt-6 flex items-center gap-4 relative z-10">
-                        <div class="flex-1 h-px bg-slate-800"></div>
-                        <span class="text-sm text-slate-500 font-medium">VƏ YA</span>
-                        <div class="flex-1 h-px bg-slate-800"></div>
+        <div class="w-full max-w-md mx-auto relative z-10">
+            
+            <!-- AUTH BÖLMƏSİ -->
+            <div id="auth-section" class="w-full bg-slate-900 rounded-3xl p-8 shadow-2xl border border-slate-800 hidden">
+                <h2 class="text-2xl font-bold text-white mb-6 text-center">Hesaba Giriş</h2>
+                <form id="authForm" class="space-y-4" onsubmit="event.preventDefault();">
+                    <div>
+                        <input type="email" id="emailInput" placeholder="E-poçt ünvanı" class="w-full px-5 py-3.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
                     </div>
-
-                    <div class="mt-6 relative z-10">
-                        <button id="googleLoginBtn" class="w-full flex items-center justify-center px-8 py-3.5 border border-slate-700 text-base font-medium rounded-xl text-slate-200 bg-slate-800 hover:bg-slate-700 transition-all duration-300 shadow-sm gap-3">
-                            <svg class="w-5 h-5" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.14 7.09-10.36 7.09-17.65z"/>
-                                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-                            </svg>
-                            Google ilə Daxil Ol
+                    <div>
+                        <input type="password" id="passwordInput" placeholder="Şifrə" class="w-full px-5 py-3.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="button" id="resetPasswordBtn" class="text-sm text-blue-400 hover:text-blue-300 transition-colors">Şifrəni unutmusan?</button>
+                    </div>
+                    <div class="flex flex-col gap-3 pt-2">
+                        <button type="button" id="loginBtn" class="w-full flex items-center justify-center px-8 py-3.5 border border-transparent text-base font-medium rounded-xl text-white bg-blue-600 hover:bg-blue-500 transition-all duration-300 shadow-lg shadow-blue-900/20">
+                            Daxil ol
+                        </button>
+                        <button type="button" id="registerBtn" class="w-full flex items-center justify-center px-8 py-3.5 border border-slate-700 text-base font-medium rounded-xl text-slate-300 bg-transparent hover:bg-slate-800 transition-all duration-300">
+                            Qeydiyyatdan keç
                         </button>
                     </div>
+                </form>
+
+                <div class="mt-6 flex items-center gap-4">
+                    <div class="flex-1 h-px bg-slate-800"></div>
+                    <span class="text-sm text-slate-500 font-medium">VƏ YA</span>
+                    <div class="flex-1 h-px bg-slate-800"></div>
                 </div>
 
-                <!-- İstifadəçi Profili və Otaq Paneli (İlkin olaraq gizlidir) -->
-                <div id="loggedInPanel" class="hidden flex-col items-center gap-8 mt-6">
-                    
-                    <!-- Profil Bölməsi -->
-                    <div class="flex items-center gap-4 bg-white/60 backdrop-blur-md p-2 pr-3 rounded-full border border-slate-200 shadow-sm">
-                        <img id="userAvatar" src="https://ui-avatars.com/api/?name=User&background=1e3a8a&color=fff" alt="Profil Şəkli" class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm">
-                        <div class="flex flex-col text-left mr-2 max-w-[120px] sm:max-w-xs overflow-hidden">
-                            <span id="userName" class="text-sm font-semibold text-slate-900 truncate">İstifadəçi</span>
-                        </div>
-                        <button id="logoutBtn" class="ml-2 px-4 py-2 bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 text-sm font-medium rounded-full transition-colors border border-transparent hover:border-red-100">
-                            Çıxış
-                        </button>
-                    </div>
-
-                    <!-- Otaq Paneli -->
-                    <div id="roomPanel" class="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
-                        <button id="createRoomBtn" class="inline-flex items-center justify-center px-8 py-3.5 border border-transparent text-base font-medium rounded-full text-white bg-blue-900 hover:bg-blue-950 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 w-full sm:w-auto">
-                            Otaq Yarat
-                        </button>
-                        <div class="flex w-full sm:w-auto shadow-lg hover:shadow-xl transition-all duration-300 rounded-full">
-                            <input type="text" id="roomCodeInput" placeholder="Otaq Kodu" class="px-5 py-3.5 border border-slate-200 text-base font-medium rounded-l-full text-slate-700 bg-white focus:outline-none focus:border-blue-900 focus:ring-1 focus:ring-blue-900 w-full sm:w-48">
-                            <button id="joinRoomBtn" class="inline-flex items-center justify-center px-6 py-3.5 border border-slate-800 text-base font-medium rounded-r-full text-white bg-slate-800 hover:bg-slate-900 transition-all duration-300 w-full sm:w-auto">
-                                Qoşul
-                            </button>
-                        </div>
-                    </div>
+                <div class="mt-6">
+                    <button id="googleLoginBtn" class="w-full flex items-center justify-center px-8 py-3.5 border border-slate-700 text-base font-medium rounded-xl text-slate-200 bg-slate-800 hover:bg-slate-700 transition-all duration-300 shadow-sm gap-3">
+                        <svg class="w-5 h-5" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.14 7.09-10.36 7.09-17.65z"/>
+                            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                        </svg>
+                        Google ilə Daxil Ol
+                    </button>
                 </div>
             </div>
+
+            <!-- DASHBOARD BÖLMƏSİ -->
+            <div id="dashboard-section" class="hidden w-full flex-col items-center space-y-8">
+                <!-- User Profile -->
+                <div class="flex items-center justify-between w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-lg">
+                    <div class="flex items-center gap-4">
+                        <img id="userAvatar" src="" alt="Profil" class="w-12 h-12 rounded-full object-cover border-2 border-slate-700">
+                        <div class="flex flex-col">
+                            <span class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Xoş gəldiniz</span>
+                            <span id="userName" class="text-base font-bold text-white truncate max-w-[150px]">İstifadəçi</span>
+                        </div>
+                    </div>
+                    <button id="logoutBtn" class="p-2 bg-slate-800 hover:bg-red-900/30 text-slate-300 hover:text-red-400 rounded-xl transition-all border border-transparent hover:border-red-900/50" title="Çıxış">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    </button>
+                </div>
+
+                <!-- Create Room -->
+                <button id="createRoomBtn" class="w-full py-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-3xl font-bold text-xl shadow-xl shadow-blue-900/20 transform hover:-translate-y-1 transition-all flex flex-col items-center justify-center gap-2 border border-blue-500/30">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Yeni Otaq Yarat
+                </button>
+
+                <!-- Divider -->
+                <div class="flex items-center gap-4 w-full px-4">
+                    <div class="flex-1 h-px bg-slate-800"></div>
+                    <span class="text-sm text-slate-500 font-medium">və ya</span>
+                    <div class="flex-1 h-px bg-slate-800"></div>
+                </div>
+
+                <!-- Join Room -->
+                <div class="w-full bg-slate-900 border border-slate-800 p-2 rounded-3xl flex shadow-lg">
+                    <input type="text" id="roomCodeInput" placeholder="Otaq Kodu (məs: RAVE9X)" class="flex-1 bg-transparent px-6 text-white placeholder-slate-500 focus:outline-none font-medium uppercase tracking-widest text-center">
+                    <button id="joinRoomBtn" class="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-2xl transition-all shadow-sm">
+                        Qoşul
+                    </button>
+                </div>
+            </div>
+
         </div>
     </main>
 
