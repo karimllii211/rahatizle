@@ -15,31 +15,107 @@ const auth = firebase.auth();
 const database = firebase.database();
 const provider = new firebase.auth.GoogleAuthProvider();
 
-// Google Redirect Nəticəsini yoxlama
-auth.getRedirectResult().then(result => {
-    if (result && result.user) {
-        console.log("Google ilə uğurla daxil olundu:", result.user.displayName);
-    }
-}).catch(error => {
-    alert("Google giriş xətası: " + error.message);
-});
-
 document.addEventListener('DOMContentLoaded', () => {
-    // Bölmələr
-    const authSection = document.getElementById('auth-section');
+    
+    // --- BÖLMƏLƏR (SECTIONS) ---
+    const loginSection = document.getElementById('login-section');
+    const registerSection = document.getElementById('register-section');
     const dashboardSection = document.getElementById('dashboard-section');
-    
-    // Auth Form Elements
-    const emailInput = document.getElementById('emailInput');
-    const passwordInput = document.getElementById('passwordInput');
+
+    // Mərkəzi Görünüş İdarəsi
+    const showSection = (sectionToShow) => {
+        if(loginSection) loginSection.classList.add('hidden');
+        if(registerSection) registerSection.classList.add('hidden');
+        if(dashboardSection) dashboardSection.classList.add('hidden');
+        
+        if (sectionToShow) sectionToShow.classList.remove('hidden');
+    };
+
+    // Bölmələr arası keçid düymələri
+    const switchToRegisterBtn = document.getElementById('switchToRegisterBtn');
+    if (switchToRegisterBtn) {
+        switchToRegisterBtn.addEventListener('click', () => showSection(registerSection));
+    }
+
+    const switchToLoginBtn = document.getElementById('switchToLoginBtn');
+    if (switchToLoginBtn) {
+        switchToLoginBtn.addEventListener('click', () => showSection(loginSection));
+    }
+
+    // --- GİRİŞ (LOGIN) ---
+    const loginEmail = document.getElementById('loginEmail');
+    const loginPassword = document.getElementById('loginPassword');
     const loginBtn = document.getElementById('loginBtn');
-    const registerBtn = document.getElementById('registerBtn');
-    const resetPasswordBtn = document.getElementById('resetPasswordBtn');
     const googleLoginBtn = document.getElementById('googleLoginBtn');
-    
-    // Dashboard Elements
-    const userName = document.getElementById('userName');
-    const userAvatar = document.getElementById('userAvatar');
+
+    if (loginBtn) {
+        loginBtn.addEventListener('click', () => {
+            const email = loginEmail.value.trim();
+            const password = loginPassword.value.trim();
+            if (!email || !password) return alert("E-poçt və şifrəni daxil edin.");
+            
+            auth.signInWithEmailAndPassword(email, password)
+                .catch(err => alert("Giriş xətası: " + err.message));
+        });
+    }
+
+    if (googleLoginBtn) {
+        googleLoginBtn.addEventListener('click', () => {
+            // Döngü xətasını həll etmək üçün signInWithPopup istifadə edirik
+            auth.signInWithPopup(provider).catch(err => {
+                alert("Google giriş xətası: " + err.message);
+            });
+        });
+    }
+
+    // --- QEYDİYYAT (REGISTER) ---
+    const regFirstName = document.getElementById('regFirstName');
+    const regLastName = document.getElementById('regLastName');
+    const regEmail = document.getElementById('regEmail');
+    const regPassword = document.getElementById('regPassword');
+    const regPasswordConfirm = document.getElementById('regPasswordConfirm');
+    const completeRegisterBtn = document.getElementById('completeRegisterBtn');
+
+    if (completeRegisterBtn) {
+        completeRegisterBtn.addEventListener('click', () => {
+            const fname = regFirstName.value.trim();
+            const lname = regLastName.value.trim();
+            const email = regEmail.value.trim();
+            const pwd = regPassword.value.trim();
+            const pwdConf = regPasswordConfirm.value.trim();
+
+            if (!fname || !lname || !email || !pwd || !pwdConf) {
+                return alert("Zəhmət olmasa bütün xanaları doldurun!");
+            }
+
+            if (pwd !== pwdConf) {
+                return alert("Şifrələr eyni deyil! Zəhmət olmasa düzgün daxil edin.");
+            }
+
+            if (pwd.length < 6) {
+                return alert("Şifrə ən azı 6 simvol olmalıdır!");
+            }
+
+            auth.createUserWithEmailAndPassword(email, pwd)
+                .then(userCredential => {
+                    const fullName = fname + " " + lname;
+                    // Dərhal profili yeniləyirik
+                    return userCredential.user.updateProfile({
+                        displayName: fullName
+                    }).then(() => {
+                        // Yeniləmədən sonra UI-da dərhal əks olunması üçün
+                        const dashboardUserName = document.getElementById('dashboardUserName');
+                        if (dashboardUserName) {
+                            dashboardUserName.textContent = fullName;
+                        }
+                    });
+                })
+                .catch(err => alert("Qeydiyyat xətası: " + err.message));
+        });
+    }
+
+    // --- DASHBOARD (İDARƏ PANELİ) ---
+    const dashboardUserName = document.getElementById('dashboardUserName');
     const logoutBtn = document.getElementById('logoutBtn');
     const createRoomBtn = document.getElementById('createRoomBtn');
     const joinRoomBtn = document.getElementById('joinRoomBtn');
@@ -51,75 +127,17 @@ document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(user => {
         currentUser = user;
         if (user) {
-            // Daxil olubsa - Auth-u gizlət, Dashboard-u göstər
-            if (authSection) {
-                authSection.classList.add('hidden');
-            }
-            if (dashboardSection) {
-                dashboardSection.classList.remove('hidden');
-                dashboardSection.classList.add('flex');
-            }
+            // İstifadəçi var - Birbaşa Dashboard göstər
+            showSection(dashboardSection);
             
-            // Profil məlumatlarını yenilə
-            if (userName) {
-                userName.textContent = user.displayName || user.email.split('@')[0] || "İstifadəçi";
-            }
-            if (userAvatar) {
-                userAvatar.src = user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName || user.email}&background=1e3a8a&color=fff`;
+            if (dashboardUserName) {
+                dashboardUserName.textContent = user.displayName || user.email.split('@')[0] || "İstifadəçi";
             }
         } else {
-            // Çıxış edibsə - Dashboard-u gizlət, Auth-u göstər
-            if (dashboardSection) {
-                dashboardSection.classList.add('hidden');
-                dashboardSection.classList.remove('flex');
-            }
-            if (authSection) {
-                authSection.classList.remove('hidden');
-            }
+            // İstifadəçi yoxdur - Login göstər
+            showSection(loginSection);
         }
     });
-
-    const getCredentials = () => {
-        const email = emailInput ? emailInput.value.trim() : '';
-        const password = passwordInput ? passwordInput.value.trim() : '';
-        return { email, password };
-    };
-
-    if (loginBtn) {
-        loginBtn.addEventListener('click', () => {
-            const { email, password } = getCredentials();
-            if (!email || !password) return alert("E-poçt və şifrəni daxil edin.");
-            auth.signInWithEmailAndPassword(email, password)
-                .catch(err => alert("Giriş xətası: " + err.message));
-        });
-    }
-
-    if (registerBtn) {
-        registerBtn.addEventListener('click', () => {
-            const { email, password } = getCredentials();
-            if (!email || !password) return alert("E-poçt və şifrəni daxil edin.");
-            if (password.length < 6) return alert("Şifrə ən azı 6 simvoldan ibarət olmalıdır!");
-            
-            auth.createUserWithEmailAndPassword(email, password)
-                .catch(err => alert("Qeydiyyat xətası: " + err.message));
-        });
-    }
-
-    if (resetPasswordBtn) {
-        resetPasswordBtn.addEventListener('click', () => {
-            const email = emailInput ? emailInput.value.trim() : '';
-            if (!email) return alert("Şifrəni sıfırlamaq üçün əvvəlcə e-poçt ünvanınızı yazın.");
-            auth.sendPasswordResetEmail(email)
-                .then(() => alert("Sıfırlama linki göndərildi!"))
-                .catch(err => alert("Sıfırlama xətası: " + err.message));
-        });
-    }
-
-    if (googleLoginBtn) {
-        googleLoginBtn.addEventListener('click', () => {
-            auth.signInWithRedirect(provider);
-        });
-    }
 
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
@@ -134,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < 6; i++) {
             code += chars.charAt(Math.floor(Math.random() * chars.length));
         }
-        return code; // məs: RAVE9X
+        return code;
     };
 
     if (createRoomBtn) {
@@ -146,12 +164,12 @@ document.addEventListener('DOMContentLoaded', () => {
             database.ref('rooms/' + roomCode + '/creator').set({
                 uid: currentUser.uid,
                 name: currentUser.displayName || currentUser.email.split('@')[0],
-                photoURL: currentUser.photoURL || `https://ui-avatars.com/api/?name=${currentUser.email}&background=1e3a8a&color=fff`,
+                photoURL: currentUser.photoURL || `https://ui-avatars.com/api/?name=${currentUser.email}&background=dc2626&color=fff`,
                 createdAt: firebase.database.ServerValue.TIMESTAMP
             }).then(() => {
                 window.location.href = `room.html?id=${roomCode}`;
             }).catch(error => {
-                alert("Xəta: " + error.message);
+                alert("Otaq yaradılarkən xəta: " + error.message);
             });
         });
     }
