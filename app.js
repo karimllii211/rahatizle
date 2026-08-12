@@ -109,13 +109,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginModal = document.getElementById('login-modal');
     const registerModal = document.getElementById('register-modal');
     const platformModal = document.getElementById('platform-modal');
-    const contactModal = document.getElementById('contact-modal');
 
     const showModal = (modal) => {
         if (loginModal) { loginModal.classList.add('hidden'); loginModal.classList.remove('flex'); }
         if (registerModal) { registerModal.classList.add('hidden'); registerModal.classList.remove('flex'); }
         if (platformModal) { platformModal.classList.add('hidden'); platformModal.classList.remove('flex'); }
-        if (contactModal) { contactModal.classList.add('hidden'); contactModal.classList.remove('flex'); }
         if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
     };
     
@@ -133,21 +131,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Modal bağlamaq üçün X düymələri
-    document.querySelectorAll('.close-auth-modal, .close-platform-modal, .close-contact-modal').forEach(btn => {
+    document.querySelectorAll('.close-auth-modal, .close-platform-modal').forEach(btn => {
         btn.addEventListener('click', closeAllModals);
     });
 
     // Arxa fona kliklədikdə bağlansın
-    [loginModal, registerModal, platformModal, contactModal].forEach(modal => {
+    [loginModal, registerModal, platformModal].forEach(modal => {
         if (modal) {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) closeAllModals();
             });
         }
-    });
-
-    document.querySelectorAll('.open-contact-modal').forEach(btn => {
-        btn.addEventListener('click', () => showModal(contactModal));
     });
 
     const switchToRegisterBtn = document.getElementById('switchToRegisterBtn');
@@ -249,6 +243,59 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- AKTİV OTAQLAR DROPDOWN MƏNTİQİ ---
+    const userDropdownBtn = document.getElementById('userDropdownBtn');
+    const userDropdownMenu = document.getElementById('userDropdownMenu');
+    const activeRoomsList = document.getElementById('activeRoomsList');
+
+    if (userDropdownBtn && userDropdownMenu) {
+        userDropdownBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userDropdownMenu.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!userDropdownBtn.contains(e.target) && !userDropdownMenu.contains(e.target)) {
+                userDropdownMenu.classList.add('hidden');
+            }
+        });
+    }
+
+    const renderActiveRooms = (rooms) => {
+        if (!activeRoomsList) return;
+        
+        activeRoomsList.innerHTML = '';
+        
+        if (rooms.length === 0) {
+            activeRoomsList.innerHTML = '<div class="text-xs text-gray-400 py-2">Otaq tapılmadı.</div>';
+            return;
+        }
+
+        rooms.forEach(room => {
+            const item = document.createElement('div');
+            item.className = 'flex items-center justify-between bg-white/5 border border-white/10 p-2 rounded-lg';
+            item.innerHTML = `
+                <div class="flex flex-col">
+                    <span class="text-xs font-bold text-white uppercase tracking-wider">${room.id}</span>
+                    <span class="text-[10px] text-gray-400 capitalize">${room.platform || 'Naməlum'}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="window.location.href='room.html?id=${room.id}'" class="px-3 py-1 bg-white/10 hover:bg-[#FF014C] text-white text-[10px] font-bold rounded transition-colors">Qoşul</button>
+                    <button onclick="deleteRoom('${room.id}')" class="px-2 py-1 bg-red-900/30 hover:bg-red-700 text-white text-[10px] font-bold rounded border border-red-500/30 transition-colors">Sil</button>
+                </div>
+            `;
+            activeRoomsList.appendChild(item);
+        });
+    };
+
+    window.deleteRoom = (roomId) => {
+        if (confirm("Otağı silmək istədiyinizə əminsiniz?")) {
+            database.ref('rooms/' + roomId).remove()
+                .then(() => showToast("Otaq silindi."))
+                .catch(err => showToast(getErrorMessage(err.code)));
+        }
+    };
+
     // --- DASHBOARD (İDARƏ PANELİ) ---
     const dashboardUserName = document.getElementById('dashboardUserName');
     const navGuestView = document.getElementById('nav-guest-view');
@@ -262,6 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const roomCodeInput = document.getElementById('roomCodeInput');
 
     let currentUser = null;
+    let userRoomsRef = null;
 
     auth.onAuthStateChanged(user => {
         currentUser = user;
@@ -273,10 +321,35 @@ document.addEventListener('DOMContentLoaded', () => {
             if (dashboardUserName) {
                 dashboardUserName.textContent = user.displayName || user.email.split('@')[0] || "İstifadəçi";
             }
+
+            // Otaqları yüklə
+            userRoomsRef = database.ref('rooms');
+            userRoomsRef.on('value', snapshot => {
+                const data = snapshot.val();
+                const myRooms = [];
+                if (data) {
+                    Object.keys(data).forEach(roomId => {
+                        const room = data[roomId];
+                        if (room.creator && room.creator.uid === user.uid) {
+                            myRooms.push({
+                                id: roomId,
+                                platform: room.creator.platform
+                            });
+                        }
+                    });
+                }
+                renderActiveRooms(myRooms);
+            });
+
         } else {
             if (navUserView) { navUserView.classList.add('hidden'); navUserView.classList.remove('flex'); }
             if (navGuestView) { navGuestView.classList.remove('hidden'); navGuestView.classList.add('flex'); }
             if (footerGuestLinks) { footerGuestLinks.classList.remove('hidden'); footerGuestLinks.classList.add('flex'); }
+            
+            if (userRoomsRef) {
+                userRoomsRef.off('value');
+                userRoomsRef = null;
+            }
         }
     });
 
