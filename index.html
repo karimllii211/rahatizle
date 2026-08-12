@@ -73,17 +73,21 @@
                     Müasir, sürətli və etibarlı həllərimizlə rəqəmsal dünyada fərq yaradın. Minimalist dizayn və yüksək performans bir arada.
                 </p>
                 
-                <div class="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6">
-                    <a href="#" class="inline-flex items-center justify-center px-8 py-3.5 border border-transparent text-base font-medium rounded-full text-white bg-blue-900 hover:bg-blue-950 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5">
-                        İndi Qoşul
-                    </a>
-                    <a href="#" class="inline-flex items-center justify-center px-8 py-3.5 border border-slate-200 text-base font-medium rounded-full text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all duration-300">
-                        Daha Ətraflı
-                    </a>
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
+                    <button id="createRoomBtn" class="inline-flex items-center justify-center px-8 py-3.5 border border-transparent text-base font-medium rounded-full text-white bg-blue-900 hover:bg-blue-950 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 w-full sm:w-auto">
+                        Otaq Yarat
+                    </button>
+                    <div class="flex w-full sm:w-auto shadow-lg hover:shadow-xl transition-all duration-300 rounded-full">
+                        <input type="text" id="roomCodeInput" placeholder="Otaq Kodu" class="px-5 py-3.5 border border-slate-200 text-base font-medium rounded-l-full text-slate-700 bg-white focus:outline-none focus:border-blue-900 focus:ring-1 focus:ring-blue-900 w-full sm:w-48">
+                        <button id="joinRoomBtn" class="inline-flex items-center justify-center px-6 py-3.5 border border-slate-800 text-base font-medium rounded-r-full text-white bg-slate-800 hover:bg-slate-900 transition-all duration-300 w-full sm:w-auto">
+                            Qoşul
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </main>
 
+    <script src="app.js"></script>
 </body>
 </html>
