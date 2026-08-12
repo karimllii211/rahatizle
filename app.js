@@ -62,9 +62,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (googleLoginBtn) {
         googleLoginBtn.addEventListener('click', () => {
             // Döngü xətasını həll etmək üçün signInWithPopup istifadə edirik
-            auth.signInWithPopup(provider).catch(err => {
-                alert("Google giriş xətası: " + err.message);
-            });
+            auth.signInWithPopup(provider)
+                .then(result => {
+                    const user = result.user;
+                    // İstifadəçi məlumatlarını Realtime Database-ə yaz (və ya yenilə)
+                    database.ref('users/' + user.uid).update({
+                        uid: user.uid,
+                        email: user.email,
+                        displayName: user.displayName || '',
+                        lastLogin: firebase.database.ServerValue.TIMESTAMP
+                    });
+                })
+                .catch(err => {
+                    alert("Google giriş xətası: " + err.message);
+                });
         });
     }
 
@@ -99,8 +110,9 @@ document.addEventListener('DOMContentLoaded', () => {
             auth.createUserWithEmailAndPassword(email, pwd)
                 .then(userCredential => {
                     const fullName = fname + " " + lname;
+                    const user = userCredential.user;
                     // Dərhal profili yeniləyirik
-                    return userCredential.user.updateProfile({
+                    return user.updateProfile({
                         displayName: fullName
                     }).then(() => {
                         // Yeniləmədən sonra UI-da dərhal əks olunması üçün
@@ -108,6 +120,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (dashboardUserName) {
                             dashboardUserName.textContent = fullName;
                         }
+                        
+                        // İstifadəçi məlumatlarını Realtime Database-ə yaz
+                        database.ref('users/' + user.uid).update({
+                            uid: user.uid,
+                            email: user.email,
+                            displayName: fullName,
+                            lastLogin: firebase.database.ServerValue.TIMESTAMP
+                        });
                     });
                 })
                 .catch(err => alert("Qeydiyyat xətası: " + err.message));
