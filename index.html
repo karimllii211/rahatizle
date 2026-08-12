@@ -9,6 +9,7 @@
     <!-- Firebase SDK (compat versions) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
     <!-- Modern Şrift -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -38,11 +39,8 @@
                     <a href="#" class="text-sm font-medium text-slate-600 hover:text-blue-900 transition-colors duration-200">Əlaqə</a>
                 </nav>
 
-                <!-- İstifadəçi Düymələri -->
+                <!-- İstifadəçi Düymələri (Boş) -->
                 <div class="hidden md:flex items-center gap-4">
-                    <button id="logoutBtn" class="hidden inline-flex items-center justify-center px-6 py-2.5 border border-slate-200 text-sm font-medium rounded-full text-slate-700 bg-white hover:bg-slate-50 transition-all duration-200 shadow-sm hover:shadow-md">
-                        Çıxış (Logout)
-                    </button>
                 </div>
 
                 <!-- Mobil Menyu Düyməsi -->
@@ -120,16 +118,31 @@
                     </div>
                 </div>
 
-                <!-- Otaq Paneli (İlkin olaraq gizlidir) -->
-                <div id="roomPanel" class="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 mt-6 hidden">
-                    <button id="createRoomBtn" class="inline-flex items-center justify-center px-8 py-3.5 border border-transparent text-base font-medium rounded-full text-white bg-blue-900 hover:bg-blue-950 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 w-full sm:w-auto">
-                        Otaq Yarat
-                    </button>
-                    <div class="flex w-full sm:w-auto shadow-lg hover:shadow-xl transition-all duration-300 rounded-full">
-                        <input type="text" id="roomCodeInput" placeholder="Otaq Kodu" class="px-5 py-3.5 border border-slate-200 text-base font-medium rounded-l-full text-slate-700 bg-white focus:outline-none focus:border-blue-900 focus:ring-1 focus:ring-blue-900 w-full sm:w-48">
-                        <button id="joinRoomBtn" class="inline-flex items-center justify-center px-6 py-3.5 border border-slate-800 text-base font-medium rounded-r-full text-white bg-slate-800 hover:bg-slate-900 transition-all duration-300 w-full sm:w-auto">
-                            Qoşul
+                <!-- İstifadəçi Profili və Otaq Paneli (İlkin olaraq gizlidir) -->
+                <div id="loggedInPanel" class="hidden flex-col items-center gap-8 mt-6">
+                    
+                    <!-- Profil Bölməsi -->
+                    <div class="flex items-center gap-4 bg-white/60 backdrop-blur-md p-2 pr-3 rounded-full border border-slate-200 shadow-sm">
+                        <img id="userAvatar" src="https://ui-avatars.com/api/?name=User&background=1e3a8a&color=fff" alt="Profil Şəkli" class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm">
+                        <div class="flex flex-col text-left mr-2 max-w-[120px] sm:max-w-xs overflow-hidden">
+                            <span id="userName" class="text-sm font-semibold text-slate-900 truncate">İstifadəçi</span>
+                        </div>
+                        <button id="logoutBtn" class="ml-2 px-4 py-2 bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 text-sm font-medium rounded-full transition-colors border border-transparent hover:border-red-100">
+                            Çıxış
                         </button>
+                    </div>
+
+                    <!-- Otaq Paneli -->
+                    <div id="roomPanel" class="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
+                        <button id="createRoomBtn" class="inline-flex items-center justify-center px-8 py-3.5 border border-transparent text-base font-medium rounded-full text-white bg-blue-900 hover:bg-blue-950 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 w-full sm:w-auto">
+                            Otaq Yarat
+                        </button>
+                        <div class="flex w-full sm:w-auto shadow-lg hover:shadow-xl transition-all duration-300 rounded-full">
+                            <input type="text" id="roomCodeInput" placeholder="Otaq Kodu" class="px-5 py-3.5 border border-slate-200 text-base font-medium rounded-l-full text-slate-700 bg-white focus:outline-none focus:border-blue-900 focus:ring-1 focus:ring-blue-900 w-full sm:w-48">
+                            <button id="joinRoomBtn" class="inline-flex items-center justify-center px-6 py-3.5 border border-slate-800 text-base font-medium rounded-r-full text-white bg-slate-800 hover:bg-slate-900 transition-all duration-300 w-full sm:w-auto">
+                                Qoşul
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -12,12 +12,22 @@ const firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
+const database = firebase.database();
 const provider = new firebase.auth.GoogleAuthProvider();
+
+// Google Redirect Nəticəsini yoxlama
+auth.getRedirectResult().then(result => {
+    if (result.user) {
+        console.log("Google ilə uğurla daxil olundu:", result.user.displayName);
+    }
+}).catch(error => {
+    alert("Google giriş xətası: " + error.message);
+});
 
 document.addEventListener('DOMContentLoaded', () => {
     // UI Panels
     const authPanel = document.getElementById('authPanel');
-    const roomPanel = document.getElementById('roomPanel');
+    const loggedInPanel = document.getElementById('loggedInPanel');
     
     // Auth Form Elements
     const emailInput = document.getElementById('emailInput');
@@ -28,23 +38,43 @@ document.addEventListener('DOMContentLoaded', () => {
     const googleLoginBtn = document.getElementById('googleLoginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
     
+    // Profile Elements
+    const userName = document.getElementById('userName');
+    const userAvatar = document.getElementById('userAvatar');
+
     // Room Form Elements
     const createRoomBtn = document.getElementById('createRoomBtn');
     const joinRoomBtn = document.getElementById('joinRoomBtn');
     const roomCodeInput = document.getElementById('roomCodeInput');
 
+    let currentUser = null;
+
     // Mərkəzi UI Nəzarəti (State Management)
     auth.onAuthStateChanged(user => {
+        currentUser = user;
         if (user) {
             // İstifadəçi daxil olub
             if (authPanel) authPanel.classList.add('hidden');
-            if (roomPanel) roomPanel.classList.remove('hidden');
-            if (logoutBtn) logoutBtn.classList.remove('hidden');
+            if (loggedInPanel) {
+                loggedInPanel.classList.remove('hidden');
+                loggedInPanel.classList.add('flex');
+            }
+            
+            // Profil məlumatlarını yenilə
+            if (userName) {
+                userName.textContent = user.displayName || user.email.split('@')[0] || "İstifadəçi";
+            }
+            if (userAvatar) {
+                userAvatar.src = user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName || user.email}&background=1e3a8a&color=fff`;
+            }
+
         } else {
             // İstifadəçi çıxış edib / Daxil olmayıb
             if (authPanel) authPanel.classList.remove('hidden');
-            if (roomPanel) roomPanel.classList.add('hidden');
-            if (logoutBtn) logoutBtn.classList.add('hidden');
+            if (loggedInPanel) {
+                loggedInPanel.classList.add('hidden');
+                loggedInPanel.classList.remove('flex');
+            }
         }
     });
 
@@ -77,6 +107,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert("Zəhmət olmasa e-poçt və şifrəni daxil edin.");
                 return;
             }
+            
+            // Şifrənin uzunluğunu yoxla
+            if (password.length < 6) {
+                alert("Şifrə ən azı 6 simvoldan ibarət olmalıdır!");
+                return; // Firebase-ə sorğu göndərmə
+            }
+
             auth.createUserWithEmailAndPassword(email, password)
                 .catch(error => {
                     alert("Qeydiyyat xətası: " + error.message);
@@ -102,12 +139,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 4. Google ilə Giriş
+    // 4. Google ilə Giriş (Redirect)
     if (googleLoginBtn) {
         googleLoginBtn.addEventListener('click', () => {
-            auth.signInWithPopup(provider).catch(error => {
-                alert("Google giriş xətası: " + error.message);
-            });
+            auth.signInWithRedirect(provider);
         });
     }
 
@@ -120,16 +155,33 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Otaq Məntiqi ---
+    // --- Otaq Məntiqi və Database ---
 
     if (createRoomBtn) {
         createRoomBtn.addEventListener('click', () => {
+            if (!currentUser) {
+                alert("Əvvəlcə hesaba daxil olmalısınız!");
+                return;
+            }
+
             const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
             let roomCode = '';
             for (let i = 0; i < 6; i++) {
                 roomCode += characters.charAt(Math.floor(Math.random() * characters.length));
             }
-            window.location.href = `room.html?id=${roomCode}`;
+            
+            // Realtime Database-ə məlumatı yaz
+            database.ref('rooms/' + roomCode + '/creator').set({
+                uid: currentUser.uid,
+                name: currentUser.displayName || currentUser.email.split('@')[0],
+                photoURL: currentUser.photoURL || `https://ui-avatars.com/api/?name=${currentUser.email}&background=1e3a8a&color=fff`,
+                createdAt: firebase.database.ServerValue.TIMESTAMP
+            }).then(() => {
+                // Uğurla yazıldıqdan sonra yönləndir
+                window.location.href = `room.html?id=${roomCode}`;
+            }).catch(error => {
+                alert("Otaq yaradılarkən xəta baş verdi: " + error.message);
+            });
         });
     }
 
