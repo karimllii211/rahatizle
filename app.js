@@ -72,7 +72,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         email: user.email,
                         displayName: user.displayName || '',
                         lastLogin: firebase.database.ServerValue.TIMESTAMP
-                    });
+                    }).then(() => console.log("Məlumat bazaya uğurla yazıldı!"))
+                    .catch(error => console.error("Baza yazılma xətası:", error));
                 })
                 .catch(err => {
                     alert("Google giriş xətası: " + err.message);
@@ -128,7 +129,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             email: user.email,
                             displayName: fullName,
                             lastLogin: firebase.database.ServerValue.TIMESTAMP
-                        });
+                        }).then(() => console.log("Məlumat bazaya uğurla yazıldı!"))
+                        .catch(error => console.error("Baza yazılma xətası:", error));
                     });
                 })
                 .catch(err => alert("Qeydiyyat xətası: " + err.message));
