@@ -6,6 +6,9 @@
     <title>Video Otağı</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDK (compat versions) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body {
@@ -13,7 +16,7 @@
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-200 antialiased h-screen flex overflow-hidden">
+<body class="bg-slate-950 text-slate-200 antialiased h-screen flex overflow-hidden opacity-0 transition-opacity duration-300">
     <!-- Sol tərəf (Video Player) - 70% -->
     <div class="w-full lg:w-[70%] h-full p-4 flex flex-col">
         <header class="mb-4 flex items-center justify-between">
