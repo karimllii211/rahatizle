@@ -18,12 +18,99 @@ const provider = new firebase.auth.GoogleAuthProvider();
 
 document.addEventListener('DOMContentLoaded', () => {
     
+    // --- BİLDİRİŞ (TOAST) VƏ TƏSDİQ (CONFIRM) MƏNTİQİ ---
+    const customToast = document.getElementById('custom-toast');
+    const toastMessage = document.getElementById('toast-message');
+    const toastCloseBtn = document.getElementById('toast-close-btn');
+
+    let toastTimeout;
+    const showToast = (message) => {
+        if (!customToast || !toastMessage) return;
+        toastMessage.textContent = message;
+        customToast.classList.remove('hidden');
+        customToast.classList.add('flex');
+        
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+            closeToast();
+        }, 3000);
+    };
+
+    const closeToast = () => {
+        if (customToast) {
+            customToast.classList.add('hidden');
+            customToast.classList.remove('flex');
+        }
+    };
+
+    if (toastCloseBtn) {
+        toastCloseBtn.addEventListener('click', closeToast);
+    }
+
+    const customConfirm = document.getElementById('custom-confirm');
+    const confirmMessage = document.getElementById('confirm-message');
+    const confirmYesBtn = document.getElementById('confirm-yes-btn');
+    const confirmNoBtn = document.getElementById('confirm-no-btn');
+
+    const showConfirmModal = (message) => {
+        return new Promise((resolve) => {
+            if (!customConfirm || !confirmMessage) {
+                // Əgər modal HTML-də yoxdursa standart confirm işləsin
+                resolve(confirm(message));
+                return;
+            }
+            confirmMessage.textContent = message;
+            customConfirm.classList.remove('hidden');
+            customConfirm.classList.add('flex');
+
+            const handleYes = () => {
+                cleanup();
+                resolve(true);
+            };
+
+            const handleNo = () => {
+                cleanup();
+                resolve(false);
+            };
+
+            const cleanup = () => {
+                customConfirm.classList.add('hidden');
+                customConfirm.classList.remove('flex');
+                confirmYesBtn.removeEventListener('click', handleYes);
+                confirmNoBtn.removeEventListener('click', handleNo);
+            };
+
+            confirmYesBtn.addEventListener('click', handleYes);
+            confirmNoBtn.addEventListener('click', handleNo);
+        });
+    };
+
+    // --- FIREBASE XƏTA TƏRCÜMƏSİ ---
+    const getErrorMessage = (errorCode) => {
+        switch (errorCode) {
+            case 'auth/invalid-credential':
+            case 'auth/user-not-found':
+            case 'auth/wrong-password':
+            case 'auth/invalid-email':
+                return 'E-poçt və ya şifrə yalnışdır.';
+            case 'auth/email-already-in-use':
+                return 'Bu e-poçt hesabı artıq mövcuddur.';
+            case 'auth/weak-password':
+                return 'Şifrə ən azı 6 simvol olmalıdır.';
+            case 'auth/requires-recent-login':
+                return 'Təhlükəsizlik məqsədilə hesabınızı silmək üçün zəhmət olmasa hesabdan çıxış edib yenidən daxil olun.';
+            case 'auth/popup-closed-by-user':
+                return 'Giriş pəncərəsi bağlandı.';
+            default:
+                return 'Bilinməyən bir xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.';
+        }
+    };
+
     // --- BÖLMƏLƏR (SECTIONS) ---
     const loginSection = document.getElementById('login-section');
     const registerSection = document.getElementById('register-section');
     const dashboardSection = document.getElementById('dashboard-section');
 
-    // Mərkəzi Görünüş İdarəsi
     const showSection = (sectionToShow) => {
         if(loginSection) loginSection.classList.add('hidden');
         if(registerSection) registerSection.classList.add('hidden');
@@ -32,7 +119,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (sectionToShow) sectionToShow.classList.remove('hidden');
     };
 
-    // Bölmələr arası keçid düymələri
     const switchToRegisterBtn = document.getElementById('switchToRegisterBtn');
     if (switchToRegisterBtn) {
         switchToRegisterBtn.addEventListener('click', () => showSection(registerSection));
@@ -53,20 +139,18 @@ document.addEventListener('DOMContentLoaded', () => {
         loginBtn.addEventListener('click', () => {
             const email = loginEmail.value.trim();
             const password = loginPassword.value.trim();
-            if (!email || !password) return alert("E-poçt və şifrəni daxil edin.");
+            if (!email || !password) return showToast("E-poçt və şifrəni daxil edin.");
             
             auth.signInWithEmailAndPassword(email, password)
-                .catch(err => alert("Giriş xətası: " + err.message));
+                .catch(err => showToast(getErrorMessage(err.code)));
         });
     }
 
     if (googleLoginBtn) {
         googleLoginBtn.addEventListener('click', () => {
-            // Döngü xətasını həll etmək üçün signInWithPopup istifadə edirik
             auth.signInWithPopup(provider)
                 .then(result => {
                     const user = result.user;
-                    // İstifadəçi məlumatlarını Realtime Database-ə yaz (və ya yenilə)
                     database.ref('users/' + user.uid).update({
                         uid: user.uid,
                         email: user.email,
@@ -76,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     .catch(error => console.error("Baza yazılma xətası:", error));
                 })
                 .catch(err => {
-                    alert("Google giriş xətası: " + err.message);
+                    showToast(getErrorMessage(err.code));
                 });
         });
     }
@@ -98,32 +182,29 @@ document.addEventListener('DOMContentLoaded', () => {
             const pwdConf = regPasswordConfirm.value.trim();
 
             if (!fname || !lname || !email || !pwd || !pwdConf) {
-                return alert("Zəhmət olmasa bütün xanaları doldurun!");
+                return showToast("Zəhmət olmasa bütün xanaları doldurun!");
             }
 
             if (pwd !== pwdConf) {
-                return alert("Şifrələr eyni deyil! Zəhmət olmasa düzgün daxil edin.");
+                return showToast("Şifrələr eyni deyil! Zəhmət olmasa düzgün daxil edin.");
             }
 
             if (pwd.length < 6) {
-                return alert("Şifrə ən azı 6 simvol olmalıdır!");
+                return showToast("Şifrə ən azı 6 simvol olmalıdır!");
             }
 
             auth.createUserWithEmailAndPassword(email, pwd)
                 .then(userCredential => {
                     const fullName = fname + " " + lname;
                     const user = userCredential.user;
-                    // Dərhal profili yeniləyirik
                     return user.updateProfile({
                         displayName: fullName
                     }).then(() => {
-                        // Yeniləmədən sonra UI-da dərhal əks olunması üçün
                         const dashboardUserName = document.getElementById('dashboardUserName');
                         if (dashboardUserName) {
                             dashboardUserName.textContent = fullName;
                         }
                         
-                        // İstifadəçi məlumatlarını Realtime Database-ə yaz
                         database.ref('users/' + user.uid).update({
                             uid: user.uid,
                             email: user.email,
@@ -133,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         .catch(error => console.error("Baza yazılma xətası:", error));
                     });
                 })
-                .catch(err => alert("Qeydiyyat xətası: " + err.message));
+                .catch(err => showToast(getErrorMessage(err.code)));
         });
     }
 
@@ -147,51 +228,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentUser = null;
 
-    // STATE MANAGEMENT (Görünüş Nəzarəti)
     auth.onAuthStateChanged(user => {
         currentUser = user;
         if (user) {
-            // İstifadəçi var - Birbaşa Dashboard göstər
             showSection(dashboardSection);
-            
             if (dashboardUserName) {
                 dashboardUserName.textContent = user.displayName || user.email.split('@')[0] || "İstifadəçi";
             }
         } else {
-            // İstifadəçi yoxdur - Login göstər
             showSection(loginSection);
         }
     });
 
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
-            auth.signOut().catch(err => alert("Çıxış xətası: " + err.message));
+            auth.signOut().catch(err => showToast(getErrorMessage(err.code)));
         });
     }
 
     // --- HESABI SİL LOGIC ---
     if (deleteAccountBtn) {
-        deleteAccountBtn.addEventListener('click', () => {
+        deleteAccountBtn.addEventListener('click', async () => {
             if (!currentUser) return;
             
-            const confirmDelete = confirm("Hesabınızı və bütün məlumatlarınızı birdəfəlik silmək istədiyinizə əminsiniz?");
+            const confirmDelete = await showConfirmModal("Hesabınızı və bütün məlumatlarınızı birdəfəlik silmək istədiyinizə əminsiniz?");
             if (confirmDelete) {
-                // Əvvəlcə Realtime Database-dən istifadəçinin məlumatlarını sil
                 database.ref('users/' + currentUser.uid).remove()
                     .then(() => {
-                        // Baza silindikdən sonra Firebase Auth-dan istifadəçini sil
                         return currentUser.delete();
                     })
                     .then(() => {
-                        alert("Hesabınız və bütün məlumatlarınız uğurla silindi.");
+                        showToast("Hesabınız və bütün məlumatlarınız uğurla silindi.");
                     })
                     .catch(error => {
-                        // Təhlükəsizlik üçün 'auth/requires-recent-login' xətası
-                        if (error.code === 'auth/requires-recent-login') {
-                            alert("Təhlükəsizlik məqsədilə hesabınızı silmək üçün zəhmət olmasa hesabdan çıxış edib yenidən daxil olun.");
-                        } else {
-                            alert("Hesab silinərkən xəta baş verdi: " + error.message);
-                        }
+                        showToast(getErrorMessage(error.code));
                     });
             }
         });
@@ -209,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (createRoomBtn) {
         createRoomBtn.addEventListener('click', () => {
-            if (!currentUser) return alert("Əvvəlcə hesaba daxil olmalısınız!");
+            if (!currentUser) return showToast("Əvvəlcə hesaba daxil olmalısınız!");
             
             const roomCode = generateRoomCode();
             
@@ -221,7 +291,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }).then(() => {
                 window.location.href = `room.html?id=${roomCode}`;
             }).catch(error => {
-                alert("Otaq yaradılarkən xəta: " + error.message);
+                showToast("Otaq yaradılarkən xəta baş verdi.");
+                console.error(error);
             });
         });
     }
@@ -229,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (joinRoomBtn) {
         joinRoomBtn.addEventListener('click', () => {
             const code = roomCodeInput ? roomCodeInput.value.trim().toUpperCase() : '';
-            if (!code) return alert("Otaq kodunu daxil edin.");
+            if (!code) return showToast("Otaq kodunu daxil edin.");
             window.location.href = `room.html?id=${code}`;
         });
     }
