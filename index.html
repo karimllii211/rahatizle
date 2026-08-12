@@ -7,7 +7,7 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
             background-color: #030712; /* gray-950/black mix */
@@ -95,55 +95,194 @@
         </div>
 
         <!-- DASHBOARD SECTION -->
-        <div id="dashboard-section" class="hidden w-full flex-col gap-10">
+        <div id="dashboard-section" class="hidden w-full flex-col min-h-[85vh] relative font-['Inter'] mt-4">
             
-            <!-- Dashboard Header -->
-            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-red-900 pb-6 w-full">
-                <div class="flex flex-col text-center sm:text-left">
-                    <span class="text-sm text-red-600 uppercase tracking-widest font-bold">İdarə Paneli</span>
-                    <h1 id="dashboardUserName" class="text-4xl font-black tracking-tight mt-1 text-white">İstifadəçi Adı</h1>
+            <!-- Arxa Plan Qradientləri -->
+            <div class="absolute inset-0 overflow-hidden pointer-events-none -z-10">
+                <div class="absolute -top-[10%] -left-[10%] w-[50vw] h-[50vw] rounded-full bg-rose-900/20 blur-[120px]"></div>
+                <div class="absolute top-[40%] -right-[10%] w-[60vw] h-[60vw] rounded-full bg-purple-900/10 blur-[150px]"></div>
+            </div>
+
+            <!-- Navbar -->
+            <nav class="w-full flex items-center justify-between py-6 px-4 md:px-8 border-b border-white/5 bg-[#030303]/80 backdrop-blur-md rounded-3xl">
+                <!-- Logo -->
+                <div class="flex items-center gap-2">
+                    <svg class="w-8 h-8 text-[#FF014C]" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm0 2v12h16V6H4zm2 2h2v8H6V8zm4 0h2v8h-2V8zm4 0h2v8h-2V8z"/></svg>
+                    <span class="font-['Bebas_Neue'] text-3xl tracking-wider text-white">MOVIES</span>
                 </div>
-                <div class="flex items-center gap-3">
-                    <button id="deleteAccountBtn" class="px-6 py-3 bg-red-700 hover:bg-red-800 text-white font-bold rounded-xl transition-all uppercase tracking-wider text-sm">
+                
+                <!-- Center Links -->
+                <div class="hidden md:flex items-center gap-8">
+                    <a href="#" class="text-white font-medium hover:text-[#FF014C] transition-colors">Home</a>
+                    <a href="#" class="text-[#C8C8C8] hover:text-white transition-colors">Explore</a>
+                    <a href="#" class="text-[#C8C8C8] hover:text-white transition-colors">Genre</a>
+                    <a href="#" class="text-[#C8C8C8] hover:text-white transition-colors">News</a>
+                    <a href="#" class="text-[#C8C8C8] hover:text-white transition-colors">Movies</a>
+                    <a href="#" class="text-[#C8C8C8] hover:text-white transition-colors">TV Shows</a>
+                </div>
+
+                <!-- Right Actions -->
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2 mr-2 hidden sm:flex">
+                        <img id="userAvatar" src="https://ui-avatars.com/api/?name=User&background=FF014C&color=fff" alt="Profile" class="w-8 h-8 rounded-full border border-white/20">
+                        <span id="dashboardUserName" class="text-sm font-medium text-[#C8C8C8] max-w-[120px] truncate">İstifadəçi Adı</span>
+                    </div>
+                    <button id="deleteAccountBtn" class="text-xs font-semibold text-white/50 hover:text-red-500 transition-colors uppercase tracking-widest border-b border-transparent hover:border-red-500 pb-0.5">
                         Hesabı Sil
                     </button>
-                    <button id="logoutBtn" class="px-6 py-3 bg-transparent border border-red-600 hover:bg-red-600 text-white font-bold rounded-xl transition-all shadow-[0_0_10px_rgba(220,38,38,0.3)] uppercase tracking-wider text-sm">
+                    <button id="logoutBtn" class="px-5 py-2 bg-white/10 hover:bg-[#FF014C] text-white text-sm font-bold rounded-full transition-all">
                         Çıxış
                     </button>
                 </div>
-            </div>
+            </nav>
 
-            <!-- Dashboard Content (2 Large Columns) -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch w-full mt-4">
+            <!-- Main Content Container -->
+            <div class="flex-1 w-full flex flex-col gap-16 px-4 md:px-8 py-10">
                 
-                <!-- Create Room Block -->
-                <div class="bg-black border border-red-600 hover:border-red-500 p-12 rounded-3xl flex flex-col items-center justify-center gap-8 transition-all shadow-[0_0_20px_rgba(220,38,38,0.15)] group">
-                    <div class="p-8 bg-red-600/10 rounded-full group-hover:bg-red-600/20 transition-all border border-red-900/50">
-                        <svg class="w-20 h-20 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                <!-- Hero Section -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                    <!-- Left: Text & Actions -->
+                    <div class="flex flex-col gap-6 z-10">
+                        <h1 class="font-['Bebas_Neue'] text-6xl md:text-8xl leading-[0.9] tracking-normal text-white">
+                            FIND MOVIES <br>
+                            TV SHOWS <br>
+                            <span class="text-[#FF014C]">AND MORE</span>
+                        </h1>
+                        <p class="text-[#C8C8C8] text-lg max-w-md leading-relaxed">
+                            Məsafələri aradan qaldırın. Dostlarınızla eyni anda film izləyin, söhbət edin və əylənin. Yeni bir otaq yaradın və ya mövcud otağa qoşulun.
+                        </p>
+                        
+                        <!-- Actions (Room Logic) -->
+                        <div class="flex flex-col xl:flex-row gap-4 mt-4 max-w-xl">
+                            <button id="createRoomBtn" class="flex items-center justify-center gap-3 px-8 py-4 bg-transparent border border-neutral-50 hover:border-[#FF014C] hover:bg-[#FF014C]/10 rounded-full text-white font-bold transition-all group whitespace-nowrap">
+                                <svg class="w-6 h-6 text-white group-hover:text-[#FF014C] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                OTAQ YARAT
+                            </button>
+                            
+                            <div class="flex items-center flex-1 bg-white/5 border border-white/20 rounded-full overflow-hidden focus-within:border-[#FF014C] transition-colors h-14 xl:h-auto">
+                                <input type="text" id="roomCodeInput" placeholder="KOD (məs: RAVE9X)" class="w-full bg-transparent text-white px-6 h-full focus:outline-none uppercase tracking-widest placeholder-white/30 text-sm font-bold text-center xl:text-left">
+                                <button id="joinRoomBtn" class="px-6 bg-white text-black hover:bg-gray-200 font-bold transition-colors uppercase tracking-widest text-sm h-full">
+                                    QOŞUL
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="text-center">
-                        <h3 class="text-3xl font-bold mb-3 uppercase tracking-wider text-white">Yeni Otaq Yarat</h3>
-                        <p class="text-gray-400 max-w-sm mx-auto text-lg">Dostlarınızı dəvət etmək üçün xüsusi və təhlükəsiz video otağı yaradın.</p>
+                    
+                    <!-- Right: Overlapping Posters -->
+                    <div class="relative w-full h-[400px] md:h-[500px] flex items-center justify-center pointer-events-none hidden sm:flex">
+                        <!-- Back Poster -->
+                        <div class="absolute right-[30%] top-[10%] w-[220px] h-[330px] md:w-[280px] md:h-[420px] rounded-2xl overflow-hidden shadow-2xl opacity-60 transform -rotate-6 scale-90 blur-[2px]">
+                            <img src="https://image.tmdb.org/t/p/w500/r2J02Z2OpNTctfOSN1Ydvli65rQ.jpg" class="w-full h-full object-cover">
+                        </div>
+                        <!-- Front Poster -->
+                        <div class="absolute right-[5%] top-[15%] w-[250px] h-[375px] md:w-[300px] md:h-[450px] rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-white/10 transform rotate-2 z-10">
+                            <img src="https://image.tmdb.org/t/p/w500/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg" class="w-full h-full object-cover">
+                        </div>
                     </div>
-                    <button id="createRoomBtn" class="mt-4 w-full max-w-md bg-transparent border border-red-600 hover:bg-red-600 text-white font-bold py-5 rounded-2xl transition-all shadow-[0_0_15px_rgba(220,38,38,0.3)] hover:shadow-[0_0_25px_rgba(220,38,38,0.5)] uppercase tracking-widest text-xl">
-                        Otaq Yarat
-                    </button>
                 </div>
 
-                <!-- Join Room Block -->
-                <div class="bg-black border border-red-600 hover:border-red-500 p-12 rounded-3xl flex flex-col items-center justify-center gap-8 transition-all shadow-[0_0_20px_rgba(220,38,38,0.15)] group">
-                    <div class="p-8 bg-red-600/10 rounded-full group-hover:bg-red-600/20 transition-all border border-red-900/50">
-                        <svg class="w-20 h-20 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                <!-- Trending Section -->
+                <div class="flex flex-col gap-6 mt-10">
+                    <div class="flex items-center justify-between">
+                        <h2 class="font-['Bebas_Neue'] text-3xl tracking-widest text-white">TRENDING</h2>
+                        <a href="#" class="text-[#FF014C] hover:text-white text-sm font-bold transition-colors uppercase tracking-widest">View All</a>
                     </div>
-                    <div class="text-center">
-                        <h3 class="text-3xl font-bold mb-3 uppercase tracking-wider text-white">Otağa Qoşul</h3>
-                        <p class="text-gray-400 max-w-sm mx-auto text-lg">Sizə göndərilən 6 simvollu otaq kodunu daxil edərək yayıma qoşulun.</p>
-                    </div>
-                    <div class="w-full max-w-md flex flex-col gap-4 mt-4">
-                        <input type="text" id="roomCodeInput" placeholder="KOD (məs: RAVE9X)" class="w-full bg-black border border-red-600 text-white font-bold px-6 py-5 rounded-2xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all uppercase tracking-[0.3em] text-center text-xl placeholder-gray-600">
-                        <button id="joinRoomBtn" class="w-full bg-transparent border border-red-600 hover:bg-red-600 text-white font-bold py-5 rounded-2xl transition-all shadow-[0_0_15px_rgba(220,38,38,0.3)] hover:shadow-[0_0_25px_rgba(220,38,38,0.5)] uppercase tracking-widest text-xl">
-                            Qoşul
-                        </button>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                        <!-- Movie Card -->
+                        <div class="flex flex-col gap-3 group cursor-pointer">
+                            <div class="w-full aspect-[2/3] rounded-xl overflow-hidden relative">
+                                <img src="https://image.tmdb.org/t/p/w500/iuFNMS8U5cb6xfzi51Dbkovj7vM.jpg" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                    <div class="w-12 h-12 rounded-full bg-[#FF014C] flex items-center justify-center text-white shadow-[0_0_15px_rgba(255,1,76,0.6)]">
+                                        <svg class="w-6 h-6 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path></svg>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-white font-bold truncate text-sm">Barbie</span>
+                                <div class="flex items-center text-xs font-medium text-[#C8C8C8] mt-1 gap-2">
+                                    <span>2023</span>
+                                    <span class="w-1.5 h-1.5 rounded-full bg-[#FF014C]"></span>
+                                    <span>114m</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Movie Card 2 -->
+                        <div class="flex flex-col gap-3 group cursor-pointer">
+                            <div class="w-full aspect-[2/3] rounded-xl overflow-hidden relative">
+                                <img src="https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-white font-bold truncate text-sm">Oppenheimer</span>
+                                <div class="flex items-center text-xs font-medium text-[#C8C8C8] mt-1 gap-2">
+                                    <span>2023</span>
+                                    <span class="w-1.5 h-1.5 rounded-full bg-[#FF014C]"></span>
+                                    <span>180m</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Movie Card 3 -->
+                        <div class="flex flex-col gap-3 group cursor-pointer hidden sm:flex">
+                            <div class="w-full aspect-[2/3] rounded-xl overflow-hidden relative">
+                                <img src="https://image.tmdb.org/t/p/w500/fiVW06jE7z9YnO4trhaMEdclRVc.jpg" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-white font-bold truncate text-sm">Fast X</span>
+                                <div class="flex items-center text-xs font-medium text-[#C8C8C8] mt-1 gap-2">
+                                    <span>2023</span>
+                                    <span class="w-1.5 h-1.5 rounded-full bg-[#FF014C]"></span>
+                                    <span>141m</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Movie Card 4 -->
+                        <div class="flex flex-col gap-3 group cursor-pointer hidden md:flex">
+                            <div class="w-full aspect-[2/3] rounded-xl overflow-hidden relative">
+                                <img src="https://image.tmdb.org/t/p/w500/qNBAXBIQlnOThrVvA6mA2B5ggV6.jpg" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-white font-bold truncate text-sm">The Super Mario Bros. Movie</span>
+                                <div class="flex items-center text-xs font-medium text-[#C8C8C8] mt-1 gap-2">
+                                    <span>2023</span>
+                                    <span class="w-1.5 h-1.5 rounded-full bg-[#FF014C]"></span>
+                                    <span>92m</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Movie Card 5 -->
+                        <div class="flex flex-col gap-3 group cursor-pointer hidden lg:flex">
+                            <div class="w-full aspect-[2/3] rounded-xl overflow-hidden relative">
+                                <img src="https://image.tmdb.org/t/p/w500/vZloFAK7NmvMGKE7VkF5UHaz0I.jpg" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-white font-bold truncate text-sm">John Wick: Chapter 4</span>
+                                <div class="flex items-center text-xs font-medium text-[#C8C8C8] mt-1 gap-2">
+                                    <span>2023</span>
+                                    <span class="w-1.5 h-1.5 rounded-full bg-[#FF014C]"></span>
+                                    <span>169m</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Movie Card 6 -->
+                        <div class="flex flex-col gap-3 group cursor-pointer hidden lg:flex">
+                            <div class="w-full aspect-[2/3] rounded-xl overflow-hidden relative">
+                                <img src="https://image.tmdb.org/t/p/w500/4m1Au3YkjqsxF8iwQy0fPYSxE0h.jpg" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-white font-bold truncate text-sm">Meg 2: The Trench</span>
+                                <div class="flex items-center text-xs font-medium text-[#C8C8C8] mt-1 gap-2">
+                                    <span>2023</span>
+                                    <span class="w-1.5 h-1.5 rounded-full bg-[#FF014C]"></span>
+                                    <span>116m</span>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
