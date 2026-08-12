@@ -1,47 +1,142 @@
-// Firebase configuration
+// Firebase configuration (Eyni olmalıdır)
 const firebaseConfig = {
-  apiKey: "AIzaSyCdbOsVymHIPfjbw3oByjb4pS-sEB8jv8c",
-  authDomain: "rahatizle-yeni.firebaseapp.com",
-  databaseURL: "https://rahatizle-yeni-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "rahatizle-yeni",
-  storageBucket: "rahatizle-yeni.firebasestorage.app",
-  messagingSenderId: "364316761559",
-  appId: "1:364316761559:web:acebb24e3012d4a0973f92",
-  measurementId: "G-210JCWXKGE"
+    apiKey: "AIzaSyCdbOsVymHIPfjbw3oByjb4pS-sEB8jv8c",
+    authDomain: "rahatizle-yeni.firebaseapp.com",
+    databaseURL: "https://rahatizle-yeni-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "rahatizle-yeni",
+    storageBucket: "rahatizle-yeni.firebasestorage.app",
+    messagingSenderId: "364316761559",
+    appId: "1:364316761559:web:acebb24e3012d4a0973f92",
+    measurementId: "G-210JCWXKGE"
 };
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
+const database = firebase.database();
+
+let currentUser = null;
+let currentRoomId = null;
 
 // Auth Guard
 auth.onAuthStateChanged(user => {
     if (!user) {
-        // İstifadəçi daxil olmayıbsa dərhal index.html-ə yönləndir
         window.location.replace('index.html');
     } else {
-        // İstifadəçi daxil olubsa, səhifəni göstər və məntiqi başlat
-        document.body.classList.remove('opacity-0');
-        console.log("İstifadəçi:", user.displayName || user.email);
+        currentUser = user;
         initRoom();
     }
 });
 
 function initRoom() {
-    console.log("Otaq məntiqi bura yazılacaq");
-
-    // URL-dən otaq kodunu (id) oxumaq
     const urlParams = new URLSearchParams(window.location.search);
-    const roomId = urlParams.get('id');
+    currentRoomId = urlParams.get('id');
     
-    if (roomId) {
-        console.log("Otaq Kodu:", roomId);
-        // Otaq kodunu ekranda göstərmək
-        const displayRoomCode = document.getElementById('displayRoomCode');
-        if (displayRoomCode) {
-            displayRoomCode.textContent = roomId;
-        }
-    } else {
-        console.log("Otaq kodu tapılmadı.");
+    if (!currentRoomId) {
+        window.location.replace('index.html');
+        return;
     }
+
+    // UI Elements
+    const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+    const deleteRoomBtn = document.getElementById('deleteRoomBtn');
+    const activeViewerCount = document.getElementById('activeViewerCount');
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+    const chatMessages = document.getElementById('chatMessages');
+    const chatEmptyState = document.getElementById('chatEmptyState');
+
+    if (roomCodeDisplay) roomCodeDisplay.textContent = `KOD: ${currentRoomId}`;
+
+    const roomRef = database.ref(`rooms/${currentRoomId}`);
+    const viewersRef = database.ref(`rooms/${currentRoomId}/viewers`);
+    const messagesRef = database.ref(`rooms/${currentRoomId}/messages`);
+
+    // 1. Otaq Məlumatını və Silinməni İzləmək
+    roomRef.on('value', snapshot => {
+        const data = snapshot.val();
+        if (!data) {
+            // Otaq silinib, hər kəsi ana səhifəyə qaytar
+            window.location.replace('index.html');
+            return;
+        }
+
+        // Əgər cari istifadəçi otağı yaradandırsa, sil düyməsini göstər
+        if (data.creator && data.creator.uid === currentUser.uid) {
+            if (deleteRoomBtn) {
+                deleteRoomBtn.classList.remove('hidden');
+                deleteRoomBtn.onclick = () => {
+                    const conf = confirm("Otağı tamamilə silmək istədiyinizə əminsiniz? Hər kəs otaqdan çıxarılacaq.");
+                    if (conf) {
+                        roomRef.remove();
+                    }
+                };
+            }
+        }
+    });
+
+    // 2. Presence (İzləyici Sayı) Məntiqi
+    const myViewerRef = viewersRef.child(currentUser.uid);
+    // İnternet kəsildikdə və ya səhifə bağlandıqda məlumatı sil
+    myViewerRef.onDisconnect().remove().then(() => {
+        // İndi mən daxil oldum
+        myViewerRef.set({
+            uid: currentUser.uid,
+            name: currentUser.displayName || currentUser.email.split('@')[0],
+            joinedAt: firebase.database.ServerValue.TIMESTAMP
+        });
+    });
+
+    // Otaqdakı izləyicilərin sayını ekranda göstərmək
+    viewersRef.on('value', snapshot => {
+        const data = snapshot.val();
+        const count = data ? Object.keys(data).length : 0;
+        if (activeViewerCount) {
+            activeViewerCount.textContent = `Aktiv İzləyici: ${count}`;
+        }
+    });
+
+    // 3. Canlı Chat Məntiqi
+    if (chatForm && chatInput) {
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = chatInput.value.trim();
+            if (!text) return;
+
+            messagesRef.push({
+                uid: currentUser.uid,
+                name: currentUser.displayName || currentUser.email.split('@')[0],
+                text: text,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            chatInput.value = '';
+        });
+    }
+
+    // Mesajları oxumaq
+    messagesRef.on('child_added', snapshot => {
+        const message = snapshot.val();
+        if (chatEmptyState) chatEmptyState.classList.add('hidden');
+
+        const isMe = message.uid === currentUser.uid;
+        
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `flex flex-col max-w-[85%] ${isMe ? 'self-end items-end' : 'self-start items-start'} animate-fade-in`;
+        
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'text-[10px] text-gray-500 mb-1 px-1 tracking-wider';
+        nameSpan.textContent = isMe ? 'Sən' : message.name;
+
+        const textDiv = document.createElement('div');
+        textDiv.className = `px-4 py-2.5 rounded-2xl text-sm ${isMe ? 'bg-[#FF014C] text-white rounded-br-none' : 'bg-white/10 text-white rounded-bl-none'}`;
+        textDiv.textContent = message.text;
+
+        msgDiv.appendChild(nameSpan);
+        msgDiv.appendChild(textDiv);
+        chatMessages.appendChild(msgDiv);
+
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    });
 }

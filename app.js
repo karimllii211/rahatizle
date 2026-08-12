@@ -109,11 +109,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginModal = document.getElementById('login-modal');
     const registerModal = document.getElementById('register-modal');
     const platformModal = document.getElementById('platform-modal');
+    const contactModal = document.getElementById('contact-modal');
 
     const showModal = (modal) => {
         if (loginModal) { loginModal.classList.add('hidden'); loginModal.classList.remove('flex'); }
         if (registerModal) { registerModal.classList.add('hidden'); registerModal.classList.remove('flex'); }
         if (platformModal) { platformModal.classList.add('hidden'); platformModal.classList.remove('flex'); }
+        if (contactModal) { contactModal.classList.add('hidden'); contactModal.classList.remove('flex'); }
         if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
     };
     
@@ -131,17 +133,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Modal bağlamaq üçün X düymələri
-    document.querySelectorAll('.close-auth-modal, .close-platform-modal').forEach(btn => {
+    document.querySelectorAll('.close-auth-modal, .close-platform-modal, .close-contact-modal').forEach(btn => {
         btn.addEventListener('click', closeAllModals);
     });
 
     // Arxa fona kliklədikdə bağlansın
-    [loginModal, registerModal, platformModal].forEach(modal => {
+    [loginModal, registerModal, platformModal, contactModal].forEach(modal => {
         if (modal) {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) closeAllModals();
             });
         }
+    });
+
+    document.querySelectorAll('.open-contact-modal').forEach(btn => {
+        btn.addEventListener('click', () => showModal(contactModal));
     });
 
     const switchToRegisterBtn = document.getElementById('switchToRegisterBtn');

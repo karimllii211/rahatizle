@@ -7,47 +7,113 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
+        
+        /* Custom scrollbar for chat */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #030303; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
     </style>
 </head>
-<body class="bg-black text-white min-h-screen flex overflow-hidden">
+<body class="bg-[#030303] text-white h-screen overflow-hidden flex">
 
-    <!-- Video Area (Left) -->
-    <div class="w-[75%] lg:w-[80%] h-full flex flex-col items-center justify-center border-r border-white/10 p-8 relative">
-        <div class="text-white/30 text-2xl lg:text-4xl font-bold uppercase tracking-widest border-2 border-white/10 rounded-2xl p-12 flex items-center justify-center w-full h-full max-h-[85vh] border-dashed">
-            Video Ekranı
+    <!-- Sol Panel: Platformalar (15-20%) -->
+    <div class="w-[20%] h-full bg-[#080808] border-r border-white/5 flex flex-col p-6 hidden md:flex">
+        
+        <div class="flex items-center gap-2 mb-8 opacity-70 hover:opacity-100 transition-opacity cursor-pointer" onclick="window.location.href='index.html'">
+            <svg class="w-6 h-6 text-[#FF014C]" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm0 2v12h16V6H4zm2 2h2v8H6V8zm4 0h2v8h-2V8zm4 0h2v8h-2V8z"/></svg>
+            <span class="font-['Bebas_Neue'] text-xl tracking-wider text-white">RAHAT İZLE<span class="text-[#FF014C]">.</span></span>
+        </div>
+
+        <h3 class="text-xs uppercase tracking-widest text-gray-500 mb-4 font-bold">Platformalar</h3>
+        
+        <div class="flex flex-col gap-3">
+            <button class="flex items-center gap-3 w-full bg-white/5 hover:bg-[#E50914]/10 border border-transparent hover:border-[#E50914]/50 px-4 py-3 rounded-xl transition-all duration-300 group">
+                <span class="text-white font-semibold group-hover:text-[#E50914] transition-colors text-sm">Netflix</span>
+            </button>
+            <button class="flex items-center gap-3 w-full bg-white/5 hover:bg-[#FF0000]/10 border border-transparent hover:border-[#FF0000]/50 px-4 py-3 rounded-xl transition-all duration-300 group">
+                <span class="text-white font-semibold group-hover:text-[#FF0000] transition-colors text-sm">YouTube</span>
+            </button>
+            <button class="flex items-center gap-3 w-full bg-white/5 hover:bg-[#0063E5]/10 border border-transparent hover:border-[#0063E5]/50 px-4 py-3 rounded-xl transition-all duration-300 group">
+                <span class="text-white font-semibold group-hover:text-[#0063E5] transition-colors text-sm">Disney+</span>
+            </button>
+            <button class="flex items-center gap-3 w-full bg-white/5 hover:bg-[#00A8E1]/10 border border-transparent hover:border-[#00A8E1]/50 px-4 py-3 rounded-xl transition-all duration-300 group">
+                <span class="text-white font-semibold group-hover:text-[#00A8E1] transition-colors text-sm">Prime Video</span>
+            </button>
+        </div>
+
+        <div class="mt-auto pt-6 border-t border-white/5">
+            <button class="w-full flex items-center justify-center gap-2 bg-transparent border border-white/20 hover:border-white hover:bg-white/10 text-white font-semibold py-3 rounded-xl transition-all duration-300 text-sm">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                Cihazdan yüklə
+            </button>
         </div>
     </div>
 
-    <!-- Chat Panel (Right) -->
-    <div class="w-[25%] lg:w-[20%] h-full flex flex-col bg-[#050505]">
-        <div class="p-5 border-b border-white/10 flex flex-col gap-2 bg-[#0A0A0A]">
-            <h2 class="text-lg font-bold uppercase tracking-wider text-[#FF014C]">Chat Paneli</h2>
-            <span class="text-xs text-gray-400 font-medium tracking-widest" id="roomCodeDisplay">KOD: Yüklənir...</span>
+    <!-- Mərkəz: Video Ekranı (60-65%) -->
+    <div class="flex-1 h-full flex flex-col relative bg-black">
+        <!-- Otaq Header-i (Sayğac və Sil düyməsi) -->
+        <div class="absolute top-0 left-0 w-full p-6 flex items-start justify-between z-10 bg-gradient-to-b from-black/80 to-transparent">
+            
+            <div class="flex flex-col gap-1">
+                <span class="text-xs text-gray-400 font-medium tracking-widest" id="roomCodeDisplay">KOD: ---</span>
+                <div class="flex items-center gap-2 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 w-fit">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    <span id="activeViewerCount" class="text-xs font-bold text-white">Aktiv İzləyici: 1</span>
+                </div>
+            </div>
+
+            <button id="deleteRoomBtn" class="hidden px-4 py-2 bg-red-900/50 hover:bg-red-700 text-white text-xs font-bold rounded-lg border border-red-500/50 transition-all duration-300 tracking-wider uppercase">
+                Otağı Sil
+            </button>
+        </div>
+
+        <!-- Video Player Placeholder -->
+        <div class="flex-1 w-full h-full flex flex-col items-center justify-center p-8">
+            <div class="w-full max-w-5xl aspect-video rounded-3xl border border-white/10 bg-[#050505] shadow-[0_0_50px_rgba(0,0,0,0.5)] flex items-center justify-center relative overflow-hidden group">
+                <div class="absolute inset-0 bg-gradient-to-tr from-[#FF014C]/5 to-transparent pointer-events-none"></div>
+                <div class="flex flex-col items-center gap-4 z-10 opacity-30 group-hover:opacity-100 transition-opacity duration-500">
+                    <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span class="font-['Bebas_Neue'] tracking-widest text-xl text-white">VİDEO EKRANI</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sağ Panel: Canlı Chat (20-25%) -->
+    <div class="w-full md:w-[25%] h-full flex flex-col bg-[#0A0A0A] border-l border-white/5">
+        
+        <!-- Chat Header -->
+        <div class="p-5 border-b border-white/5 bg-[#050505] flex items-center justify-between">
+            <h2 class="text-sm font-bold uppercase tracking-widest text-[#FF014C] flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                Canlı Chat
+            </h2>
         </div>
         
-        <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
-            <div class="text-center text-xs text-gray-600 mt-10 tracking-wider">
-                Söhbət mesajları burada görünəcək...
+        <!-- Chat Messages Container -->
+        <div id="chatMessages" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+            <!-- Messages will be injected here via JS -->
+            <div class="text-center text-xs text-gray-600 mt-4 tracking-wider opacity-50" id="chatEmptyState">
+                Otağa qoşuldunuz. Mesaj yaza bilərsiniz...
             </div>
         </div>
         
-        <div class="p-4 border-t border-white/10 bg-[#0A0A0A]">
-            <input type="text" placeholder="Mesaj yaz..." class="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-[#FF014C] transition-colors text-sm">
-        </div>
+        <!-- Chat Input Form -->
+        <form id="chatForm" class="p-4 border-t border-white/5 bg-[#050505] flex items-center gap-2" onsubmit="event.preventDefault();">
+            <input type="text" id="chatInput" placeholder="Mesaj yaz..." class="flex-1 bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-[#FF014C] transition-colors text-sm placeholder-gray-500" autocomplete="off">
+            <button type="submit" id="chatSendBtn" class="bg-[#FF014C] hover:bg-[#FF014C]/80 text-white w-12 h-12 rounded-xl flex items-center justify-center transition-colors">
+                <svg class="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+            </button>
+        </form>
     </div>
 
-    <script>
-        // Sadə JS otaq kodunu URL-dən alıb ekranda göstərmək üçün
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const roomId = urlParams.get('id');
-            const roomCodeDisplay = document.getElementById('roomCodeDisplay');
-            if (roomId && roomCodeDisplay) {
-                roomCodeDisplay.textContent = `KOD: ${roomId}`;
-            }
-        });
-    </script>
+    <!-- Firebase SDK (compat versions) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+    <script src="room.js"></script>
 </body>
 </html>

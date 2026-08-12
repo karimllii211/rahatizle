@@ -53,13 +53,14 @@
                 <!-- Logo -->
                 <div class="flex items-center gap-2">
                     <svg class="w-8 h-8 text-[#FF014C]" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm0 2v12h16V6H4zm2 2h2v8H6V8zm4 0h2v8h-2V8zm4 0h2v8h-2V8z"/></svg>
-                    <span class="font-['Bebas_Neue'] text-3xl tracking-wider text-white">RAHAT İZLƏ<span class="text-[#FF014C]">.</span></span>
+                    <span class="font-['Bebas_Neue'] text-3xl tracking-wider text-white">RAHAT İZLE<span class="text-[#FF014C]">.</span></span>
                 </div>
                 
                 <!-- Center Links -->
                 <div class="hidden md:flex items-center gap-8">
+                    <a href="#" class="text-[#C8C8C8] hover:text-white transition-colors">Ana Səhifə</a>
                     <a href="#" class="text-[#C8C8C8] hover:text-white transition-colors">Məlumat</a>
-                    <a href="#" class="text-[#C8C8C8] hover:text-white transition-colors">Əlaqə</a>
+                    <button class="open-contact-modal text-[#C8C8C8] hover:text-white transition-colors font-medium cursor-pointer">Əlaqə</button>
                 </div>
 
                 <!-- Right Actions -->
@@ -131,137 +132,36 @@
                     </div>
                 </div>
 
-                <!-- Trending Section -->
+                <!-- Platforms Section -->
                 <div class="flex flex-col gap-6 mt-10 lg:mt-20 animate-fade-in-up" style="animation-delay: 0.2s; opacity: 0;">
-                    <div class="flex items-center justify-between">
-                        <h2 class="font-['Bebas_Neue'] text-3xl lg:text-4xl tracking-widest text-white">TRENDING</h2>
-                        <a href="#" class="text-[#FF014C] hover:text-white text-sm font-bold transition-colors uppercase tracking-widest">View All</a>
+                    <div class="flex items-center justify-center">
+                        <h2 class="font-['Bebas_Neue'] text-3xl lg:text-4xl tracking-widest text-white text-center">İSTƏNİLƏN YERDƏN İZLƏ</h2>
                     </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 lg:gap-8">
-                        <!-- Movie Card -->
-                        <div class="flex flex-col gap-3 group cursor-pointer hover:scale-105 transition-transform duration-300 ease-in-out">
-                            <div class="w-full aspect-[2/3] rounded-xl overflow-hidden relative border border-white/5">
-                                <img src="https://image.tmdb.org/t/p/w500/iuFNMS8U5cb6xfzi51Dbkovj7vM.jpg" class="w-full h-full object-cover">
-                                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                                    <div class="w-12 h-12 rounded-full bg-[#FF014C] flex items-center justify-center text-white shadow-[0_0_15px_rgba(255,1,76,0.6)]">
-                                        <svg class="w-6 h-6 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path></svg>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="text-white font-bold truncate text-sm lg:text-base">Barbie</span>
-                                <div class="flex items-center text-xs lg:text-sm font-medium text-[#C8C8C8] mt-1 gap-2">
-                                    <span>2023</span>
-                                    <span class="w-1.5 h-1.5 rounded-full bg-[#FF014C]"></span>
-                                    <span>114m</span>
-                                </div>
-                            </div>
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 lg:gap-8 mt-6">
+                        <!-- Netflix -->
+                        <div class="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-[#E50914]/10 hover:border-[#E50914] transition-all duration-300 flex flex-col items-center justify-center gap-4 group cursor-pointer">
+                            <h3 class="font-bold text-xl text-white group-hover:text-[#E50914] transition-colors">Netflix</h3>
+                            <p class="text-xs text-[#C8C8C8] text-center">Birlikdə izlə</p>
                         </div>
-                        
-                        <!-- Movie Card 2 -->
-                        <div class="flex flex-col gap-3 group cursor-pointer hover:scale-105 transition-transform duration-300 ease-in-out">
-                            <div class="w-full aspect-[2/3] rounded-xl overflow-hidden relative border border-white/5">
-                                <img src="https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg" class="w-full h-full object-cover">
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="text-white font-bold truncate text-sm lg:text-base">Oppenheimer</span>
-                                <div class="flex items-center text-xs lg:text-sm font-medium text-[#C8C8C8] mt-1 gap-2">
-                                    <span>2023</span>
-                                    <span class="w-1.5 h-1.5 rounded-full bg-[#FF014C]"></span>
-                                    <span>180m</span>
-                                </div>
-                            </div>
+                        <!-- YouTube -->
+                        <div class="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-[#FF0000]/10 hover:border-[#FF0000] transition-all duration-300 flex flex-col items-center justify-center gap-4 group cursor-pointer">
+                            <h3 class="font-bold text-xl text-white group-hover:text-[#FF0000] transition-colors">YouTube</h3>
+                            <p class="text-xs text-[#C8C8C8] text-center">Ortaq izlə</p>
                         </div>
-
-                        <!-- Movie Card 3 -->
-                        <div class="flex flex-col gap-3 group cursor-pointer hover:scale-105 transition-transform duration-300 ease-in-out hidden sm:flex">
-                            <div class="w-full aspect-[2/3] rounded-xl overflow-hidden relative border border-white/5">
-                                <img src="https://image.tmdb.org/t/p/w500/fiVW06jE7z9YnO4trhaMEdclRVc.jpg" class="w-full h-full object-cover">
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="text-white font-bold truncate text-sm lg:text-base">Fast X</span>
-                                <div class="flex items-center text-xs lg:text-sm font-medium text-[#C8C8C8] mt-1 gap-2">
-                                    <span>2023</span>
-                                    <span class="w-1.5 h-1.5 rounded-full bg-[#FF014C]"></span>
-                                    <span>141m</span>
-                                </div>
-                            </div>
+                        <!-- Disney+ -->
+                        <div class="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-[#0063E5]/10 hover:border-[#0063E5] transition-all duration-300 flex flex-col items-center justify-center gap-4 group cursor-pointer">
+                            <h3 class="font-bold text-xl text-white group-hover:text-[#0063E5] transition-colors">Disney+</h3>
+                            <p class="text-xs text-[#C8C8C8] text-center">Cizgi aləmi</p>
                         </div>
-                        
-                        <!-- Movie Card 4 -->
-                        <div class="flex flex-col gap-3 group cursor-pointer hover:scale-105 transition-transform duration-300 ease-in-out hidden md:flex">
-                            <div class="w-full aspect-[2/3] rounded-xl overflow-hidden relative border border-white/5">
-                                <img src="https://image.tmdb.org/t/p/w500/qNBAXBIQlnOThrVvA6mA2B5ggV6.jpg" class="w-full h-full object-cover">
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="text-white font-bold truncate text-sm lg:text-base">The Super Mario Bros. Movie</span>
-                                <div class="flex items-center text-xs lg:text-sm font-medium text-[#C8C8C8] mt-1 gap-2">
-                                    <span>2023</span>
-                                    <span class="w-1.5 h-1.5 rounded-full bg-[#FF014C]"></span>
-                                    <span>92m</span>
-                                </div>
-                            </div>
+                        <!-- Prime Video -->
+                        <div class="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-[#00A8E1]/10 hover:border-[#00A8E1] transition-all duration-300 flex flex-col items-center justify-center gap-4 group cursor-pointer">
+                            <h3 class="font-bold text-xl text-white group-hover:text-[#00A8E1] transition-colors">Prime</h3>
+                            <p class="text-xs text-[#C8C8C8] text-center">Maraqlı filmlər</p>
                         </div>
-
-                        <!-- Movie Card 5 -->
-                        <div class="flex flex-col gap-3 group cursor-pointer hover:scale-105 transition-transform duration-300 ease-in-out hidden lg:flex">
-                            <div class="w-full aspect-[2/3] rounded-xl overflow-hidden relative border border-white/5">
-                                <img src="https://image.tmdb.org/t/p/w500/vZloFAK7NmvMGKE7VkF5UHaz0I.jpg" class="w-full h-full object-cover">
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="text-white font-bold truncate text-sm lg:text-base">John Wick: Chapter 4</span>
-                                <div class="flex items-center text-xs lg:text-sm font-medium text-[#C8C8C8] mt-1 gap-2">
-                                    <span>2023</span>
-                                    <span class="w-1.5 h-1.5 rounded-full bg-[#FF014C]"></span>
-                                    <span>169m</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Movie Card 6 -->
-                        <div class="flex flex-col gap-3 group cursor-pointer hover:scale-105 transition-transform duration-300 ease-in-out hidden lg:flex">
-                            <div class="w-full aspect-[2/3] rounded-xl overflow-hidden relative border border-white/5">
-                                <img src="https://image.tmdb.org/t/p/w500/4m1Au3YkjqsxF8iwQy0fPYSxE0h.jpg" class="w-full h-full object-cover">
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="text-white font-bold truncate text-sm lg:text-base">Meg 2: The Trench</span>
-                                <div class="flex items-center text-xs lg:text-sm font-medium text-[#C8C8C8] mt-1 gap-2">
-                                    <span>2023</span>
-                                    <span class="w-1.5 h-1.5 rounded-full bg-[#FF014C]"></span>
-                                    <span>116m</span>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- Features & Contact Section -->
-                <div class="flex flex-col items-center justify-center gap-12 mt-10 lg:mt-16 border-t border-white/5 pt-16 animate-fade-in-up" style="animation-delay: 0.3s; opacity: 0;">
-                    
-                    <div class="text-center">
-                        <h3 class="font-['Bebas_Neue'] text-4xl lg:text-5xl tracking-widest text-white mb-4">ƏLAQƏ</h3>
-                        <a href="mailto:info@rahatizle.site" class="text-[#FF014C] hover:text-white text-xl md:text-2xl font-medium transition-all duration-300 hover:scale-105 inline-block cursor-pointer">info@rahatizle.site</a>
-                    </div>
-
-                    <div class="w-full flex flex-col gap-8 mt-8">
-                        <h3 class="font-['Bebas_Neue'] text-3xl lg:text-4xl tracking-widest text-white text-center">SAYTIN FUNKSİYALARI</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl mx-auto">
-                            <!-- Feature 1 -->
-                            <div class="bg-white/5 border border-white/10 rounded-2xl p-8 hover:border-[#FF014C]/50 hover:bg-white/10 transition-all duration-300">
-                                <h4 class="text-white font-bold text-xl mb-3">Sinxron İzləmə</h4>
-                                <p class="text-[#C8C8C8] text-base leading-relaxed">Dostlarınızla eyni anda, heç bir gecikmə olmadan film və serialları izləyin. Görüntü tam sinxronizasiyada olur.</p>
-                            </div>
-                            <!-- Feature 2 -->
-                            <div class="bg-white/5 border border-white/10 rounded-2xl p-8 hover:border-[#FF014C]/50 hover:bg-white/10 transition-all duration-300">
-                                <h4 class="text-white font-bold text-xl mb-3">Canlı Söhbət</h4>
-                                <p class="text-[#C8C8C8] text-base leading-relaxed">İzləmə zamanı otaqdakı hər kəslə canlı chat vasitəsilə sürətli ünsiyyət qurun və müzakirələr aparın.</p>
-                            </div>
-                            <!-- Feature 3 -->
-                            <div class="bg-white/5 border border-white/10 rounded-2xl p-8 hover:border-[#FF014C]/50 hover:bg-white/10 transition-all duration-300">
-                                <h4 class="text-white font-bold text-xl mb-3">Çoxlu Platforma</h4>
-                                <p class="text-[#C8C8C8] text-base leading-relaxed">YouTube, Netflix, Disney+ və ya öz cihazınızdakı videoları asanlıqla otağa əlavə edərək izləyin.</p>
-                            </div>
+                        <!-- Local -->
+                        <div class="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/20 hover:border-white/50 transition-all duration-300 flex flex-col items-center justify-center gap-4 group cursor-pointer">
+                            <h3 class="font-bold text-xl text-white group-hover:text-white transition-colors">Cihazdan</h3>
+                            <p class="text-xs text-[#C8C8C8] text-center">Öz videonu yüklə</p>
                         </div>
                     </div>
                 </div>
@@ -270,11 +170,12 @@
                 <footer class="w-full mt-10 pt-8 pb-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 animate-fade-in-up" style="animation-delay: 0.4s; opacity: 0;">
                     <div class="flex items-center gap-2 opacity-50 hover:opacity-100 transition-opacity cursor-pointer">
                         <svg class="w-6 h-6 text-[#FF014C]" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm0 2v12h16V6H4zm2 2h2v8H6V8zm4 0h2v8h-2V8zm4 0h2v8h-2V8z"/></svg>
-                        <span class="font-['Bebas_Neue'] text-xl tracking-wider text-white">RAHAT İZLƏ<span class="text-[#FF014C]">.</span></span>
+                        <span class="font-['Bebas_Neue'] text-xl tracking-wider text-white">RAHAT İZLE<span class="text-[#FF014C]">.</span></span>
                     </div>
                     <div class="flex items-center gap-6">
+                        <a href="#" class="text-[#C8C8C8] hover:text-white transition-colors duration-300 text-sm">Ana Səhifə</a>
                         <a href="#" class="text-[#C8C8C8] hover:text-white transition-colors duration-300 text-sm">Məlumat</a>
-                        <a href="#" class="text-[#C8C8C8] hover:text-white transition-colors duration-300 text-sm">Əlaqə</a>
+                        <button class="open-contact-modal text-[#C8C8C8] hover:text-white transition-colors duration-300 text-sm">Əlaqə</button>
                         <div id="footer-guest-links" class="flex items-center gap-6">
                             <button class="open-login-modal text-[#C8C8C8] hover:text-[#FF014C] transition-colors duration-300 text-sm font-bold">Giriş</button>
                             <button class="open-register-modal text-[#C8C8C8] hover:text-[#FF014C] transition-colors duration-300 text-sm font-bold">Qeydiyyat</button>
@@ -283,6 +184,19 @@
                 </footer>
 
             </div>
+        </div>
+    </div>
+
+    <!-- CONTACT MODAL -->
+    <div id="contact-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4">
+        <div class="relative max-w-sm mx-auto w-full bg-[#030303] p-10 rounded-3xl border border-white/10 shadow-[0_0_25px_rgba(255,1,76,0.1)] animate-fade-in text-center">
+            <button class="close-contact-modal absolute top-5 right-5 text-gray-500 hover:text-white transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            <div class="w-16 h-16 mx-auto bg-white/5 rounded-full flex items-center justify-center mb-6">
+                <svg class="w-8 h-8 text-[#FF014C]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+            </div>
+            <h2 class="text-2xl font-bold mb-2 text-white">Bizimlə Əlaqə</h2>
+            <p class="text-[#C8C8C8] text-sm mb-6 leading-relaxed">Sual və ya təklifləriniz üçün bizə e-poçt ünvanımız vasitəsilə müraciət edə bilərsiniz.</p>
+            <a href="mailto:founder@rahatizle.site" class="block w-full py-4 bg-white/5 hover:bg-[#FF014C] text-white hover:text-white font-bold rounded-xl border border-white/10 hover:border-[#FF014C] transition-all duration-300 text-lg">founder@rahatizle.site</a>
         </div>
     </div>
 
