@@ -2,6 +2,7 @@
 const firebaseConfig = {
   apiKey: "AIzaSyCdbOsVymHIPfjbw3oByjb4pS-sEB8jv8c",
   authDomain: "rahatizle-yeni.firebaseapp.com",
+  databaseURL: "https://rahatizle-yeni-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "rahatizle-yeni",
   storageBucket: "rahatizle-yeni.firebasestorage.app",
   messagingSenderId: "364316761559",
