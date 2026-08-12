@@ -140,6 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DASHBOARD (İDARƏ PANELİ) ---
     const dashboardUserName = document.getElementById('dashboardUserName');
     const logoutBtn = document.getElementById('logoutBtn');
+    const deleteAccountBtn = document.getElementById('deleteAccountBtn');
     const createRoomBtn = document.getElementById('createRoomBtn');
     const joinRoomBtn = document.getElementById('joinRoomBtn');
     const roomCodeInput = document.getElementById('roomCodeInput');
@@ -165,6 +166,34 @@ document.addEventListener('DOMContentLoaded', () => {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
             auth.signOut().catch(err => alert("Çıxış xətası: " + err.message));
+        });
+    }
+
+    // --- HESABI SİL LOGIC ---
+    if (deleteAccountBtn) {
+        deleteAccountBtn.addEventListener('click', () => {
+            if (!currentUser) return;
+            
+            const confirmDelete = confirm("Hesabınızı və bütün məlumatlarınızı birdəfəlik silmək istədiyinizə əminsiniz?");
+            if (confirmDelete) {
+                // Əvvəlcə Realtime Database-dən istifadəçinin məlumatlarını sil
+                database.ref('users/' + currentUser.uid).remove()
+                    .then(() => {
+                        // Baza silindikdən sonra Firebase Auth-dan istifadəçini sil
+                        return currentUser.delete();
+                    })
+                    .then(() => {
+                        alert("Hesabınız və bütün məlumatlarınız uğurla silindi.");
+                    })
+                    .catch(error => {
+                        // Təhlükəsizlik üçün 'auth/requires-recent-login' xətası
+                        if (error.code === 'auth/requires-recent-login') {
+                            alert("Təhlükəsizlik məqsədilə hesabınızı silmək üçün zəhmət olmasa hesabdan çıxış edib yenidən daxil olun.");
+                        } else {
+                            alert("Hesab silinərkən xəta baş verdi: " + error.message);
+                        }
+                    });
+            }
         });
     }
 
