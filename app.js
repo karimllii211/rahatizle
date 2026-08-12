@@ -105,17 +105,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- MODAL İDARƏETMƏSİ (AUTH) ---
+    // --- MODAL İDARƏETMƏSİ ---
     const loginModal = document.getElementById('login-modal');
     const registerModal = document.getElementById('register-modal');
+    const platformModal = document.getElementById('platform-modal');
 
     const showModal = (modal) => {
         if (loginModal) { loginModal.classList.add('hidden'); loginModal.classList.remove('flex'); }
         if (registerModal) { registerModal.classList.add('hidden'); registerModal.classList.remove('flex'); }
+        if (platformModal) { platformModal.classList.add('hidden'); platformModal.classList.remove('flex'); }
         if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
     };
     
-    const closeAuthModals = () => {
+    const closeAllModals = () => {
         showModal(null);
     };
 
@@ -129,15 +131,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Modal bağlamaq üçün X düymələri
-    document.querySelectorAll('.close-auth-modal').forEach(btn => {
-        btn.addEventListener('click', closeAuthModals);
+    document.querySelectorAll('.close-auth-modal, .close-platform-modal').forEach(btn => {
+        btn.addEventListener('click', closeAllModals);
     });
 
     // Arxa fona kliklədikdə bağlansın
-    [loginModal, registerModal].forEach(modal => {
+    [loginModal, registerModal, platformModal].forEach(modal => {
         if (modal) {
             modal.addEventListener('click', (e) => {
-                if (e.target === modal) closeAuthModals();
+                if (e.target === modal) closeAllModals();
             });
         }
     });
@@ -258,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(user => {
         currentUser = user;
         if (user) {
-            closeAuthModals();
+            closeAllModals();
             if (navUserView) { navUserView.classList.remove('hidden'); navUserView.classList.add('flex'); }
             if (navGuestView) { navGuestView.classList.add('hidden'); navGuestView.classList.remove('flex'); }
             if (footerGuestLinks) { footerGuestLinks.classList.add('hidden'); footerGuestLinks.classList.remove('flex'); }
@@ -299,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- OTAQ MƏNTİQİ ---
+    // --- OTAQ MƏNTİQİ VƏ PLATFORM SEÇİMİ ---
     const generateRoomCode = () => {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         let code = '';
@@ -313,26 +315,39 @@ document.addEventListener('DOMContentLoaded', () => {
         createRoomBtn.addEventListener('click', () => {
             if (!currentUser) return showToast("Əvvəlcə hesaba daxil olmalısınız!");
             
+            // Otaq yaratmaq əvəzinə platforma seçimini aç
+            showModal(platformModal);
+        });
+    }
+
+    // Platforma seçildikdən sonra otaq yarat və yönləndir
+    document.querySelectorAll('.platform-select-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (!currentUser) return;
+            
+            const selectedPlatform = btn.getAttribute('data-platform');
             const roomCode = generateRoomCode();
             
             database.ref('rooms/' + roomCode + '/creator').set({
                 uid: currentUser.uid,
                 name: currentUser.displayName || currentUser.email.split('@')[0],
                 photoURL: currentUser.photoURL || `https://ui-avatars.com/api/?name=${currentUser.email}&background=dc2626&color=fff`,
+                platform: selectedPlatform,
                 createdAt: firebase.database.ServerValue.TIMESTAMP
             }).then(() => {
-                window.location.href = `room.html?id=${roomCode}`;
+                window.location.href = `room.html?id=${roomCode}&platform=${selectedPlatform}`;
             }).catch(error => {
                 showToast("Otaq yaradılarkən xəta baş verdi.");
                 console.error(error);
             });
         });
-    }
+    });
 
     if (joinRoomBtn) {
         joinRoomBtn.addEventListener('click', () => {
             const code = roomCodeInput ? roomCodeInput.value.trim().toUpperCase() : '';
             if (!code) return showToast("Otaq kodunu daxil edin.");
+            // Qoşulan zaman hələlik platforma ehtiyac yoxdur, room.html içində tapılacaq
             window.location.href = `room.html?id=${code}`;
         });
     }
