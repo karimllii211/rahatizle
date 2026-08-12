@@ -35,9 +35,9 @@
         }
     </style>
 </head>
-<body class="antialiased min-h-screen flex flex-col items-center p-4 selection:bg-red-600 selection:text-white bg-black overflow-x-hidden">
+<body class="antialiased min-h-screen flex flex-col items-center p-4 selection:bg-red-600 selection:text-white bg-black overflow-x-hidden font-sans">
 
-    <div class="w-full px-6 lg:px-16 xl:px-24">
+    <div class="w-full max-w-full px-8 lg:px-16">
         
         <!-- DASHBOARD SECTION -->
         <div id="dashboard-section" class="flex w-full flex-col min-h-[85vh] relative font-['Inter'] mt-4">
@@ -73,29 +73,9 @@
 
                     <!-- User View -->
                     <div id="nav-user-view" class="hidden items-center gap-4 relative">
-                        <button id="userDropdownBtn" class="flex items-center gap-2 mr-2 group focus:outline-none">
-                            <img id="userAvatar" src="https://ui-avatars.com/api/?name=User&background=FF014C&color=fff" alt="Profile" class="w-8 h-8 rounded-full border border-white/20 group-hover:border-[#FF014C] transition-colors">
-                            <span id="dashboardUserName" class="text-sm font-medium text-[#C8C8C8] max-w-[120px] truncate hidden sm:block group-hover:text-white transition-colors">İstifadəçi Adı</span>
-                            <svg class="w-4 h-4 text-gray-400 group-hover:text-white transition-colors hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-                        
-                        <!-- Dropdown Menu -->
-                        <div id="userDropdownMenu" class="hidden absolute top-full right-0 mt-4 w-64 bg-[#0A0A0A] border border-white/10 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] overflow-hidden z-50 animate-fade-in origin-top-right">
-                            <div class="p-4 border-b border-white/10">
-                                <h4 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Aktiv Otaqlarım</h4>
-                                <div id="activeRoomsList" class="flex flex-col gap-2 max-h-48 overflow-y-auto">
-                                    <div class="text-xs text-gray-400 py-2">Otaq tapılmadı.</div>
-                                </div>
-                            </div>
-                            <div class="p-2">
-                                <button id="deleteAccountBtn" class="w-full text-left px-4 py-2 text-xs font-semibold text-white/50 hover:text-red-500 hover:bg-white/5 rounded-lg transition-colors duration-300">
-                                    HESABI SİL
-                                </button>
-                            </div>
-                        </div>
-
-                        <button id="logoutBtn" class="px-5 py-2 bg-white/10 hover:bg-[#FF014C] text-white text-sm font-bold rounded-full transition-all duration-300">
-                            Çıxış
+                        <button id="openProfileBtn" class="flex items-center gap-2 group focus:outline-none px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all duration-300">
+                            <img id="userAvatar" src="https://ui-avatars.com/api/?name=User&background=FF014C&color=fff" alt="Profile" class="w-7 h-7 rounded-full border border-white/20 group-hover:border-[#FF014C] transition-colors">
+                            <span id="dashboardUserName" class="text-sm font-medium text-[#C8C8C8] max-w-[100px] truncate hidden sm:block group-hover:text-white transition-colors">İstifadəçi Adı</span>
                         </button>
                     </div>
                 </div>
@@ -324,6 +304,43 @@
                 </button>
                 <button id="confirm-yes-btn" class="px-6 py-3 bg-red-700 hover:bg-red-800 text-white font-bold rounded-xl transition-all duration-300 w-1/2 shadow-[0_0_10px_rgba(220,38,38,0.4)]">
                     Bəli
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROFILE MODAL -->
+    <div id="profile-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md items-center justify-center p-4 overflow-y-auto">
+        <div class="relative max-w-lg mx-auto w-full bg-[#030303] p-8 rounded-3xl border border-red-600/50 shadow-[0_0_30px_rgba(220,38,38,0.15)] animate-fade-in my-8">
+            <button class="close-profile-modal absolute top-6 right-6 text-gray-500 hover:text-white transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            <h2 class="text-2xl font-bold mb-8 text-center text-white tracking-wide">Profil <span class="text-[#FF014C]">Tənzimləmələri</span></h2>
+            
+            <form id="profileForm" class="space-y-4 mb-8" onsubmit="event.preventDefault();">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1 tracking-wider uppercase">Ad və Soyad</label>
+                    <input type="text" id="profileName" class="w-full bg-black text-white px-5 py-3 border border-white/10 rounded-xl focus:outline-none focus:border-red-500 transition-all placeholder-gray-600">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1 tracking-wider uppercase">Telefon nömrəsi</label>
+                    <input type="tel" id="profilePhone" placeholder="+994" class="w-full bg-black text-white px-5 py-3 border border-white/10 rounded-xl focus:outline-none focus:border-red-500 transition-all placeholder-gray-600">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1 tracking-wider uppercase">E-poçt (Dəyişdirilə bilməz)</label>
+                    <input type="email" id="profileEmail" disabled class="w-full bg-white/5 text-gray-500 px-5 py-3 border border-transparent rounded-xl cursor-not-allowed">
+                </div>
+                <button type="button" id="updateProfileBtn" class="w-full bg-transparent border border-red-600 hover:bg-red-600 text-white font-bold py-3 mt-4 rounded-xl transition-all duration-300 shadow-[0_0_10px_rgba(220,38,38,0.2)] hover:shadow-[0_0_20px_rgba(220,38,38,0.4)]">
+                    Məlumatları Yenilə
+                </button>
+            </form>
+
+            <div class="border-t border-white/10 pt-6">
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Aktiv Otaqlarım</h3>
+                <div id="profileActiveRoomsList" class="flex flex-col gap-3 max-h-48 overflow-y-auto pr-2 mb-6">
+                    <div class="text-sm text-gray-500 py-2 text-center">Otaq tapılmadı.</div>
+                </div>
+                
+                <button id="logoutBtn" class="w-full bg-white/5 hover:bg-red-900/40 text-[#FF014C] hover:text-white font-bold py-3 rounded-xl border border-transparent hover:border-red-500/50 transition-all duration-300">
+                    Çıxış Et
                 </button>
             </div>
         </div>

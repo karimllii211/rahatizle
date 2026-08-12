@@ -109,11 +109,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginModal = document.getElementById('login-modal');
     const registerModal = document.getElementById('register-modal');
     const platformModal = document.getElementById('platform-modal');
+    const profileModal = document.getElementById('profile-modal');
 
     const showModal = (modal) => {
         if (loginModal) { loginModal.classList.add('hidden'); loginModal.classList.remove('flex'); }
         if (registerModal) { registerModal.classList.add('hidden'); registerModal.classList.remove('flex'); }
         if (platformModal) { platformModal.classList.add('hidden'); platformModal.classList.remove('flex'); }
+        if (profileModal) { profileModal.classList.add('hidden'); profileModal.classList.remove('flex'); }
         if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
     };
     
@@ -131,12 +133,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Modal bağlamaq üçün X düymələri
-    document.querySelectorAll('.close-auth-modal, .close-platform-modal').forEach(btn => {
+    document.querySelectorAll('.close-auth-modal, .close-platform-modal, .close-profile-modal').forEach(btn => {
         btn.addEventListener('click', closeAllModals);
     });
 
     // Arxa fona kliklədikdə bağlansın
-    [loginModal, registerModal, platformModal].forEach(modal => {
+    [loginModal, registerModal, platformModal, profileModal].forEach(modal => {
         if (modal) {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) closeAllModals();
@@ -243,48 +245,88 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- AKTİV OTAQLAR DROPDOWN MƏNTİQİ ---
-    const userDropdownBtn = document.getElementById('userDropdownBtn');
-    const userDropdownMenu = document.getElementById('userDropdownMenu');
-    const activeRoomsList = document.getElementById('activeRoomsList');
+    // --- PROFIL MODAL VƏ AKTİV OTAQLAR ---
+    const openProfileBtn = document.getElementById('openProfileBtn');
+    const profileActiveRoomsList = document.getElementById('profileActiveRoomsList');
 
-    if (userDropdownBtn && userDropdownMenu) {
-        userDropdownBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            userDropdownMenu.classList.toggle('hidden');
+    if (openProfileBtn) {
+        openProfileBtn.addEventListener('click', () => {
+            if (!currentUser) return;
+            
+            const profileName = document.getElementById('profileName');
+            const profilePhone = document.getElementById('profilePhone');
+            const profileEmail = document.getElementById('profileEmail');
+
+            if (profileName) profileName.value = currentUser.displayName || '';
+            if (profileEmail) profileEmail.value = currentUser.email || '';
+            
+            // Telefon nömrəsini bazadan çək
+            database.ref('users/' + currentUser.uid).once('value').then(snapshot => {
+                const data = snapshot.val();
+                if (data && data.phone && profilePhone) {
+                    profilePhone.value = data.phone;
+                } else if (profilePhone) {
+                    profilePhone.value = '';
+                }
+                showModal(profileModal);
+            });
         });
-
-        document.addEventListener('click', (e) => {
-            if (!userDropdownBtn.contains(e.target) && !userDropdownMenu.contains(e.target)) {
-                userDropdownMenu.classList.add('hidden');
-            }
+    }
+    
+    const updateProfileBtn = document.getElementById('updateProfileBtn');
+    if (updateProfileBtn) {
+        updateProfileBtn.addEventListener('click', () => {
+            if (!currentUser) return;
+            const newName = document.getElementById('profileName').value.trim();
+            const newPhone = document.getElementById('profilePhone').value.trim();
+            
+            if (!newName) return showToast("Ad daxil edilməlidir.");
+            
+            currentUser.updateProfile({
+                displayName: newName
+            }).then(() => {
+                const dashboardUserName = document.getElementById('dashboardUserName');
+                if (dashboardUserName) {
+                    dashboardUserName.textContent = newName;
+                }
+                
+                return database.ref('users/' + currentUser.uid).update({
+                    displayName: newName,
+                    phone: newPhone
+                });
+            }).then(() => {
+                showToast("Profil uğurla yeniləndi!");
+                closeAllModals();
+            }).catch(err => {
+                showToast(getErrorMessage(err.code));
+            });
         });
     }
 
     const renderActiveRooms = (rooms) => {
-        if (!activeRoomsList) return;
+        if (!profileActiveRoomsList) return;
         
-        activeRoomsList.innerHTML = '';
+        profileActiveRoomsList.innerHTML = '';
         
         if (rooms.length === 0) {
-            activeRoomsList.innerHTML = '<div class="text-xs text-gray-400 py-2">Otaq tapılmadı.</div>';
+            profileActiveRoomsList.innerHTML = '<div class="text-sm text-gray-500 py-2 text-center">Otaq tapılmadı.</div>';
             return;
         }
 
         rooms.forEach(room => {
             const item = document.createElement('div');
-            item.className = 'flex items-center justify-between bg-white/5 border border-white/10 p-2 rounded-lg';
+            item.className = 'flex items-center justify-between bg-white/5 border border-white/10 p-3 rounded-xl mb-2';
             item.innerHTML = `
                 <div class="flex flex-col">
-                    <span class="text-xs font-bold text-white uppercase tracking-wider">${room.id}</span>
+                    <span class="text-sm font-bold text-white uppercase tracking-wider">${room.id}</span>
                     <span class="text-[10px] text-gray-400 capitalize">${room.platform || 'Naməlum'}</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button onclick="window.location.href='room.html?id=${room.id}'" class="px-3 py-1 bg-white/10 hover:bg-[#FF014C] text-white text-[10px] font-bold rounded transition-colors">Qoşul</button>
-                    <button onclick="deleteRoom('${room.id}')" class="px-2 py-1 bg-red-900/30 hover:bg-red-700 text-white text-[10px] font-bold rounded border border-red-500/30 transition-colors">Sil</button>
+                    <button onclick="window.location.href='room.html?id=${room.id}'" class="px-4 py-1.5 bg-[#FF014C]/20 hover:bg-[#FF014C] text-[#FF014C] hover:text-white border border-[#FF014C]/50 hover:border-transparent text-[11px] font-bold rounded-lg transition-all">Qoşul</button>
+                    <button onclick="deleteRoom('${room.id}')" class="px-3 py-1.5 bg-red-900/30 hover:bg-red-700 text-white text-[11px] font-bold rounded-lg border border-red-500/30 transition-all">Sil</button>
                 </div>
             `;
-            activeRoomsList.appendChild(item);
+            profileActiveRoomsList.appendChild(item);
         });
     };
 
