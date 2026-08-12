@@ -1,12 +1,12 @@
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCSkoM3kNsaNmxg4I8o7uILmCVb7WSCd7E",
-  authDomain: "rahatizle-4141.firebaseapp.com",
-  projectId: "rahatizle-4141",
-  storageBucket: "rahatizle-4141.firebasestorage.app",
-  messagingSenderId: "426556860257",
-  appId: "1:426556860257:web:864e23a4195959637ac720",
-  measurementId: "G-W5RD8YW7NW"
+  apiKey: "AIzaSyCdbOsVymHIPfjbw3oByjb4pS-sEB8jv8c",
+  authDomain: "rahatizle-yeni.firebaseapp.com",
+  projectId: "rahatizle-yeni",
+  storageBucket: "rahatizle-yeni.firebasestorage.app",
+  messagingSenderId: "364316761559",
+  appId: "1:364316761559:web:acebb24e3012d4a0973f92",
+  measurementId: "G-210JCWXKGE"
 };
 
 // Initialize Firebase
