@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
     };
     
-    const closeAllModals = () => {
+    function closeAllModals() {
         const modals = [loginModal, registerModal, forgotPasswordModal, document.getElementById('otp-modal')];
         modals.forEach(m => {
             if (m) {
@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 i.value = '';
             }
         });
-    };
+    }
 
     // Modal açmaq üçün düymələr
     document.querySelectorAll('.open-login-modal').forEach(btn => {
@@ -799,7 +799,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (createRoomBtn) {
         createRoomBtn.addEventListener('click', () => {
-            if (!currentUser) return showToast("Əvvəlcə hesaba daxil olmalısınız!");
+            if (!currentUser) {
+                showModal(loginModal);
+                return;
+            }
             
             // Otaq yaratmaq üçün birbaşa yaradın, platforma seçimi room.html-də olacaq
             const roomCode = generateRoomCode();
