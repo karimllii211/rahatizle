@@ -317,6 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
         verifyOTPBtn.addEventListener('click', () => {
             const entered = document.getElementById('otpInput').value.trim();
             if (entered === generatedOTP) {
+                console.log("OTP düzgündür, API-yə müraciət edilir...");
                 const otpStep = document.getElementById('otpStepContainer');
                 const newPwdStep = document.getElementById('newPasswordStepContainer');
                 if (otpStep) otpStep.classList.add('hidden');
@@ -347,6 +348,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const data = await response.json().catch(() => ({}));
 
+                if (response.status === 404 || response.status === 500) {
+                    console.error(`Backend Xətası: Status ${response.status} - Məlumat tapılmadı və ya server xətası.`);
+                }
+
                 if (response.ok) {
                     showToast("Şifrəniz uğurla yeniləndi! İndi giriş edə bilərsiniz.");
                     closeAllModals();
@@ -355,7 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         showModal(loginModal);
                     }
                 } else {
-                    showToast("Xəta: " + (data.error || data.message || "Bilinməyən xəta baş verdi."));
+                    showToast("Xəta: " + response.status + " - " + (data.error || data.message || "Server xətası"));
                 }
             } catch (err) {
                 console.error("Şifrə yeniləmə xətası:", err);
