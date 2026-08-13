@@ -1,8 +1,9 @@
 {
+  "name": "rahatizle",
+  "type": "module",
   "dependencies": {
     "firebase-admin": "^14.2.0"
   },
-  "name": "rahatizle",
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
@@ -11,14 +12,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/karimllii211/rahatizle.git"
+    "url": "git+https://github.com/karimlli211/rahatizle.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/karimllii211/rahatizle/issues"
+    "url": "https://github.com/karimlli211/rahatizle/issues"
   },
-  "homepage": "https://github.com/karimllii211/rahatizle#readme"
+  "homepage": "https://github.com/karimlli211/rahatizle#readme"
 }

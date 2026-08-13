@@ -1,5 +1,5 @@
-const { initializeApp, getApps, cert } = require('firebase-admin/app');
-const { getAuth } = require('firebase-admin/auth');
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 
 if (getApps().length === 0) {
   initializeApp({
@@ -11,7 +11,7 @@ if (getApps().length === 0) {
   });
 }
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Yalnız POST sorğuları qəbul edilir' });
   }
@@ -34,4 +34,4 @@ module.exports = async (req, res) => {
     console.error("Backend Firebase Xətası:", error);
     res.status(500).json({ error: error.message });
   }
-};
+}
