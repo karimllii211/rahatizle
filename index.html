@@ -92,8 +92,8 @@
                 <!-- Hero Section -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center animate-fade-in-up" style="animation-delay: 0.1s; opacity: 0;">
                     <!-- Left: Text & Actions -->
-                    <div class="flex flex-col gap-6 z-10">
-                        <h1 class="font-['Bebas_Neue'] text-6xl md:text-8xl lg:text-[100px] leading-[0.9] tracking-normal text-white">
+                    <div class="flex flex-col gap-6 z-10 p-6 md:p-10">
+                        <h1 class="font-['Bebas_Neue'] text-7xl md:text-9xl lg:text-[120px] leading-[0.9] tracking-normal text-white">
                             FIND MOVIES <br>
                             TV SHOWS <br>
                             <span class="text-[#FF014C]">AND MORE</span>
@@ -199,8 +199,11 @@
                 <div>
                     <input type="email" id="loginEmail" placeholder="E-poçt" class="w-full bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500">
                 </div>
-                <div>
-                    <input type="password" id="loginPassword" placeholder="Şifrə" class="w-full bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500">
+                <div class="relative">
+                    <input type="password" id="loginPassword" placeholder="Şifrə" class="w-full bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500 pr-12">
+                    <button type="button" class="toggle-password absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none">
+                        <svg class="w-5 h-5 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                    </button>
                 </div>
                 <div class="flex justify-between items-center w-full pb-2">
                     <button type="button" id="forgotPasswordBtn" class="text-gray-400 hover:text-red-500 transition-colors duration-300 text-sm">
@@ -238,8 +241,8 @@
     </div>
 
     <!-- REGISTER MODAL -->
-    <div id="register-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4">
-        <div class="relative max-w-md mx-auto w-full bg-[#030303] p-8 rounded-2xl border border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.2)] animate-fade-in">
+    <div id="register-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4 transition-all duration-500">
+        <div class="relative max-w-md mx-auto w-full bg-[#030303] p-8 rounded-2xl border border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.2)] animate-fade-in duration-500">
             <button class="close-auth-modal absolute top-5 right-5 text-gray-500 hover:text-white transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             <h2 class="text-3xl font-bold mb-8 text-center tracking-wider uppercase text-white">Qeydiyyat</h2>
             
@@ -258,8 +261,18 @@
                     </select>
                 </div>
                 <div class="flex gap-4">
-                    <input type="password" id="regPassword" placeholder="Şifrə" class="w-1/2 bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500">
-                    <input type="password" id="regPasswordConfirm" placeholder="Şifrə Təkrar" class="w-1/2 bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500">
+                    <div class="relative w-1/2">
+                        <input type="password" id="regPassword" placeholder="Şifrə" class="w-full bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500 pr-10">
+                        <button type="button" class="toggle-password absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none">
+                            <svg class="w-4 h-4 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                        </button>
+                    </div>
+                    <div class="relative w-1/2">
+                        <input type="password" id="regPasswordConfirm" placeholder="Təkrar Şifrə" class="w-full bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500 pr-10">
+                        <button type="button" class="toggle-password absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none">
+                            <svg class="w-4 h-4 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                        </button>
+                    </div>
                 </div>
                 
                 <button type="button" id="completeRegisterBtn" class="w-full bg-transparent border border-red-600 hover:bg-red-600 text-white font-bold py-4 mt-2 rounded-xl transition-all duration-300 shadow-[0_0_10px_rgba(220,38,38,0.4)] hover:shadow-[0_0_20px_rgba(220,38,38,0.6)] uppercase tracking-wider">
@@ -294,8 +307,8 @@
     </div>
 
     <!-- FORGOT PASSWORD MODAL -->
-    <div id="forgot-password-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4">
-        <div class="relative max-w-md mx-auto w-full bg-[#030303] p-8 rounded-2xl border border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.2)] animate-fade-in">
+    <div id="forgot-password-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4 transition-all duration-500">
+        <div class="relative max-w-sm mx-auto w-full bg-[#030303] p-8 rounded-2xl border border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.2)] animate-fade-in duration-500">
             <button class="close-auth-modal absolute top-5 right-5 text-gray-500 hover:text-white transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             <h2 class="text-3xl font-bold mb-4 text-center tracking-wider uppercase text-white">Şifrənin Bərpası</h2>
             <p class="text-center text-gray-400 text-sm mb-6">Qeydiyyatdan keçdiyiniz e-poçt ünvanını daxil edin. Sizə bərpa kodu göndəriləcək.</p>
@@ -324,11 +337,20 @@
                 <button type="button" id="verifyOTPBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all duration-300 uppercase tracking-wider">
                     Kodu Təsdiqlə
                 </button>
+                <div class="flex flex-col items-center gap-2 mt-4">
+                    <button type="button" id="resendOTPBtn" class="text-sm text-gray-400 hover:text-white transition-colors">Kodu yenidən göndər</button>
+                    <span id="resendTimer" class="text-xs text-red-500 hidden">60s</span>
+                </div>
             </div>
 
             <div id="newPasswordStepContainer" class="space-y-4 hidden">
-                <input type="password" id="newPasswordInput" placeholder="Yeni şifrə" class="w-full bg-black text-white px-5 py-3 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 transition-all">
-                <button type="button" id="setNewPasswordBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all duration-300 uppercase tracking-wider">
+                <div class="relative">
+                    <input type="password" id="newPasswordInput" placeholder="Yeni şifrə" class="w-full bg-black text-white px-5 py-3 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 transition-all pr-12">
+                    <button type="button" class="toggle-password absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none">
+                        <svg class="w-5 h-5 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                    </button>
+                </div>
+                <button type="button" id="setNewPasswordBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all duration-500 uppercase tracking-wider">
                     Şifrəni Yenilə
                 </button>
             </div>

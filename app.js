@@ -52,6 +52,28 @@ document.addEventListener('DOMContentLoaded', () => {
         toastCloseBtn.addEventListener('click', closeToast);
     }
 
+    const closeAuthModals = document.querySelectorAll('.close-auth-modal, .close-platform-modal, .close-profile-modal');
+    if (closeAuthModals.length > 0) {
+        closeAuthModals.forEach(btn => btn.addEventListener('click', closeAllModals));
+    }
+
+    // Toggle Password Visibility
+    document.querySelectorAll('.toggle-password').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const input = this.parentElement.querySelector('input');
+            const svg = this.querySelector('svg');
+            if (input.type === 'password') {
+                input.type = 'text';
+                // Eye-off icon
+                svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>';
+            } else {
+                input.type = 'password';
+                // Eye icon
+                svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>';
+            }
+        });
+    });
+
     const customConfirm = document.getElementById('custom-confirm');
     const confirmMessage = document.getElementById('confirm-message');
     const confirmYesBtn = document.getElementById('confirm-yes-btn');
@@ -127,7 +149,21 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     const closeAllModals = () => {
-        showModal(null);
+        const modals = [loginModal, registerModal, forgotPasswordModal, document.getElementById('otp-modal')];
+        modals.forEach(m => {
+            if (m) {
+                m.classList.add('hidden');
+                m.classList.remove('flex');
+            }
+        });
+        
+        // Bütün formları və inputları təmizlə
+        document.querySelectorAll('form').forEach(f => f.reset());
+        document.querySelectorAll('input').forEach(i => {
+            if (i.type !== 'radio' && i.type !== 'checkbox' && i.type !== 'submit' && !i.disabled && i.id !== 'profEmail') {
+                i.value = '';
+            }
+        });
     };
 
     // Modal açmaq üçün düymələr
@@ -137,11 +173,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     document.querySelectorAll('.open-register-modal').forEach(btn => {
         btn.addEventListener('click', () => showModal(registerModal));
-    });
-
-    // Modal bağlamaq üçün X düymələri
-    document.querySelectorAll('.close-auth-modal, .close-platform-modal, .close-profile-modal').forEach(btn => {
-        btn.addEventListener('click', closeAllModals);
     });
 
     // Arxa fona kliklədikdə bağlansın
@@ -198,7 +229,54 @@ document.addEventListener('DOMContentLoaded', () => {
         forgotPasswordBtn.addEventListener('click', () => showModal(forgotPasswordModal));
     }
 
+    // --- ŞİFRƏNİ UNUTDUM (FİREBASE LİNKİ) ---
+    window.sendFirebasePasswordReset = (email) => {
+        auth.sendPasswordResetEmail(email)
+            .then(() => {
+                showToast("Şifrə yeniləmə linki e-poçtunuza göndərildi!");
+                closeAllModals();
+            })
+            .catch((error) => {
+                showToast(getErrorMessage(error.code));
+            });
+    };
+
+    const sendOTPBtn = document.getElementById('sendOTPBtn');
+    if (sendOTPBtn) {
+        sendOTPBtn.addEventListener('click', () => {
+            const email = document.getElementById('forgotEmail').value.trim();
+            if (!email) return showToast("E-poçt daxil edin!");
+            sendFirebasePasswordReset(email);
+        });
+    }
+
+    // --- EMAILJS OTP (YALNIZ PROFIL ÜÇÜN) ---
     let generatedOTP = null;
+    let resendInterval = null;
+
+    const startResendTimer = () => {
+        const resendBtn = document.querySelectorAll('#resendOTPBtn');
+        const timers = document.querySelectorAll('#resendTimer');
+        
+        resendBtn.forEach(btn => btn.classList.add('hidden'));
+        timers.forEach(timer => {
+            timer.classList.remove('hidden');
+            timer.textContent = '60s';
+        });
+
+        let timeLeft = 60;
+        if (resendInterval) clearInterval(resendInterval);
+        
+        resendInterval = setInterval(() => {
+            timeLeft--;
+            timers.forEach(timer => timer.textContent = timeLeft + 's');
+            if (timeLeft <= 0) {
+                clearInterval(resendInterval);
+                resendBtn.forEach(btn => btn.classList.remove('hidden'));
+                timers.forEach(timer => timer.classList.add('hidden'));
+            }
+        }, 1000);
+    };
 
     window.sendEmailJSOTP = (userEmail) => {
         const otpCode = Math.floor(100000 + Math.random() * 900000);
@@ -219,19 +297,88 @@ document.addEventListener('DOMContentLoaded', () => {
             const newPwdStep = document.getElementById('newPasswordStepContainer');
             if (otpStep) otpStep.classList.remove('hidden');
             if (newPwdStep) newPwdStep.classList.add('hidden');
-            closeAllModals(); // Şifrəni unutdum modalını bağlayır
+            startResendTimer();
         }).catch(function(error) {
             console.error("EmailJS Xətası:", error);
             showToast("Xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.");
         });
     };
 
-    const sendOTPBtn = document.getElementById('sendOTPBtn');
-    if (sendOTPBtn) {
-        sendOTPBtn.addEventListener('click', () => {
-            const email = document.getElementById('forgotEmail').value.trim();
-            if (!email) return showToast("E-poçt daxil edin!");
-            sendEmailJSOTP(email);
+    const requestPasswordChangeBtn = document.getElementById('requestPasswordChangeBtn');
+    if (requestPasswordChangeBtn) {
+        requestPasswordChangeBtn.addEventListener('click', () => {
+            if (!currentUser || !currentUser.email) return;
+            sendEmailJSOTP(currentUser.email);
+        });
+    }
+    
+    // Resend OTP düymələri üçün (həm index.html, həm profile.html)
+    document.querySelectorAll('#resendOTPBtn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (!currentUser || !currentUser.email) return;
+            sendEmailJSOTP(currentUser.email);
+        });
+    });
+
+    const verifyOTPBtn = document.getElementById('verifyOTPBtn');
+    if (verifyOTPBtn) {
+        verifyOTPBtn.addEventListener('click', () => {
+            const entered = document.getElementById('otpInput').value.trim();
+            if (entered === generatedOTP) {
+                const otpStep = document.getElementById('otpStepContainer');
+                const newPwdStep = document.getElementById('newPasswordStepContainer');
+                if (otpStep) otpStep.classList.add('hidden');
+                if (newPwdStep) newPwdStep.classList.remove('hidden');
+                showToast("Kod təsdiqləndi! Yeni şifrənizi təyin edin.");
+            } else {
+                showToast("Kod yanlışdır.");
+            }
+        });
+    }
+
+    const setNewPasswordBtn = document.getElementById('setNewPasswordBtn');
+    if (setNewPasswordBtn) {
+        setNewPasswordBtn.addEventListener('click', () => {
+            const newPwd = document.getElementById('newPasswordInput').value.trim();
+            if (newPwd.length < 6) return showToast("Şifrə ən azı 6 simvol olmalıdır.");
+            
+            const activeUser = auth.currentUser;
+            if (!activeUser) {
+                return showToast("XƏTA: Sistemə daxil olmadığınız üçün Firebase şifrənizi yeniləyə bilmir.");
+            }
+
+            activeUser.updatePassword(newPwd).then(() => {
+                showToast("Şifrəniz uğurla yeniləndi!");
+                const modal = document.getElementById('otp-modal');
+                if (modal) {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }
+            }).catch(async err => {
+                if (err.code === 'auth/requires-recent-login') {
+                    // Mövcud şifrəni istəyən modal çıxart
+                    const oldPwdPrompt = prompt("Təhlükəsizlik üçün zəhmət olmasa cari (köhnə) şifrənizi daxil edin:");
+                    if (oldPwdPrompt) {
+                        try {
+                            const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, oldPwdPrompt);
+                            await currentUser.reauthenticateWithCredential(credential);
+                            await currentUser.updatePassword(newPwd);
+                            showToast("Sessiya yeniləndi və şifrə uğurla dəyişdirildi!");
+                            const modal = document.getElementById('otp-modal');
+                            if (modal) {
+                                modal.classList.add('hidden');
+                                modal.classList.remove('flex');
+                            }
+                        } catch (reauthErr) {
+                            showToast("Köhnə şifrə yalnışdır. Təkrar cəhd edin.");
+                        }
+                    } else {
+                        showToast("Şifrəni yeniləmək üçün sessiya təsdiqlənməlidir.");
+                    }
+                } else {
+                    showToast(getErrorMessage(err.code));
+                }
+            });
         });
     }
 
@@ -428,55 +575,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- EMAILJS İLƏ ŞİFRƏ DƏYİŞDİRMƏ ---
-    const requestPasswordChangeBtn = document.getElementById('requestPasswordChangeBtn');
-    if (requestPasswordChangeBtn) {
-        requestPasswordChangeBtn.addEventListener('click', () => {
-            if (!currentUser || !currentUser.email) return;
-            sendEmailJSOTP(currentUser.email);
-        });
-    }
-
-    const verifyOTPBtn = document.getElementById('verifyOTPBtn');
-    if (verifyOTPBtn) {
-        verifyOTPBtn.addEventListener('click', () => {
-            const entered = document.getElementById('otpInput').value.trim();
-            if (entered === generatedOTP) {
-                const otpStep = document.getElementById('otpStepContainer');
-                const newPwdStep = document.getElementById('newPasswordStepContainer');
-                if (otpStep) otpStep.classList.add('hidden');
-                if (newPwdStep) newPwdStep.classList.remove('hidden');
-                showToast("Kod təsdiqləndi! Yeni şifrənizi təyin edin.");
-            } else {
-                showToast("Kod yanlışdır.");
-            }
-        });
-    }
-
-    const setNewPasswordBtn = document.getElementById('setNewPasswordBtn');
-    if (setNewPasswordBtn) {
-        setNewPasswordBtn.addEventListener('click', () => {
-            const newPwd = document.getElementById('newPasswordInput').value.trim();
-            if (newPwd.length < 6) return showToast("Şifrə ən azı 6 simvol olmalıdır.");
-            
-            const activeUser = auth.currentUser;
-            if (!activeUser) {
-                return showToast("XƏTA: Sistemə daxil olmadığınız üçün Firebase şifrənizi yeniləyə bilmir.");
-            }
-
-            activeUser.updatePassword(newPwd).then(() => {
-                showToast("Şifrəniz uğurla yeniləndi!");
-                const modal = document.getElementById('otp-modal');
-                if (modal) {
-                    modal.classList.add('hidden');
-                    modal.classList.remove('flex');
-                }
-            }).catch(async err => {
-                if (err.code === 'auth/requires-recent-login') {
-                    // Mövcud şifrəni istəyən modal çıxart
-                    const oldPwdPrompt = prompt("Təhlükəsizlik üçün zəhmət olmasa cari (köhnə) şifrənizi daxil edin:");
-                    if (oldPwdPrompt) {
-                        try {
                             const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, oldPwdPrompt);
                             await currentUser.reauthenticateWithCredential(credential);
                             await currentUser.updatePassword(newPwd);

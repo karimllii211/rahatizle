@@ -112,7 +112,24 @@ function initRoom() {
     const chatForm = document.getElementById('chatForm');
     const chatInput = document.getElementById('chatInput');
     const chatMessages = document.getElementById('chatMessages');
+    const chatSendBtn = document.getElementById('chatSendBtn');
     const chatEmptyState = document.getElementById('chatEmptyState');
+    
+    // Chat Toggles
+    const toggleChatBtn = document.getElementById('toggleChatBtn');
+    const closeChatBtn = document.getElementById('closeChatBtn');
+    const chatPanel = document.getElementById('chatPanel');
+    
+    if (toggleChatBtn && chatPanel) {
+        toggleChatBtn.addEventListener('click', () => {
+            chatPanel.classList.toggle('translate-x-full');
+        });
+    }
+    if (closeChatBtn && chatPanel) {
+        closeChatBtn.addEventListener('click', () => {
+            chatPanel.classList.add('translate-x-full');
+        });
+    }
 
     if (roomCodeDisplay) roomCodeDisplay.textContent = `KOD: ${currentRoomId}`;
 
@@ -195,19 +212,23 @@ function initRoom() {
 
     // 3. Canlı Chat Məntiqi
     if (chatForm && chatInput) {
-        chatForm.addEventListener('submit', (e) => {
+        chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const text = chatInput.value.trim();
             if (!text) return;
 
-            messagesRef.push({
-                uid: currentUser.uid,
-                name: currentUser.displayName || currentUser.email.split('@')[0],
-                text: text,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            });
-
-            chatInput.value = '';
+            try {
+                await messagesRef.push({
+                    uid: currentUser.uid,
+                    name: currentUser.displayName || currentUser.email.split('@')[0],
+                    text: text,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+                chatInput.value = '';
+            } catch (err) {
+                console.error("Mesaj göndərilmədi:", err);
+                showToast("Mesaj göndərilmədi. İnternet bağlantınızı yoxlayın.");
+            }
         });
     }
 
@@ -218,8 +239,15 @@ function initRoom() {
 
         const isMe = message.uid === currentUser.uid;
         
+        const wrapperDiv = document.createElement('div');
+        wrapperDiv.className = `flex items-end gap-2 max-w-[85%] ${isMe ? 'self-end flex-row-reverse' : 'self-start'} animate-fade-in`;
+
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = `w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold border ${isMe ? 'bg-red-900/30 text-white border-red-500/50' : 'bg-white/10 text-gray-300 border-white/20'}`;
+        avatarDiv.textContent = message.name ? message.name.charAt(0).toUpperCase() : '?';
+
         const msgDiv = document.createElement('div');
-        msgDiv.className = `flex flex-col max-w-[85%] ${isMe ? 'self-end items-end' : 'self-start items-start'} animate-fade-in`;
+        msgDiv.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
         
         const nameSpan = document.createElement('span');
         nameSpan.className = 'text-[10px] text-gray-500 mb-1 px-1 tracking-wider';
@@ -227,11 +255,13 @@ function initRoom() {
 
         const textDiv = document.createElement('div');
         textDiv.className = `px-4 py-2.5 rounded-2xl text-sm ${isMe ? 'bg-[#FF014C] text-white rounded-br-none' : 'bg-white/10 text-white rounded-bl-none'}`;
-        textDiv.textContent = message.text;
+        textDiv.textContent = message.text; // html escape is safe via textContent
 
         msgDiv.appendChild(nameSpan);
         msgDiv.appendChild(textDiv);
-        chatMessages.appendChild(msgDiv);
+        wrapperDiv.appendChild(avatarDiv);
+        wrapperDiv.appendChild(msgDiv);
+        chatMessages.appendChild(wrapperDiv);
 
         // Scroll to bottom
         chatMessages.scrollTop = chatMessages.scrollHeight;
