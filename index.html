@@ -6,6 +6,8 @@
     <title>Rahat İzle</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- EmailJS CDN -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap');
         body {
@@ -73,10 +75,10 @@
 
                     <!-- User View -->
                     <div id="nav-user-view" class="hidden items-center gap-4 relative">
-                        <button id="openProfileBtn" class="flex items-center gap-2 group focus:outline-none px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all duration-300">
-                            <img id="userAvatar" src="https://ui-avatars.com/api/?name=User&background=FF014C&color=fff" alt="Profile" class="w-7 h-7 rounded-full border border-white/20 group-hover:border-[#FF014C] transition-colors">
+                        <a href="profile.html" class="flex items-center gap-2 group focus:outline-none px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all duration-300">
+                            <img id="navAvatar" src="https://ui-avatars.com/api/?name=User&background=FF014C&color=fff" alt="Profile" class="w-7 h-7 rounded-full border border-white/20 group-hover:border-[#FF014C] transition-colors object-cover">
                             <span id="dashboardUserName" class="text-sm font-medium text-[#C8C8C8] max-w-[100px] truncate hidden sm:block group-hover:text-white transition-colors">İstifadəçi Adı</span>
-                        </button>
+                        </a>
                     </div>
                 </div>
             </nav>
@@ -254,6 +256,7 @@
                         <option value="" disabled selected>Cinsiyyət Seç</option>
                         <option value="male">Kişi</option>
                         <option value="female">Qadın</option>
+                        <option value="other">Digər</option>
                     </select>
                     <input type="url" id="regPhotoURL" placeholder="Profil Şəkli (URL)" class="w-1/2 bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500">
                 </div>
@@ -336,50 +339,7 @@
         </div>
     </div>
 
-    <!-- PROFILE MODAL -->
-    <div id="profile-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md items-center justify-center p-4 overflow-y-auto">
-        <div class="relative max-w-lg mx-auto w-full bg-[#030303] p-8 rounded-3xl border border-red-600/50 shadow-[0_0_30px_rgba(220,38,38,0.15)] animate-fade-in my-8">
-            <button class="close-profile-modal absolute top-6 right-6 text-gray-500 hover:text-white transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-            <h2 class="text-2xl font-bold mb-8 text-center text-white tracking-wide">Profil <span class="text-[#FF014C]">Tənzimləmələri</span></h2>
-            
-            <form id="profileForm" class="space-y-4 mb-8" onsubmit="event.preventDefault();">
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1 tracking-wider uppercase">Ad və Soyad</label>
-                    <input type="text" id="profileName" class="w-full bg-black text-white px-5 py-3 border border-white/10 rounded-xl focus:outline-none focus:border-red-500 transition-all placeholder-gray-600">
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1 tracking-wider uppercase">Telefon nömrəsi</label>
-                    <input type="tel" id="profilePhone" placeholder="+994" class="w-full bg-black text-white px-5 py-3 border border-white/10 rounded-xl focus:outline-none focus:border-red-500 transition-all placeholder-gray-600">
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1 tracking-wider uppercase">E-poçt (Dəyişdirilə bilər)</label>
-                    <input type="email" id="profileEmail" class="w-full bg-black text-white px-5 py-3 border border-white/10 rounded-xl focus:outline-none focus:border-red-500 transition-all placeholder-gray-600">
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1 tracking-wider uppercase">Profil Şəkli (URL)</label>
-                    <input type="url" id="profilePhotoURL" placeholder="https://..." class="w-full bg-black text-white px-5 py-3 border border-white/10 rounded-xl focus:outline-none focus:border-red-500 transition-all placeholder-gray-600">
-                </div>
-                <button type="button" id="updateProfileBtn" class="w-full bg-transparent border border-red-600 hover:bg-red-600 text-white font-bold py-3 mt-4 rounded-xl transition-all duration-300 shadow-[0_0_10px_rgba(220,38,38,0.2)] hover:shadow-[0_0_20px_rgba(220,38,38,0.4)]">
-                    Məlumatları Yenilə
-                </button>
-            </form>
-
-            <div class="border-t border-white/10 pt-6">
-                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Aktiv Otaqlarım</h3>
-                <div id="profileActiveRoomsList" class="flex flex-col gap-3 max-h-48 overflow-y-auto pr-2 mb-6">
-                    <div class="text-sm text-gray-500 py-2 text-center">Otaq tapılmadı.</div>
-                </div>
-                <div class="flex items-center gap-3 mt-4">
-                    <button id="logoutBtn" class="w-1/2 bg-white/5 hover:bg-white/10 text-white font-bold py-3 rounded-xl border border-transparent hover:border-gray-500/50 transition-all duration-300">
-                        Çıxış Et
-                    </button>
-                    <button id="deleteAccountBtn" class="w-1/2 bg-red-900/20 hover:bg-red-600 text-[#FF014C] hover:text-white font-bold py-3 rounded-xl border border-[#FF014C]/30 hover:border-transparent transition-all duration-300">
-                        Hesabı Sil
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- PROFIL MODALI LƏĞV EDİLDİ (Əvəzinə profile.html) -->
 
     <!-- Firebase SDK (compat versions) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>

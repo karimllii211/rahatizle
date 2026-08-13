@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rahat İzle - Profil</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- EmailJS CDN -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        
+        .avatar-overlay {
+            background: rgba(0,0,0,0.5);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .avatar-container:hover .avatar-overlay {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-[#030303] text-white min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="w-full px-6 py-6 border-b border-white/5 bg-[#030303]/80 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-[1400px] mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-6">
+                <a href="index.html" class="text-gray-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    Geri Qayıt
+                </a>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="font-['Bebas_Neue'] text-2xl tracking-wider text-white">RAHAT İZLE<span class="text-[#FF014C]">.</span></span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex-1 w-full max-w-[1000px] mx-auto px-4 md:px-8 py-12 flex flex-col gap-12">
+        
+        <!-- Header & Avatar Section -->
+        <div class="flex flex-col items-center justify-center animate-fade-in-up">
+            <div class="relative w-32 h-32 rounded-full border-2 border-red-600 shadow-[0_0_20px_rgba(220,38,38,0.2)] overflow-hidden mb-4 avatar-container cursor-pointer" onclick="document.getElementById('avatarUpload').click()">
+                <img id="profilePageAvatar" src="https://ui-avatars.com/api/?name=User&background=FF014C&color=fff" alt="Profile" class="w-full h-full object-cover">
+                <div class="avatar-overlay absolute inset-0 flex items-center justify-center">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                </div>
+            </div>
+            <input type="file" id="avatarUpload" class="hidden" accept="image/*">
+            <h1 class="text-3xl font-bold tracking-wide" id="profilePageName">Yüklənir...</h1>
+            <p class="text-gray-400 text-sm mt-1" id="profilePageUsername">@istifadeci</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <!-- Personal Information -->
+            <div class="bg-[#080808] border border-white/5 p-8 rounded-3xl h-fit">
+                <h2 class="text-xl font-bold mb-6 tracking-wide text-[#FF014C] uppercase">Şəxsi Məlumatlar</h2>
+                <form id="profileInfoForm" class="space-y-4" onsubmit="event.preventDefault();">
+                    <div class="flex gap-4">
+                        <div class="w-1/2">
+                            <label class="block text-xs text-gray-400 mb-1 tracking-wider uppercase">Ad</label>
+                            <input type="text" id="profFirstName" class="w-full bg-black text-white px-4 py-3 border border-white/10 rounded-xl focus:outline-none focus:border-red-500 transition-all text-sm">
+                        </div>
+                        <div class="w-1/2">
+                            <label class="block text-xs text-gray-400 mb-1 tracking-wider uppercase">Soyad</label>
+                            <input type="text" id="profLastName" class="w-full bg-black text-white px-4 py-3 border border-white/10 rounded-xl focus:outline-none focus:border-red-500 transition-all text-sm">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1 tracking-wider uppercase">İstifadəçi Adı (@)</label>
+                        <input type="text" id="profUsername" class="w-full bg-black text-white px-4 py-3 border border-white/10 rounded-xl focus:outline-none focus:border-red-500 transition-all text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1 tracking-wider uppercase">E-poçt (Dəyişdirilə bilməz)</label>
+                        <input type="email" id="profEmail" disabled class="w-full bg-white/5 text-gray-500 px-4 py-3 border border-transparent rounded-xl cursor-not-allowed text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1 tracking-wider uppercase">Telefon</label>
+                        <input type="tel" id="profPhone" placeholder="+994..." class="w-full bg-black text-white px-4 py-3 border border-white/10 rounded-xl focus:outline-none focus:border-red-500 transition-all text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1 tracking-wider uppercase">Cinsiyyət</label>
+                        <select id="profGender" class="w-full bg-black text-gray-300 px-4 py-3 border border-white/10 rounded-xl focus:outline-none focus:border-red-500 transition-all text-sm">
+                            <option value="male">Kişi</option>
+                            <option value="female">Qadın</option>
+                            <option value="other">Digər</option>
+                        </select>
+                    </div>
+                    <button type="button" id="saveProfileBtn" class="w-full bg-transparent border border-red-600 hover:bg-red-600 text-white font-bold py-3 mt-4 rounded-xl transition-all duration-300 uppercase tracking-wider text-sm shadow-[0_0_10px_rgba(220,38,38,0.2)]">
+                        Məlumatları Saxla
+                    </button>
+                </form>
+            </div>
+
+            <!-- Security & Rooms -->
+            <div class="flex flex-col gap-8">
+                
+                <!-- Password Change (EmailJS) -->
+                <div class="bg-[#080808] border border-white/5 p-8 rounded-3xl">
+                    <h2 class="text-xl font-bold mb-6 tracking-wide text-[#FF014C] uppercase">Təhlükəsizlik</h2>
+                    <p class="text-xs text-gray-500 mb-4">Şifrənizi dəyişmək üçün e-poçtunuza təsdiq kodu göndəriləcək.</p>
+                    <button type="button" id="requestPasswordChangeBtn" class="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold py-3 rounded-xl transition-all duration-300 uppercase tracking-wider text-sm">
+                        Şifrəni Dəyiş
+                    </button>
+                </div>
+
+                <!-- Active Rooms -->
+                <div class="bg-[#080808] border border-white/5 p-8 rounded-3xl flex-1 flex flex-col">
+                    <h2 class="text-xl font-bold mb-6 tracking-wide text-[#FF014C] uppercase">Aktiv Otaqlarım</h2>
+                    <div id="profileRoomsList" class="flex-1 flex flex-col gap-3 max-h-60 overflow-y-auto pr-2">
+                        <div class="text-sm text-gray-500 py-4 text-center">Aktiv otaq tapılmadı.</div>
+                    </div>
+                </div>
+
+                <!-- Danger Zone -->
+                <div class="flex gap-4 mt-auto">
+                    <button id="logoutBtn" class="w-1/2 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white font-bold py-3 rounded-xl border border-white/5 hover:border-gray-500/50 transition-all duration-300 text-sm">
+                        Çıxış Et
+                    </button>
+                    <button id="deleteAccountBtn" class="w-1/2 bg-red-900/20 hover:bg-red-600 text-[#FF014C] hover:text-white font-bold py-3 rounded-xl border border-[#FF014C]/30 hover:border-transparent transition-all duration-300 text-sm">
+                        Hesabı Sil
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- OTP Modalı (Şifrə dəyişdirmək üçün) -->
+    <div id="otp-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4">
+        <div class="relative max-w-sm mx-auto w-full bg-[#030303] p-8 rounded-2xl border border-red-600 shadow-[0_0_20px_rgba(220,38,38,0.2)] animate-fade-in">
+            <button class="close-otp-modal absolute top-5 right-5 text-gray-500 hover:text-white transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            <h2 class="text-2xl font-bold mb-4 text-center tracking-wider text-white uppercase">Təsdiq Kodu</h2>
+            <p class="text-center text-gray-400 text-sm mb-6">E-poçtunuza 6 rəqəmli kod göndərildi.</p>
+            
+            <div id="otpStepContainer" class="space-y-4">
+                <input type="text" id="otpInput" placeholder="Kodu daxil edin" class="w-full bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all text-center tracking-widest text-lg" maxlength="6">
+                <button type="button" id="verifyOTPBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all duration-300 uppercase tracking-wider">
+                    Kodu Təsdiqlə
+                </button>
+            </div>
+
+            <div id="newPasswordStepContainer" class="space-y-4 hidden">
+                <input type="password" id="newPasswordInput" placeholder="Yeni şifrə" class="w-full bg-black text-white px-5 py-3 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 transition-all">
+                <button type="button" id="setNewPasswordBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all duration-300 uppercase tracking-wider">
+                    Şifrəni Yenilə
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUSTOM TOAST & CONFIRM -->
+    <div id="custom-toast" class="hidden fixed top-6 right-6 z-50 bg-black border border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.4)] rounded-xl px-6 py-4 items-center gap-4 transition-all max-w-md">
+        <span id="toast-message" class="text-white font-medium">Bildiriş mətni bura gələcək</span>
+        <button id="toast-close-btn" class="text-gray-400 hover:text-red-500 transition-colors ml-auto focus:outline-none">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+    </div>
+
+    <div id="custom-confirm" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4">
+        <div class="bg-black border border-red-600 shadow-[0_0_25px_rgba(220,38,38,0.3)] rounded-2xl p-8 max-w-md w-full text-center animate-fade-in">
+            <h3 class="text-2xl font-bold text-white mb-4 uppercase tracking-wider">Diqqət</h3>
+            <p id="confirm-message" class="text-gray-300 mb-8 text-lg">Bu əməliyyatı etmək istədiyinizə əminsiniz?</p>
+            <div class="flex items-center justify-center gap-4">
+                <button id="confirm-no-btn" class="px-6 py-3 bg-transparent border border-gray-600 hover:bg-gray-800 text-white font-bold rounded-xl transition-all w-1/2">Xeyr</button>
+                <button id="confirm-yes-btn" class="px-6 py-3 bg-red-700 hover:bg-red-800 text-white font-bold rounded-xl transition-all duration-300 w-1/2 shadow-[0_0_10px_rgba(220,38,38,0.4)]">Bəli</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
