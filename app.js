@@ -110,12 +110,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const registerModal = document.getElementById('register-modal');
     const platformModal = document.getElementById('platform-modal');
     const profileModal = document.getElementById('profile-modal');
+    const forgotPasswordModal = document.getElementById('forgot-password-modal');
 
     const showModal = (modal) => {
         if (loginModal) { loginModal.classList.add('hidden'); loginModal.classList.remove('flex'); }
         if (registerModal) { registerModal.classList.add('hidden'); registerModal.classList.remove('flex'); }
         if (platformModal) { platformModal.classList.add('hidden'); platformModal.classList.remove('flex'); }
         if (profileModal) { profileModal.classList.add('hidden'); profileModal.classList.remove('flex'); }
+        if (forgotPasswordModal) { forgotPasswordModal.classList.add('hidden'); forgotPasswordModal.classList.remove('flex'); }
         if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
     };
     
@@ -138,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Arxa fona kliklədikdə bağlansın
-    [loginModal, registerModal, platformModal, profileModal].forEach(modal => {
+    [loginModal, registerModal, platformModal, profileModal, forgotPasswordModal].forEach(modal => {
         if (modal) {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) closeAllModals();
@@ -154,6 +156,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const switchToLoginBtn = document.getElementById('switchToLoginBtn');
     if (switchToLoginBtn) {
         switchToLoginBtn.addEventListener('click', () => showModal(loginModal));
+    }
+    
+    // --- XSS & UTILS ---
+    const escapeHTML = (str) => {
+        if (!str) return '';
+        return str.replace(/[&<>'"]/g, 
+            tag => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag] || tag)
+        );
+    };
+
+    // --- ŞİFRƏNİ UNUTDUM ---
+    const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+    if (forgotPasswordBtn) {
+        forgotPasswordBtn.addEventListener('click', () => showModal(forgotPasswordModal));
+    }
+
+    window.sendEmailJSOTP = (email) => {
+        console.log("EmailJS OTP will be sent to:", email);
+        // TODO: Bura EmailJS kodları əlavə olunacaq
+    };
+
+    const sendOTPBtn = document.getElementById('sendOTPBtn');
+    if (sendOTPBtn) {
+        sendOTPBtn.addEventListener('click', () => {
+            const email = document.getElementById('forgotEmail').value.trim();
+            if (!email) return showToast("E-poçt daxil edin!");
+            sendEmailJSOTP(email);
+            showToast("Bərpa kodu göndərildi (funksiya hazır deyil).");
+            closeAllModals();
+        });
     }
 
     // --- GİRİŞ (LOGIN) ---
@@ -178,13 +216,64 @@ document.addEventListener('DOMContentLoaded', () => {
             auth.signInWithPopup(provider)
                 .then(result => {
                     const user = result.user;
-                    database.ref('users/' + user.uid).update({
-                        uid: user.uid,
-                        email: user.email,
-                        displayName: user.displayName || '',
-                        lastLogin: firebase.database.ServerValue.TIMESTAMP
-                    }).then(() => console.log("Məlumat bazaya uğurla yazıldı!"))
-                    .catch(error => console.error("Baza yazılma xətası:", error));
+                    const isNewUser = result.additionalUserInfo?.isNewUser;
+                    
+                    if (isNewUser) {
+                        user.delete().then(() => {
+                            showModal(registerModal);
+                            showToast("Zəhmət olmasa əvvəlcə qeydiyyatdan keçin.");
+                        }).catch(err => console.error(err));
+                    } else {
+                        database.ref('users/' + user.uid).update({
+                            uid: user.uid,
+                            email: user.email,
+                            displayName: user.displayName || '',
+                            photoURL: user.photoURL || '',
+                            lastLogin: firebase.database.ServerValue.TIMESTAMP
+                        }).then(() => {
+                            showToast("Uğurla daxil oldunuz!");
+                            closeAllModals();
+                        }).catch(error => console.error("Baza yazılma xətası:", error));
+                    }
+                })
+                .catch(err => {
+                    showToast(getErrorMessage(err.code));
+                });
+        });
+    }
+
+    const googleRegisterBtn = document.getElementById('googleRegisterBtn');
+    if (googleRegisterBtn) {
+        googleRegisterBtn.addEventListener('click', () => {
+            auth.signInWithPopup(provider)
+                .then(result => {
+                    const user = result.user;
+                    const isNewUser = result.additionalUserInfo?.isNewUser;
+                    
+                    if (!isNewUser) {
+                        auth.signOut().then(() => {
+                            showModal(loginModal);
+                            showToast("Siz artıq qeydiyyatdan keçmisiniz. Zəhmət olmasa daxil olun.");
+                        });
+                    } else {
+                        // Yeni Google istifadəçisidir, avtomatik username yaradaq (email əsasında)
+                        const emailPrefix = user.email.split('@')[0];
+                        const cleanUsername = emailPrefix + Math.floor(Math.random() * 1000);
+                        const username = '@' + cleanUsername;
+                        
+                        database.ref('usernames/' + cleanUsername).set(user.uid);
+                        database.ref('users/' + user.uid).update({
+                            uid: user.uid,
+                            email: user.email,
+                            displayName: user.displayName || '',
+                            username: username,
+                            photoURL: user.photoURL || '',
+                            lastLogin: firebase.database.ServerValue.TIMESTAMP
+                        }).then(() => {
+                            showToast("Uğurla qeydiyyatdan keçdiniz!");
+                            closeAllModals();
+                        }).catch(error => console.error("Baza yazılma xətası:", error));
+                    }
                 })
                 .catch(err => {
                     showToast(getErrorMessage(err.code));
@@ -202,14 +291,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (completeRegisterBtn) {
         completeRegisterBtn.addEventListener('click', () => {
-            const fname = regFirstName.value.trim();
-            const lname = regLastName.value.trim();
+            const fname = escapeHTML(regFirstName.value.trim());
+            const lname = escapeHTML(regLastName.value.trim());
+            const usernameInput = document.getElementById('regUsername');
+            const username = usernameInput ? escapeHTML(usernameInput.value.trim()) : '';
             const email = regEmail.value.trim();
             const pwd = regPassword.value.trim();
             const pwdConf = regPasswordConfirm.value.trim();
+            
+            const genderSelect = document.getElementById('regGender');
+            const gender = genderSelect ? genderSelect.value : '';
+            
+            const photoURLInput = document.getElementById('regPhotoURL');
+            const photoURL = photoURLInput ? photoURLInput.value.trim() : '';
 
-            if (!fname || !lname || !email || !pwd || !pwdConf) {
+            if (!fname || !lname || !email || !pwd || !pwdConf || !username || !gender) {
                 return showToast("Zəhmət olmasa bütün xanaları doldurun!");
+            }
+
+            if (!username.startsWith('@')) {
+                return showToast("İstifadəçi adı '@' simvolu ilə başlamalıdır!");
             }
 
             if (pwd !== pwdConf) {
@@ -220,28 +321,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 return showToast("Şifrə ən azı 6 simvol olmalıdır!");
             }
 
-            auth.createUserWithEmailAndPassword(email, pwd)
-                .then(userCredential => {
-                    const fullName = fname + " " + lname;
-                    const user = userCredential.user;
-                    return user.updateProfile({
-                        displayName: fullName
-                    }).then(() => {
-                        const dashboardUserName = document.getElementById('dashboardUserName');
-                        if (dashboardUserName) {
-                            dashboardUserName.textContent = fullName;
-                        }
-                        
-                        database.ref('users/' + user.uid).update({
-                            uid: user.uid,
-                            email: user.email,
+            const cleanUsername = username.substring(1);
+            database.ref('usernames/' + cleanUsername).once('value').then(snapshot => {
+                if (snapshot.exists()) {
+                    return showToast("Bu istifadəçi adı artıq mövcuddur!");
+                }
+                
+                auth.createUserWithEmailAndPassword(email, pwd)
+                    .then(userCredential => {
+                        const fullName = fname + " " + lname;
+                        const user = userCredential.user;
+                        return user.updateProfile({
                             displayName: fullName,
-                            lastLogin: firebase.database.ServerValue.TIMESTAMP
-                        }).then(() => console.log("Məlumat bazaya uğurla yazıldı!"))
-                        .catch(error => console.error("Baza yazılma xətası:", error));
-                    });
-                })
-                .catch(err => showToast(getErrorMessage(err.code)));
+                            photoURL: photoURL
+                        }).then(() => {
+                            const dashboardUserName = document.getElementById('dashboardUserName');
+                            if (dashboardUserName) {
+                                dashboardUserName.textContent = fullName;
+                            }
+                            
+                            // Unikal username yazılması
+                            database.ref('usernames/' + cleanUsername).set(user.uid);
+                            
+                            return database.ref('users/' + user.uid).update({
+                                uid: user.uid,
+                                email: user.email,
+                                displayName: fullName,
+                                username: username,
+                                gender: gender,
+                                photoURL: photoURL,
+                                lastLogin: firebase.database.ServerValue.TIMESTAMP
+                            });
+                        });
+                    })
+                    .catch(err => showToast(getErrorMessage(err.code)));
+            });
         });
     }
 
@@ -256,9 +370,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const profileName = document.getElementById('profileName');
             const profilePhone = document.getElementById('profilePhone');
             const profileEmail = document.getElementById('profileEmail');
+            const profilePhotoURL = document.getElementById('profilePhotoURL');
 
             if (profileName) profileName.value = currentUser.displayName || '';
             if (profileEmail) profileEmail.value = currentUser.email || '';
+            if (profilePhotoURL) profilePhotoURL.value = currentUser.photoURL || '';
             
             // Telefon nömrəsini bazadan çək
             database.ref('users/' + currentUser.uid).once('value').then(snapshot => {
@@ -277,22 +393,40 @@ document.addEventListener('DOMContentLoaded', () => {
     if (updateProfileBtn) {
         updateProfileBtn.addEventListener('click', () => {
             if (!currentUser) return;
-            const newName = document.getElementById('profileName').value.trim();
-            const newPhone = document.getElementById('profilePhone').value.trim();
+            const newName = escapeHTML(document.getElementById('profileName').value.trim());
+            const newPhone = escapeHTML(document.getElementById('profilePhone').value.trim());
+            const newEmail = document.getElementById('profileEmail').value.trim();
+            const newPhotoURL = document.getElementById('profilePhotoURL').value.trim();
             
             if (!newName) return showToast("Ad daxil edilməlidir.");
+            if (!newEmail) return showToast("E-poçt daxil edilməlidir.");
             
-            currentUser.updateProfile({
-                displayName: newName
-            }).then(() => {
+            const promises = [];
+            
+            if (currentUser.email !== newEmail) {
+                promises.push(currentUser.updateEmail(newEmail));
+            }
+            
+            promises.push(currentUser.updateProfile({
+                displayName: newName,
+                photoURL: newPhotoURL
+            }));
+
+            Promise.all(promises).then(() => {
                 const dashboardUserName = document.getElementById('dashboardUserName');
                 if (dashboardUserName) {
                     dashboardUserName.textContent = newName;
                 }
+                const userAvatar = document.getElementById('userAvatar');
+                if (userAvatar) {
+                    userAvatar.src = newPhotoURL || `https://ui-avatars.com/api/?name=${newName}&background=FF014C&color=fff`;
+                }
                 
                 return database.ref('users/' + currentUser.uid).update({
                     displayName: newName,
-                    phone: newPhone
+                    email: newEmail,
+                    phone: newPhone,
+                    photoURL: newPhotoURL
                 });
             }).then(() => {
                 showToast("Profil uğurla yeniləndi!");
@@ -330,8 +464,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    window.deleteRoom = (roomId) => {
-        if (confirm("Otağı silmək istədiyinizə əminsiniz?")) {
+    window.deleteRoom = async (roomId) => {
+        const confirmDelete = await showConfirmModal("Otağı silmək istədiyinizə əminsiniz?");
+        if (confirmDelete) {
             database.ref('rooms/' + roomId).remove()
                 .then(() => showToast("Otaq silindi."))
                 .catch(err => showToast(getErrorMessage(err.code)));
@@ -362,6 +497,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (footerGuestLinks) { footerGuestLinks.classList.add('hidden'); footerGuestLinks.classList.remove('flex'); }
             if (dashboardUserName) {
                 dashboardUserName.textContent = user.displayName || user.email.split('@')[0] || "İstifadəçi";
+            }
+            const userAvatar = document.getElementById('userAvatar');
+            if (userAvatar) {
+                userAvatar.src = user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName || user.email.split('@')[0]}&background=FF014C&color=fff`;
             }
 
             // Otaqları yüklə
@@ -413,7 +552,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         return currentUser.delete();
                     })
                     .then(() => {
-                        showToast("Hesabınız və bütün məlumatlarınız uğurla silindi.");
+                        auth.signOut();
+                        window.location.replace('index.html');
                     })
                     .catch(error => {
                         showToast(getErrorMessage(error.code));
@@ -436,39 +576,29 @@ document.addEventListener('DOMContentLoaded', () => {
         createRoomBtn.addEventListener('click', () => {
             if (!currentUser) return showToast("Əvvəlcə hesaba daxil olmalısınız!");
             
-            // Otaq yaratmaq əvəzinə platforma seçimini aç
-            showModal(platformModal);
-        });
-    }
-
-    // Platforma seçildikdən sonra otaq yarat və yönləndir
-    document.querySelectorAll('.platform-select-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (!currentUser) return;
-            
-            const selectedPlatform = btn.getAttribute('data-platform');
+            // Otaq yaratmaq üçün birbaşa yaradın, platforma seçimi room.html-də olacaq
             const roomCode = generateRoomCode();
+            const defaultPlatform = "netflix"; // Default olaraq birini təyin edək
             
             database.ref('rooms/' + roomCode + '/creator').set({
                 uid: currentUser.uid,
                 name: currentUser.displayName || currentUser.email.split('@')[0],
-                photoURL: currentUser.photoURL || `https://ui-avatars.com/api/?name=${currentUser.email}&background=dc2626&color=fff`,
-                platform: selectedPlatform,
+                photoURL: currentUser.photoURL || `https://ui-avatars.com/api/?name=${currentUser.displayName || currentUser.email.split('@')[0]}&background=dc2626&color=fff`,
+                platform: defaultPlatform,
                 createdAt: firebase.database.ServerValue.TIMESTAMP
             }).then(() => {
-                window.location.href = `room.html?id=${roomCode}&platform=${selectedPlatform}`;
+                window.location.href = `room.html?id=${roomCode}&platform=${defaultPlatform}`;
             }).catch(error => {
                 showToast("Otaq yaradılarkən xəta baş verdi.");
                 console.error(error);
             });
         });
-    });
+    }
 
     if (joinRoomBtn) {
         joinRoomBtn.addEventListener('click', () => {
             const code = roomCodeInput ? roomCodeInput.value.trim().toUpperCase() : '';
             if (!code) return showToast("Otaq kodunu daxil edin.");
-            // Qoşulan zaman hələlik platforma ehtiyac yoxdur, room.html içində tapılacaq
             window.location.href = `room.html?id=${code}`;
         });
     }

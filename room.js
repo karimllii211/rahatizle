@@ -18,6 +18,74 @@ const database = firebase.database();
 let currentUser = null;
 let currentRoomId = null;
 
+// --- CUSTOM MODALS & TOASTS ---
+let toastTimeout;
+const showToast = (message) => {
+    const toast = document.getElementById('custom-toast');
+    const toastMessage = document.getElementById('toast-message');
+    if (!toast || !toastMessage) return;
+    
+    toastMessage.textContent = message;
+    toast.classList.remove('hidden');
+    toast.classList.add('flex');
+    
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+        toast.classList.add('hidden');
+        toast.classList.remove('flex');
+    }, 4000);
+};
+
+const toastCloseBtn = document.getElementById('toast-close-btn');
+if (toastCloseBtn) {
+    toastCloseBtn.addEventListener('click', () => {
+        const toast = document.getElementById('custom-toast');
+        if (toast) {
+            toast.classList.add('hidden');
+            toast.classList.remove('flex');
+        }
+    });
+}
+
+const getErrorMessage = (errorCode) => {
+    switch (errorCode) {
+        case 'auth/invalid-credential': return "E-poçt və ya şifrə yanlışdır.";
+        case 'auth/email-already-in-use': return "Bu e-poçt ilə artıq qeydiyyatdan keçilib.";
+        case 'auth/weak-password': return "Şifrə ən azı 6 simvol olmalıdır.";
+        case 'auth/network-request-failed': return "İnternet bağlantısını yoxlayın.";
+        case 'auth/requires-recent-login': return "Bu əməliyyat üçün yenidən daxil olmalısınız.";
+        default: return "Bir xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.";
+    }
+};
+
+const showConfirmModal = (message) => {
+    return new Promise((resolve) => {
+        const confirmModal = document.getElementById('custom-confirm');
+        const confirmMessage = document.getElementById('confirm-message');
+        const btnYes = document.getElementById('confirm-yes-btn');
+        const btnNo = document.getElementById('confirm-no-btn');
+
+        if (!confirmModal) return resolve(false);
+
+        confirmMessage.textContent = message;
+        confirmModal.classList.remove('hidden');
+        confirmModal.classList.add('flex');
+
+        const cleanup = () => {
+            confirmModal.classList.add('hidden');
+            confirmModal.classList.remove('flex');
+            btnYes.removeEventListener('click', onYes);
+            btnNo.removeEventListener('click', onNo);
+        };
+
+        const onYes = () => { cleanup(); resolve(true); };
+        const onNo = () => { cleanup(); resolve(false); };
+
+        btnYes.addEventListener('click', onYes);
+        btnNo.addEventListener('click', onNo);
+    });
+};
+
 // Auth Guard
 auth.onAuthStateChanged(user => {
     if (!user) {
@@ -65,14 +133,43 @@ function initRoom() {
         if (data.creator && data.creator.uid === currentUser.uid) {
             if (deleteRoomBtn) {
                 deleteRoomBtn.classList.remove('hidden');
-                deleteRoomBtn.onclick = () => {
-                    const conf = confirm("Otağı tamamilə silmək istədiyinizə əminsiniz? Hər kəs otaqdan çıxarılacaq.");
+                deleteRoomBtn.onclick = async () => {
+                    const conf = await showConfirmModal("Otağı tamamilə silmək istədiyinizə əminsiniz? Hər kəs otaqdan çıxarılacaq.");
                     if (conf) {
                         roomRef.remove();
                     }
                 };
             }
         }
+        
+        // Platformanın dəyişməsini vizual olaraq göstərmək
+        const currentPlatform = data.creator ? data.creator.platform : null;
+        if (currentPlatform) {
+            document.querySelectorAll('.room-platform-btn').forEach(btn => {
+                if (btn.getAttribute('data-platform') === currentPlatform) {
+                    btn.classList.add('border-white/50', 'bg-white/10');
+                } else {
+                    btn.classList.remove('border-white/50', 'bg-white/10');
+                }
+            });
+        }
+    });
+
+    // 1.5. Otaq Yaradanın Platformanı Dəyişməsi
+    document.querySelectorAll('.room-platform-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            roomRef.child('creator').once('value').then(snapshot => {
+                const creatorData = snapshot.val();
+                if (creatorData && creatorData.uid === currentUser.uid) {
+                    const selectedPlatform = btn.getAttribute('data-platform');
+                    roomRef.child('creator/platform').set(selectedPlatform).then(() => {
+                        showToast("Platforma dəyişdirildi!");
+                    });
+                } else {
+                    showToast("Yalnız otaq yaradanı platformanı dəyişə bilər.");
+                }
+            });
+        });
     });
 
     // 2. Presence (İzləyici Sayı) Məntiqi

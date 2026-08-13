@@ -182,31 +182,7 @@
     </div>
 
 
-    <!-- PLATFORM SELECTION MODAL -->
-    <div id="platform-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4">
-        <div class="relative max-w-md mx-auto w-full bg-[#030303] p-8 rounded-2xl border border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.2)] animate-fade-in">
-            <button class="close-platform-modal absolute top-5 right-5 text-gray-500 hover:text-white transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-            <h2 class="text-2xl font-bold mb-6 text-center text-white">İzləmək istədiyiniz platformanı seçin:</h2>
-            
-            <div class="flex flex-col gap-4 mt-8">
-                <button class="platform-select-btn w-full px-6 py-4 bg-white/5 hover:bg-[#E50914]/20 border border-white/10 hover:border-[#E50914] text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-3" data-platform="netflix">
-                    Netflix
-                </button>
-                <button class="platform-select-btn w-full px-6 py-4 bg-white/5 hover:bg-[#FF0000]/20 border border-white/10 hover:border-[#FF0000] text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-3" data-platform="youtube">
-                    YouTube
-                </button>
-                <button class="platform-select-btn w-full px-6 py-4 bg-white/5 hover:bg-[#0063E5]/20 border border-white/10 hover:border-[#0063E5] text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-3" data-platform="disney">
-                    Disney+
-                </button>
-                <button class="platform-select-btn w-full px-6 py-4 bg-white/5 hover:bg-[#00A8E1]/20 border border-white/10 hover:border-[#00A8E1] text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-3" data-platform="prime">
-                    Prime Video
-                </button>
-                <button class="platform-select-btn w-full px-6 py-4 bg-white/5 hover:bg-white/20 border border-white/10 hover:border-white/50 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-3" data-platform="local">
-                    Cihazdan Yüklə
-                </button>
-            </div>
-        </div>
-    </div>
+    <!-- PLATFORM SELECTION MODAL SILINDI (Artıq birbaşa otaq yaranır) -->
 
     <!-- LOGIN MODAL -->
     <div id="login-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4">
@@ -220,6 +196,11 @@
                 </div>
                 <div>
                     <input type="password" id="loginPassword" placeholder="Şifrə" class="w-full bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500">
+                </div>
+                <div class="flex justify-between items-center w-full pb-2">
+                    <button type="button" id="forgotPasswordBtn" class="text-gray-400 hover:text-red-500 transition-colors duration-300 text-sm">
+                        Şifrəni unutdum?
+                    </button>
                 </div>
                 
                 <button type="button" id="loginBtn" class="w-full bg-transparent border border-red-600 hover:bg-red-600 text-white font-bold py-4 rounded-xl transition-all duration-300 shadow-[0_0_10px_rgba(220,38,38,0.4)] hover:shadow-[0_0_20px_rgba(220,38,38,0.6)] uppercase tracking-wider">
@@ -262,14 +243,23 @@
                     <input type="text" id="regFirstName" placeholder="Ad" class="w-1/2 bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500">
                     <input type="text" id="regLastName" placeholder="Soyad" class="w-1/2 bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500">
                 </div>
-                <div>
+                <div class="flex gap-4">
+                    <input type="text" id="regUsername" placeholder="İstifadəçi Adı (@...)" class="w-full bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500">
+                </div>
+                <div class="flex gap-4">
                     <input type="email" id="regEmail" placeholder="E-poçt" class="w-full bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500">
                 </div>
-                <div>
-                    <input type="password" id="regPassword" placeholder="Şifrə" class="w-full bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500">
+                <div class="flex gap-4">
+                    <select id="regGender" class="w-1/2 bg-black text-gray-400 px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all">
+                        <option value="" disabled selected>Cinsiyyət Seç</option>
+                        <option value="male">Kişi</option>
+                        <option value="female">Qadın</option>
+                    </select>
+                    <input type="url" id="regPhotoURL" placeholder="Profil Şəkli (URL)" class="w-1/2 bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500">
                 </div>
-                <div>
-                    <input type="password" id="regPasswordConfirm" placeholder="Şifrəni Təkrarla" class="w-full bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500">
+                <div class="flex gap-4">
+                    <input type="password" id="regPassword" placeholder="Şifrə" class="w-1/2 bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500">
+                    <input type="password" id="regPasswordConfirm" placeholder="Şifrə Təkrar" class="w-1/2 bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500">
                 </div>
                 
                 <button type="button" id="completeRegisterBtn" class="w-full bg-transparent border border-red-600 hover:bg-red-600 text-white font-bold py-4 mt-2 rounded-xl transition-all duration-300 shadow-[0_0_10px_rgba(220,38,38,0.4)] hover:shadow-[0_0_20px_rgba(220,38,38,0.6)] uppercase tracking-wider">
@@ -277,11 +267,48 @@
                 </button>
             </form>
 
-            <div class="mt-6 text-center">
-                <button type="button" id="switchToLoginBtn" class="text-gray-400 hover:text-red-500 transition-colors duration-300 text-sm underline underline-offset-4">
-                    Geri qayıdıb giriş et
+            <div class="mt-6 flex flex-col gap-4">
+                <div class="flex items-center gap-4 my-2">
+                    <div class="flex-1 h-px bg-red-900/50"></div>
+                    <span class="text-xs text-gray-500 uppercase tracking-widest">və ya</span>
+                    <div class="flex-1 h-px bg-red-900/50"></div>
+                </div>
+
+                <button id="googleRegisterBtn" class="w-full flex items-center justify-center gap-3 bg-transparent hover:bg-red-950/30 text-white font-medium py-3 border border-red-600 rounded-xl transition-all duration-300 shadow-[0_0_10px_rgba(220,38,38,0.2)]">
+                    <svg class="w-5 h-5" viewBox="0 0 48 48">
+                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.14 7.09-10.36 7.09-17.65z"/>
+                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                    </svg>
+                    Google ilə Qeydiyyat
                 </button>
+                
+                <div class="text-center mt-2">
+                    <button type="button" id="switchToLoginBtn" class="text-gray-400 hover:text-red-500 transition-colors duration-300 text-sm underline underline-offset-4">
+                        Geri qayıdıb giriş et
+                    </button>
+                </div>
             </div>
+        </div>
+    </div>
+
+    <!-- FORGOT PASSWORD MODAL -->
+    <div id="forgot-password-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4">
+        <div class="relative max-w-md mx-auto w-full bg-[#030303] p-8 rounded-2xl border border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.2)] animate-fade-in">
+            <button class="close-auth-modal absolute top-5 right-5 text-gray-500 hover:text-white transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            <h2 class="text-3xl font-bold mb-4 text-center tracking-wider uppercase text-white">Şifrənin Bərpası</h2>
+            <p class="text-center text-gray-400 text-sm mb-6">Qeydiyyatdan keçdiyiniz e-poçt ünvanını daxil edin. Sizə bərpa kodu göndəriləcək.</p>
+            
+            <form id="forgotPasswordForm" class="space-y-5" onsubmit="event.preventDefault();">
+                <div>
+                    <input type="email" id="forgotEmail" placeholder="E-poçt" class="w-full bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500">
+                </div>
+                
+                <button type="button" id="sendOTPBtn" class="w-full bg-transparent border border-red-600 hover:bg-red-600 text-white font-bold py-4 rounded-xl transition-all duration-300 shadow-[0_0_10px_rgba(220,38,38,0.4)] hover:shadow-[0_0_20px_rgba(220,38,38,0.6)] uppercase tracking-wider">
+                    Göndər
+                </button>
+            </form>
         </div>
     </div>
 
@@ -325,8 +352,12 @@
                     <input type="tel" id="profilePhone" placeholder="+994" class="w-full bg-black text-white px-5 py-3 border border-white/10 rounded-xl focus:outline-none focus:border-red-500 transition-all placeholder-gray-600">
                 </div>
                 <div>
-                    <label class="block text-xs text-gray-400 mb-1 tracking-wider uppercase">E-poçt (Dəyişdirilə bilməz)</label>
-                    <input type="email" id="profileEmail" disabled class="w-full bg-white/5 text-gray-500 px-5 py-3 border border-transparent rounded-xl cursor-not-allowed">
+                    <label class="block text-xs text-gray-400 mb-1 tracking-wider uppercase">E-poçt (Dəyişdirilə bilər)</label>
+                    <input type="email" id="profileEmail" class="w-full bg-black text-white px-5 py-3 border border-white/10 rounded-xl focus:outline-none focus:border-red-500 transition-all placeholder-gray-600">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1 tracking-wider uppercase">Profil Şəkli (URL)</label>
+                    <input type="url" id="profilePhotoURL" placeholder="https://..." class="w-full bg-black text-white px-5 py-3 border border-white/10 rounded-xl focus:outline-none focus:border-red-500 transition-all placeholder-gray-600">
                 </div>
                 <button type="button" id="updateProfileBtn" class="w-full bg-transparent border border-red-600 hover:bg-red-600 text-white font-bold py-3 mt-4 rounded-xl transition-all duration-300 shadow-[0_0_10px_rgba(220,38,38,0.2)] hover:shadow-[0_0_20px_rgba(220,38,38,0.4)]">
                     Məlumatları Yenilə
@@ -338,10 +369,14 @@
                 <div id="profileActiveRoomsList" class="flex flex-col gap-3 max-h-48 overflow-y-auto pr-2 mb-6">
                     <div class="text-sm text-gray-500 py-2 text-center">Otaq tapılmadı.</div>
                 </div>
-                
-                <button id="logoutBtn" class="w-full bg-white/5 hover:bg-red-900/40 text-[#FF014C] hover:text-white font-bold py-3 rounded-xl border border-transparent hover:border-red-500/50 transition-all duration-300">
-                    Çıxış Et
-                </button>
+                <div class="flex items-center gap-3 mt-4">
+                    <button id="logoutBtn" class="w-1/2 bg-white/5 hover:bg-white/10 text-white font-bold py-3 rounded-xl border border-transparent hover:border-gray-500/50 transition-all duration-300">
+                        Çıxış Et
+                    </button>
+                    <button id="deleteAccountBtn" class="w-1/2 bg-red-900/20 hover:bg-red-600 text-[#FF014C] hover:text-white font-bold py-3 rounded-xl border border-[#FF014C]/30 hover:border-transparent transition-all duration-300">
+                        Hesabı Sil
+                    </button>
+                </div>
             </div>
         </div>
     </div>
