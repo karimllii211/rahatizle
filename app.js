@@ -557,6 +557,52 @@ document.addEventListener('DOMContentLoaded', () => {
             }).catch(err => showToast(getErrorMessage(err.code)));
         });
     }
+    
+    // --- PROFIL ŞƏKLİ YÜKLƏMƏ ---
+    const profileImageUpload = document.getElementById('profile-image-upload');
+    if (profileImageUpload) {
+        profileImageUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file || !currentUser) return;
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const base64String = event.target.result;
+                
+                // Auth Profile yenilənir
+                currentUser.updateProfile({
+                    photoURL: base64String
+                }).then(() => {
+                    // Firebase DB yenilənir
+                    return database.ref('users/' + currentUser.uid).update({
+                        photoURL: base64String
+                    });
+                }).then(() => {
+                    // UI dərhal yenilənir
+                    const profilePageAvatar = document.getElementById('profilePageAvatar');
+                    const profilePageAvatarText = document.getElementById('profilePageAvatarText');
+                    const navAvatar = document.getElementById('navAvatar');
+                    const navAvatarText = document.getElementById('navbar-avatar-text');
+                    
+                    if (profilePageAvatar) {
+                        profilePageAvatar.src = base64String;
+                        profilePageAvatar.classList.remove('hidden');
+                        if (profilePageAvatarText) profilePageAvatarText.classList.add('hidden');
+                    }
+                    if (navAvatar) {
+                        navAvatar.src = base64String;
+                        navAvatar.classList.remove('hidden');
+                        if (navAvatarText) navAvatarText.classList.add('hidden');
+                    }
+                    showToast("Profil şəkli uğurla yeniləndi!");
+                }).catch(err => {
+                    showToast("Şəkil yüklənərkən xəta baş verdi.");
+                    console.error(err);
+                });
+            };
+            reader.readAsDataURL(file);
+        });
+    }
 
 
 
@@ -613,7 +659,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const profilePageAvatar = document.getElementById('profilePageAvatar');
-            const profilePageAvatarText = document.getElementById('profile-avatar-text');
+            const profilePageAvatarText = document.getElementById('profilePageAvatarText');
             if (profilePageAvatar && profilePageAvatarText) {
                 if (user.photoURL) {
                     profilePageAvatar.src = user.photoURL;
@@ -677,12 +723,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const pageName = document.getElementById('profilePageName');
                 const pageLoading = document.getElementById('profilePageLoading');
                 
+                if (pageLoading) pageLoading.style.display = 'none';
+                
                 if (data) {
                     if (pageName) {
                         pageName.textContent = data.displayName || user.displayName || user.email.split('@')[0];
                         pageName.classList.remove('hidden');
                     }
-                    if (pageLoading) pageLoading.style.display = 'none';
                     
                     const fnameInput = document.getElementById('profFirstName');
                     if (fnameInput && data.displayName) {
@@ -702,6 +749,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }).catch(err => {
                 const pageName = document.getElementById('profilePageName');
+                const pageLoading = document.getElementById('profilePageLoading');
+                if (pageLoading) pageLoading.style.display = 'none';
                 if (pageName) pageName.style.display = 'none';
             });
 

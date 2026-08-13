@@ -43,14 +43,14 @@
         
         <!-- Header & Avatar Section -->
         <div class="flex flex-col items-center justify-center animate-fade-in-up">
-            <div class="relative w-32 h-32 rounded-full border-2 border-red-600 shadow-[0_0_20px_rgba(220,38,38,0.2)] overflow-hidden mb-4 avatar-container cursor-pointer bg-red-900/40 flex items-center justify-center" onclick="document.getElementById('avatarUpload').click()">
+            <div class="relative w-32 h-32 rounded-full border-2 border-red-600 shadow-[0_0_20px_rgba(220,38,38,0.2)] overflow-hidden mb-4 avatar-container cursor-pointer bg-red-900/40 flex items-center justify-center" onclick="document.getElementById('profile-image-upload').click()">
                 <img id="profilePageAvatar" src="" alt="Profile" class="w-full h-full object-cover hidden">
-                <span id="profilePageAvatarText" class="text-[#FF014C] font-bold text-4xl"></span>
+                <span id="profilePageAvatarText" class="text-white font-bold text-4xl"></span>
                 <div class="avatar-overlay absolute inset-0 flex items-center justify-center">
                     <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                 </div>
             </div>
-            <input type="file" id="avatarUpload" class="hidden" accept="image/*">
+            <input type="file" id="profile-image-upload" class="hidden" accept="image/*">
             <div id="profilePageLoading" class="text-gray-400 mt-2 text-sm animate-pulse">Yüklənir...</div>
             <h1 class="text-3xl font-bold tracking-wide mt-4 hidden" id="profilePageName"></h1>
         </div>
