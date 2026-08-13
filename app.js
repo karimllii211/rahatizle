@@ -229,7 +229,28 @@ document.addEventListener('DOMContentLoaded', () => {
         forgotPasswordBtn.addEventListener('click', () => showModal(forgotPasswordModal));
     }
 
-    // --- EMAILJS OTP (HƏM PROFIL, HƏM ŞİFRƏNİ UNUTDUM ÜÇÜN) ---
+    // --- ŞİFRƏNİ UNUTDUM (FİREBASE LİNKİ) ---
+    window.sendFirebasePasswordReset = (email) => {
+        auth.sendPasswordResetEmail(email)
+            .then(() => {
+                showToast("Şifrə yeniləmə linki e-poçtunuza göndərildi. Zəhmət olmasa e-poçtunuzu yoxlayın");
+                closeAllModals();
+            })
+            .catch((error) => {
+                showToast(getErrorMessage(error.code));
+            });
+    };
+
+    const sendOTPBtn = document.getElementById('sendOTPBtn');
+    if (sendOTPBtn) {
+        sendOTPBtn.addEventListener('click', () => {
+            const email = document.getElementById('forgotEmail').value.trim();
+            if (!email) return showToast("E-poçt daxil edin!");
+            sendFirebasePasswordReset(email);
+        });
+    }
+
+    // --- EMAILJS OTP (YALNIZ PROFIL ÜÇÜN) ---
     let generatedOTP = null;
     let resendInterval = null;
     let currentOTPRecoveryEmail = null;
@@ -285,15 +306,6 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast("Xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.");
         });
     };
-
-    const sendOTPBtn = document.getElementById('sendOTPBtn');
-    if (sendOTPBtn) {
-        sendOTPBtn.addEventListener('click', () => {
-            const email = document.getElementById('forgotEmail').value.trim();
-            if (!email) return showToast("E-poçt daxil edin!");
-            sendEmailJSOTP(email);
-        });
-    }
 
     const requestPasswordChangeBtn = document.getElementById('requestPasswordChangeBtn');
     if (requestPasswordChangeBtn) {
