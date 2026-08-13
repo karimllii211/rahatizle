@@ -1,5 +1,24 @@
 {
   "dependencies": {
     "firebase-admin": "^14.2.0"
-  }
+  },
+  "name": "rahatizle",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/karimllii211/rahatizle.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/karimllii211/rahatizle/issues"
+  },
+  "homepage": "https://github.com/karimllii211/rahatizle#readme"
 }
