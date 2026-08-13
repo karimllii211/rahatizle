@@ -272,31 +272,16 @@ document.addEventListener('DOMContentLoaded', () => {
             auth.signInWithPopup(provider)
                 .then(result => {
                     const user = result.user;
-                    const isNewUser = result.additionalUserInfo?.isNewUser;
-                    
-                    if (!isNewUser) {
-                        auth.signOut().then(() => {
-                            showModal(loginModal);
-                            showToast("Siz artıq qeydiyyatdan keçmisiniz. Zəhmət olmasa daxil olun.");
-                        });
-                    } else {
-                        const emailPrefix = user.email.split('@')[0];
-                        const cleanUsername = emailPrefix + Math.floor(Math.random() * 1000);
-                        const username = '@' + cleanUsername;
-                        
-                        database.ref('usernames/' + cleanUsername).set(user.uid);
-                        database.ref('users/' + user.uid).update({
-                            uid: user.uid,
-                            email: user.email,
-                            displayName: user.displayName || '',
-                            username: username,
-                            photoURL: user.photoURL || '',
-                            lastLogin: firebase.database.ServerValue.TIMESTAMP
-                        }).then(() => {
-                            showToast("Uğurla qeydiyyatdan keçdiniz!");
-                            closeAllModals();
-                        }).catch(error => console.error("Baza yazılma xətası:", error));
-                    }
+                    database.ref('users/' + user.uid).update({
+                        uid: user.uid,
+                        email: user.email,
+                        displayName: user.displayName || '',
+                        photoURL: user.photoURL || '',
+                        lastLogin: firebase.database.ServerValue.TIMESTAMP
+                    }).then(() => {
+                        showToast("Uğurla qeydiyyatdan keçdiniz!");
+                        closeAllModals();
+                    }).catch(error => console.error("Baza yazılma xətası:", error));
                 })
                 .catch(err => {
                     showToast(getErrorMessage(err.code));
@@ -316,8 +301,6 @@ document.addEventListener('DOMContentLoaded', () => {
         completeRegisterBtn.addEventListener('click', () => {
             const fname = escapeHTML(regFirstName.value.trim());
             const lname = escapeHTML(regLastName.value.trim());
-            const usernameInput = document.getElementById('regUsername');
-            const username = usernameInput ? escapeHTML(usernameInput.value.trim()) : '';
             const email = regEmail.value.trim();
             const pwd = regPassword.value.trim();
             const pwdConf = regPasswordConfirm.value.trim();
@@ -328,12 +311,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const photoURLInput = document.getElementById('regPhotoURL');
             const photoURL = photoURLInput ? photoURLInput.value.trim() : '';
 
-            if (!fname || !lname || !email || !pwd || !pwdConf || !username || !gender) {
+            if (!fname || !lname || !email || !pwd || !pwdConf || !gender) {
                 return showToast("Zəhmət olmasa bütün xanaları doldurun!");
-            }
-
-            if (!username.startsWith('@')) {
-                return showToast("İstifadəçi adı '@' simvolu ilə başlamalıdır!");
             }
 
             if (pwd !== pwdConf) {
@@ -344,40 +323,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 return showToast("Şifrə ən azı 6 simvol olmalıdır!");
             }
 
-            const cleanUsername = username.substring(1);
-            database.ref('usernames/' + cleanUsername).once('value').then(snapshot => {
-                if (snapshot.exists()) {
-                    return showToast("Bu istifadəçi adı artıq mövcuddur!");
-                }
-                
-                auth.createUserWithEmailAndPassword(email, pwd)
-                    .then(userCredential => {
-                        const fullName = fname + " " + lname;
-                        const user = userCredential.user;
-                        return user.updateProfile({
+            auth.createUserWithEmailAndPassword(email, pwd)
+                .then(userCredential => {
+                    const fullName = fname + " " + lname;
+                    const user = userCredential.user;
+                    return user.updateProfile({
+                        displayName: fullName,
+                        photoURL: photoURL
+                    }).then(() => {
+                        const dashboardUserName = document.getElementById('dashboardUserName');
+                        if (dashboardUserName) {
+                            dashboardUserName.textContent = fullName;
+                        }
+                        
+                        return database.ref('users/' + user.uid).update({
+                            uid: user.uid,
+                            email: user.email,
                             displayName: fullName,
-                            photoURL: photoURL
-                        }).then(() => {
-                            const dashboardUserName = document.getElementById('dashboardUserName');
-                            if (dashboardUserName) {
-                                dashboardUserName.textContent = fullName;
-                            }
-                            
-                            database.ref('usernames/' + cleanUsername).set(user.uid);
-                            
-                            return database.ref('users/' + user.uid).update({
-                                uid: user.uid,
-                                email: user.email,
-                                displayName: fullName,
-                                username: username,
-                                gender: gender,
-                                photoURL: photoURL,
-                                lastLogin: firebase.database.ServerValue.TIMESTAMP
-                            });
+                            gender: gender,
+                            photoURL: photoURL,
+                            createdAt: firebase.database.ServerValue.TIMESTAMP
                         });
-                    })
-                    .catch(err => showToast(getErrorMessage(err.code)));
-            });
+                    });
+                })
+                .catch(err => showToast(getErrorMessage(err.code)));
         });
     }
 
@@ -420,11 +389,10 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const fname = escapeHTML(document.getElementById('profFirstName').value.trim());
             const lname = escapeHTML(document.getElementById('profLastName').value.trim());
-            const username = escapeHTML(document.getElementById('profUsername').value.trim());
             const phone = escapeHTML(document.getElementById('profPhone').value.trim());
             const gender = document.getElementById('profGender').value;
             
-            if (!fname || !username) return showToast("Ad və İstifadəçi adı mütləqdir!");
+            if (!fname) return showToast("Ad mütləqdir!");
             
             const fullName = fname + (lname ? " " + lname : "");
             
@@ -432,12 +400,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const profilePageName = document.getElementById('profilePageName');
                 if (profilePageName) profilePageName.textContent = fullName;
                 
-                const profilePageUsername = document.getElementById('profilePageUsername');
-                if (profilePageUsername) profilePageUsername.textContent = username;
-                
                 return database.ref('users/' + currentUser.uid).update({
                     displayName: fullName,
-                    username: username,
                     phone: phone,
                     gender: gender
                 });
@@ -456,7 +420,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
             
-            emailjs.send("rahatizle", "rahatizleid", {
+            emailjs.send("service_9umksl7", "template_0aiimmq", {
                 to_email: currentUser.email,
                 otp_code: generatedOTP
             }).then(() => {
@@ -502,10 +466,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     modal.classList.add('hidden');
                     modal.classList.remove('flex');
                 }
-            }).catch(err => {
+            }).catch(async err => {
                 if (err.code === 'auth/requires-recent-login') {
-                    showToast("Təhlükəsizlik üçün yenidən daxil olmalısınız.");
-                    auth.signOut().then(() => window.location.replace('index.html'));
+                    // Mövcud şifrəni istəyən modal çıxart
+                    const oldPwdPrompt = prompt("Təhlükəsizlik üçün zəhmət olmasa cari (köhnə) şifrənizi daxil edin:");
+                    if (oldPwdPrompt) {
+                        try {
+                            const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, oldPwdPrompt);
+                            await currentUser.reauthenticateWithCredential(credential);
+                            await currentUser.updatePassword(newPwd);
+                            showToast("Sessiya yeniləndi və şifrə uğurla dəyişdirildi!");
+                            const modal = document.getElementById('otp-modal');
+                            if (modal) {
+                                modal.classList.add('hidden');
+                                modal.classList.remove('flex');
+                            }
+                        } catch (reauthErr) {
+                            showToast("Köhnə şifrə yalnışdır. Təkrar cəhd edin.");
+                        }
+                    } else {
+                        showToast("Şifrəni yeniləmək üçün sessiya təsdiqlənməlidir.");
+                    }
                 } else {
                     showToast(getErrorMessage(err.code));
                 }
@@ -626,12 +607,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         const lnameInput = document.getElementById('profLastName');
                         if (lnameInput) lnameInput.value = parts.slice(1).join(' ');
                     }
-                    const uName = document.getElementById('profUsername');
-                    if (uName && data.username) uName.value = data.username;
                     const uEmail = document.getElementById('profEmail');
-                    if (uEmail) uEmail.value = data.email;
+                    if (uEmail) uEmail.value = data.email || '';
                     const uPhone = document.getElementById('profPhone');
-                    if (uPhone && data.phone) uPhone.value = data.phone;
+                    if (uPhone) uPhone.value = data.phone || '';
                     const uGender = document.getElementById('profGender');
                     if (uGender && data.gender) uGender.value = data.gender;
                 }
