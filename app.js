@@ -229,28 +229,16 @@ document.addEventListener('DOMContentLoaded', () => {
         forgotPasswordBtn.addEventListener('click', () => showModal(forgotPasswordModal));
     }
 
-    // --- ŞİFRƏNİ UNUTDUM (FİREBASE LİNKİ) ---
-    window.sendFirebasePasswordReset = (email) => {
-        auth.sendPasswordResetEmail(email)
-            .then(() => {
-                showToast("Şifrə yeniləmə linki e-poçtunuza göndərildi. Zəhmət olmasa e-poçtunuzu yoxlayın");
-                closeAllModals();
-            })
-            .catch((error) => {
-                showToast(getErrorMessage(error.code));
-            });
-    };
-
     const sendOTPBtn = document.getElementById('sendOTPBtn');
     if (sendOTPBtn) {
         sendOTPBtn.addEventListener('click', () => {
             const email = document.getElementById('forgotEmail').value.trim();
             if (!email) return showToast("E-poçt daxil edin!");
-            sendFirebasePasswordReset(email);
+            sendEmailJSOTP(email);
         });
     }
 
-    // --- EMAILJS OTP (YALNIZ PROFIL ÜÇÜN) ---
+    // --- EMAILJS OTP (HƏM PROFIL, HƏM ŞİFRƏNİ UNUTDUM ÜÇÜN) ---
     let generatedOTP = null;
     let resendInterval = null;
     let currentOTPRecoveryEmail = null;
@@ -351,23 +339,23 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                const response = await fetch('reset-password.js', {
+                const response = await fetch('/api/reset-password', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        email: currentOTPRecoveryEmail,
-                        newPassword: newPwd
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: currentOTPRecoveryEmail, newPassword: newPwd })
                 });
+                
+                const data = await response.json().catch(() => ({}));
 
                 if (response.ok) {
-                    showToast("Şifrəniz uğurla yeniləndi!");
+                    showToast("Şifrəniz uğurla yeniləndi! İndi giriş edə bilərsiniz.");
                     closeAllModals();
+                    const loginModal = document.getElementById('login-modal');
+                    if (loginModal) {
+                        showModal(loginModal);
+                    }
                 } else {
-                    const data = await response.json().catch(() => ({}));
-                    showToast(data.message || "Xəta baş verdi. Serverə qoşulmaq mümkün olmadı.");
+                    showToast("Xəta: " + (data.error || data.message || "Bilinməyən xəta baş verdi."));
                 }
             } catch (err) {
                 console.error("Şifrə yeniləmə xətası:", err);
