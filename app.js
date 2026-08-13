@@ -229,36 +229,16 @@ document.addEventListener('DOMContentLoaded', () => {
         forgotPasswordBtn.addEventListener('click', () => showModal(forgotPasswordModal));
     }
 
-    // --- ŞİFRƏNİ UNUTDUM (FİREBASE LİNKİ) ---
-    window.sendFirebasePasswordReset = (email) => {
-        auth.sendPasswordResetEmail(email)
-            .then(() => {
-                showToast("Şifrə yeniləmə linki e-poçtunuza göndərildi!");
-                closeAllModals();
-            })
-            .catch((error) => {
-                showToast(getErrorMessage(error.code));
-            });
-    };
-
-    const sendOTPBtn = document.getElementById('sendOTPBtn');
-    if (sendOTPBtn) {
-        sendOTPBtn.addEventListener('click', () => {
-            const email = document.getElementById('forgotEmail').value.trim();
-            if (!email) return showToast("E-poçt daxil edin!");
-            sendFirebasePasswordReset(email);
-        });
-    }
-
-    // --- EMAILJS OTP (YALNIZ PROFIL ÜÇÜN) ---
+    // --- EMAILJS OTP (HƏM PROFIL, HƏM ŞİFRƏNİ UNUTDUM ÜÇÜN) ---
     let generatedOTP = null;
     let resendInterval = null;
+    let currentOTPRecoveryEmail = null;
 
     const startResendTimer = () => {
-        const resendBtn = document.querySelectorAll('#resendOTPBtn');
+        const resendBtns = document.querySelectorAll('#resendOTPBtn');
         const timers = document.querySelectorAll('#resendTimer');
         
-        resendBtn.forEach(btn => btn.classList.add('hidden'));
+        resendBtns.forEach(btn => btn.classList.add('hidden'));
         timers.forEach(timer => {
             timer.classList.remove('hidden');
             timer.textContent = '60s';
@@ -272,13 +252,14 @@ document.addEventListener('DOMContentLoaded', () => {
             timers.forEach(timer => timer.textContent = timeLeft + 's');
             if (timeLeft <= 0) {
                 clearInterval(resendInterval);
-                resendBtn.forEach(btn => btn.classList.remove('hidden'));
+                resendBtns.forEach(btn => btn.classList.remove('hidden'));
                 timers.forEach(timer => timer.classList.add('hidden'));
             }
         }, 1000);
     };
 
     window.sendEmailJSOTP = (userEmail) => {
+        currentOTPRecoveryEmail = userEmail;
         const otpCode = Math.floor(100000 + Math.random() * 900000);
         generatedOTP = otpCode.toString();
         
@@ -290,6 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast("6 rəqəmli kod e-poçtunuza göndərildi!");
             const modal = document.getElementById('otp-modal');
             if (modal) {
+                closeAllModals();
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
             }
@@ -304,6 +286,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    const sendOTPBtn = document.getElementById('sendOTPBtn');
+    if (sendOTPBtn) {
+        sendOTPBtn.addEventListener('click', () => {
+            const email = document.getElementById('forgotEmail').value.trim();
+            if (!email) return showToast("E-poçt daxil edin!");
+            sendEmailJSOTP(email);
+        });
+    }
+
     const requestPasswordChangeBtn = document.getElementById('requestPasswordChangeBtn');
     if (requestPasswordChangeBtn) {
         requestPasswordChangeBtn.addEventListener('click', () => {
@@ -312,11 +303,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Resend OTP düymələri üçün (həm index.html, həm profile.html)
+    // Resend OTP düymələri üçün
     document.querySelectorAll('#resendOTPBtn').forEach(btn => {
         btn.addEventListener('click', () => {
-            if (!currentUser || !currentUser.email) return;
-            sendEmailJSOTP(currentUser.email);
+            if (currentOTPRecoveryEmail) {
+                sendEmailJSOTP(currentOTPRecoveryEmail);
+            }
         });
     });
 
@@ -344,31 +336,22 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const activeUser = auth.currentUser;
             if (!activeUser) {
-                return showToast("XƏTA: Sistemə daxil olmadığınız üçün Firebase şifrənizi yeniləyə bilmir.");
+                return showToast("XƏTA: Sistemə daxil olmadığınız üçün Firebase şifrənizi yeniləyə bilmir. Server backend-i lazımdır.");
             }
 
             activeUser.updatePassword(newPwd).then(() => {
                 showToast("Şifrəniz uğurla yeniləndi!");
-                const modal = document.getElementById('otp-modal');
-                if (modal) {
-                    modal.classList.add('hidden');
-                    modal.classList.remove('flex');
-                }
+                closeAllModals();
             }).catch(async err => {
                 if (err.code === 'auth/requires-recent-login') {
-                    // Mövcud şifrəni istəyən modal çıxart
                     const oldPwdPrompt = prompt("Təhlükəsizlik üçün zəhmət olmasa cari (köhnə) şifrənizi daxil edin:");
                     if (oldPwdPrompt) {
                         try {
-                            const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, oldPwdPrompt);
-                            await currentUser.reauthenticateWithCredential(credential);
-                            await currentUser.updatePassword(newPwd);
+                            const credential = firebase.auth.EmailAuthProvider.credential(activeUser.email, oldPwdPrompt);
+                            await activeUser.reauthenticateWithCredential(credential);
+                            await activeUser.updatePassword(newPwd);
                             showToast("Sessiya yeniləndi və şifrə uğurla dəyişdirildi!");
-                            const modal = document.getElementById('otp-modal');
-                            if (modal) {
-                                modal.classList.add('hidden');
-                                modal.classList.remove('flex');
-                            }
+                            closeAllModals();
                         } catch (reauthErr) {
                             showToast("Köhnə şifrə yalnışdır. Təkrar cəhd edin.");
                         }
