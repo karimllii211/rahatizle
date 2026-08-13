@@ -309,6 +309,29 @@
         </div>
     </div>
 
+    <!-- OTP Modalı (Şifrə dəyişdirmək üçün) -->
+    <div id="otp-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4">
+        <div class="relative max-w-sm mx-auto w-full bg-[#030303] p-8 rounded-2xl border border-red-600 shadow-[0_0_20px_rgba(220,38,38,0.2)] animate-fade-in">
+            <button class="close-otp-modal absolute top-5 right-5 text-gray-500 hover:text-white transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            <h2 class="text-2xl font-bold mb-4 text-center tracking-wider text-white uppercase">Təsdiq Kodu</h2>
+            <p class="text-center text-gray-400 text-sm mb-6">E-poçtunuza 6 rəqəmli kod göndərildi.</p>
+            
+            <div id="otpStepContainer" class="space-y-4">
+                <input type="text" id="otpInput" placeholder="Kodu daxil edin" class="w-full bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all text-center tracking-widest text-lg" maxlength="6">
+                <button type="button" id="verifyOTPBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all duration-300 uppercase tracking-wider">
+                    Kodu Təsdiqlə
+                </button>
+            </div>
+
+            <div id="newPasswordStepContainer" class="space-y-4 hidden">
+                <input type="password" id="newPasswordInput" placeholder="Yeni şifrə" class="w-full bg-black text-white px-5 py-3 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 transition-all">
+                <button type="button" id="setNewPasswordBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all duration-300 uppercase tracking-wider">
+                    Şifrəni Yenilə
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- CUSTOM TOAST BİLDİRİŞİ -->
     <div id="custom-toast" class="hidden fixed top-6 right-6 z-50 bg-black border border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.4)] rounded-xl px-6 py-4 items-center gap-4 transition-all max-w-md">
         <span id="toast-message" class="text-white font-medium">Bildiriş mətni bura gələcək</span>

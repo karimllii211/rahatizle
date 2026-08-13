@@ -3,6 +3,21 @@ if (typeof emailjs !== 'undefined') {
     emailjs.init("-joV9uOaw310_PJCg");
 }
 
+const getInitials = (name, email) => {
+    if (name) {
+        const parts = name.trim().split(' ');
+        if (parts.length >= 2) {
+            return (parts[0][0] + parts[1][0]).toUpperCase();
+        } else if (parts.length === 1) {
+            return parts[0][0].toUpperCase();
+        }
+    }
+    if (email) {
+        return email.charAt(0).toUpperCase();
+    }
+    return 'US';
+};
+
 // Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCdbOsVymHIPfjbw3oByjb4pS-sEB8jv8c",
@@ -198,15 +213,29 @@ document.addEventListener('DOMContentLoaded', () => {
         forgotPasswordBtn.addEventListener('click', () => showModal(forgotPasswordModal));
     }
 
+    let generatedOTP = null;
+
     window.sendEmailJSOTP = (email) => {
-        auth.sendPasswordResetEmail(email)
-            .then(() => {
-                showToast("Şifrə sıfırlama linki e-poçtunuza göndərildi.");
-                closeAllModals();
-            })
-            .catch((error) => {
-                showToast(getErrorMessage(error.code));
-            });
+        generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+        emailjs.send("service_9umksl7", "template_0aiimmq", { 
+            message: generatedOTP, 
+            to_email: email 
+        }, "-joV9uOaw310_PJCg").then(() => {
+            const modal = document.getElementById('otp-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+            const otpStep = document.getElementById('otpStepContainer');
+            const newPwdStep = document.getElementById('newPasswordStepContainer');
+            if (otpStep) otpStep.classList.remove('hidden');
+            if (newPwdStep) newPwdStep.classList.add('hidden');
+            showToast("Təsdiq kodu e-poçtunuza göndərildi.");
+            closeAllModals(); // Şifrəni unutdum modalını bağlayır
+        }).catch((error) => {
+            console.error(error);
+            showToast("Kod göndərilərkən xəta baş verdi.");
+        });
     };
 
     const sendOTPBtn = document.getElementById('sendOTPBtn');
@@ -412,30 +441,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- EMAILJS İLƏ ŞİFRƏ DƏYİŞDİRMƏ ---
-    let generatedOTP = null;
     const requestPasswordChangeBtn = document.getElementById('requestPasswordChangeBtn');
     if (requestPasswordChangeBtn) {
         requestPasswordChangeBtn.addEventListener('click', () => {
             if (!currentUser || !currentUser.email) return;
-            
-            generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-            
-            emailjs.send("service_9umksl7", "template_0aiimmq", {
-                to_email: currentUser.email,
-                otp_code: generatedOTP
-            }).then(() => {
-                const modal = document.getElementById('otp-modal');
-                if (modal) {
-                    modal.classList.remove('hidden');
-                    modal.classList.add('flex');
-                }
-                document.getElementById('otpStepContainer').classList.remove('hidden');
-                document.getElementById('newPasswordStepContainer').classList.add('hidden');
-                showToast("Təsdiq kodu e-poçtunuza göndərildi.");
-            }).catch(err => {
-                console.error(err);
-                showToast("Kod göndərilərkən xəta baş verdi.");
-            });
+            sendEmailJSOTP(currentUser.email);
         });
     }
 
@@ -444,8 +454,10 @@ document.addEventListener('DOMContentLoaded', () => {
         verifyOTPBtn.addEventListener('click', () => {
             const entered = document.getElementById('otpInput').value.trim();
             if (entered === generatedOTP) {
-                document.getElementById('otpStepContainer').classList.add('hidden');
-                document.getElementById('newPasswordStepContainer').classList.remove('hidden');
+                const otpStep = document.getElementById('otpStepContainer');
+                const newPwdStep = document.getElementById('newPasswordStepContainer');
+                if (otpStep) otpStep.classList.add('hidden');
+                if (newPwdStep) newPwdStep.classList.remove('hidden');
                 showToast("Kod təsdiqləndi! Yeni şifrənizi təyin edin.");
             } else {
                 showToast("Kod yanlışdır.");
@@ -459,7 +471,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const newPwd = document.getElementById('newPasswordInput').value.trim();
             if (newPwd.length < 6) return showToast("Şifrə ən azı 6 simvol olmalıdır.");
             
-            currentUser.updatePassword(newPwd).then(() => {
+            const activeUser = auth.currentUser;
+            if (!activeUser) {
+                return showToast("XƏTA: Sistemə daxil olmadığınız üçün Firebase şifrənizi yeniləyə bilmir.");
+            }
+
+            activeUser.updatePassword(newPwd).then(() => {
                 showToast("Şifrəniz uğurla yeniləndi!");
                 const modal = document.getElementById('otp-modal');
                 if (modal) {
@@ -530,7 +547,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             // Avatar logic
-            const photoURL = user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName || user.email.split('@')[0]}&background=FF014C&color=fff`;
+            const initials = getInitials(user.displayName, user.email);
             
             const navAvatar = document.getElementById('navAvatar');
             const navAvatarText = document.getElementById('navAvatarText');
@@ -542,13 +559,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     navAvatar.classList.add('hidden');
                     navAvatarText.classList.remove('hidden');
-                    navAvatarText.textContent = (user.displayName || user.email).charAt(0).toUpperCase();
+                    navAvatarText.textContent = initials;
                 }
             }
 
             const profilePageAvatar = document.getElementById('profilePageAvatar');
-            if (profilePageAvatar) {
-                profilePageAvatar.src = photoURL;
+            const profilePageAvatarText = document.getElementById('profilePageAvatarText');
+            if (profilePageAvatar && profilePageAvatarText) {
+                if (user.photoURL) {
+                    profilePageAvatar.src = user.photoURL;
+                    profilePageAvatar.classList.remove('hidden');
+                    profilePageAvatarText.classList.add('hidden');
+                } else {
+                    profilePageAvatar.classList.add('hidden');
+                    profilePageAvatarText.classList.remove('hidden');
+                    profilePageAvatarText.textContent = initials;
+                }
             }
 
             // Otaqları yüklə
@@ -599,7 +625,12 @@ document.addEventListener('DOMContentLoaded', () => {
             // Profil form məlumatlarını doldur
             database.ref('users/' + user.uid).once('value').then(snapshot => {
                 const data = snapshot.val();
+                const pageName = document.getElementById('profilePageName');
+                
                 if (data) {
+                    if (pageName && data.displayName) pageName.textContent = data.displayName;
+                    else if (pageName) pageName.textContent = user.displayName || user.email.split('@')[0];
+                    
                     const fnameInput = document.getElementById('profFirstName');
                     if (fnameInput && data.displayName) {
                         const parts = data.displayName.split(' ');
@@ -613,7 +644,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (uPhone) uPhone.value = data.phone || '';
                     const uGender = document.getElementById('profGender');
                     if (uGender && data.gender) uGender.value = data.gender;
+                } else {
+                    if (pageName) pageName.style.display = 'none';
                 }
+            }).catch(err => {
+                const pageName = document.getElementById('profilePageName');
+                if (pageName) pageName.style.display = 'none';
             });
 
         } else {
