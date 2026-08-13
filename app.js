@@ -342,38 +342,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const setNewPasswordBtn = document.getElementById('setNewPasswordBtn');
     if (setNewPasswordBtn) {
-        setNewPasswordBtn.addEventListener('click', () => {
+        setNewPasswordBtn.addEventListener('click', async () => {
             const newPwd = document.getElementById('newPasswordInput').value.trim();
             if (newPwd.length < 6) return showToast("Şifrə ən azı 6 simvol olmalıdır.");
             
-            const activeUser = auth.currentUser;
-            if (!activeUser) {
-                return showToast("XƏTA: Sistemə daxil olmadığınız üçün Firebase şifrənizi yeniləyə bilmir. Server backend-i lazımdır.");
+            if (!currentOTPRecoveryEmail) {
+                return showToast("XƏTA: Təsdiq üçün e-poçt tapılmadı.");
             }
 
-            activeUser.updatePassword(newPwd).then(() => {
-                showToast("Şifrəniz uğurla yeniləndi!");
-                closeAllModals();
-            }).catch(async err => {
-                if (err.code === 'auth/requires-recent-login') {
-                    const oldPwdPrompt = prompt("Təhlükəsizlik üçün zəhmət olmasa cari (köhnə) şifrənizi daxil edin:");
-                    if (oldPwdPrompt) {
-                        try {
-                            const credential = firebase.auth.EmailAuthProvider.credential(activeUser.email, oldPwdPrompt);
-                            await activeUser.reauthenticateWithCredential(credential);
-                            await activeUser.updatePassword(newPwd);
-                            showToast("Sessiya yeniləndi və şifrə uğurla dəyişdirildi!");
-                            closeAllModals();
-                        } catch (reauthErr) {
-                            showToast("Köhnə şifrə yalnışdır. Təkrar cəhd edin.");
-                        }
-                    } else {
-                        showToast("Şifrəni yeniləmək üçün sessiya təsdiqlənməlidir.");
-                    }
+            try {
+                const response = await fetch('reset-password.js', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: currentOTPRecoveryEmail,
+                        newPassword: newPwd
+                    })
+                });
+
+                if (response.ok) {
+                    showToast("Şifrəniz uğurla yeniləndi!");
+                    closeAllModals();
                 } else {
-                    showToast(getErrorMessage(err.code));
+                    const data = await response.json().catch(() => ({}));
+                    showToast(data.message || "Xəta baş verdi. Serverə qoşulmaq mümkün olmadı.");
                 }
-            });
+            } catch (err) {
+                console.error("Şifrə yeniləmə xətası:", err);
+                showToast("Şəbəkə xətası baş verdi.");
+            }
         });
     }
 
