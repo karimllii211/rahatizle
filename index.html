@@ -76,7 +76,10 @@
                     <!-- User View -->
                     <div id="nav-user-view" class="hidden items-center gap-4 relative">
                         <a href="profile.html" class="flex items-center gap-2 group focus:outline-none px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all duration-300">
-                            <img id="navAvatar" src="https://ui-avatars.com/api/?name=User&background=FF014C&color=fff" alt="Profile" class="w-7 h-7 rounded-full border border-white/20 group-hover:border-[#FF014C] transition-colors object-cover">
+                            <div class="relative w-7 h-7 rounded-full border border-white/20 group-hover:border-[#FF014C] bg-red-900/30 flex items-center justify-center overflow-hidden transition-colors">
+                                <img id="navAvatar" src="" alt="Profile" class="w-full h-full object-cover hidden">
+                                <span id="navbar-avatar-text" class="text-[#FF014C] font-bold text-xs tracking-widest hidden"></span>
+                            </div>
                             <span id="dashboardUserName" class="text-sm font-medium text-[#C8C8C8] max-w-[100px] truncate hidden sm:block group-hover:text-white transition-colors">İstifadəçi Adı</span>
                         </a>
                     </div>

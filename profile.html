@@ -51,7 +51,8 @@
                 </div>
             </div>
             <input type="file" id="avatarUpload" class="hidden" accept="image/*">
-            <h1 class="text-3xl font-bold tracking-wide mt-4" id="profilePageName">Yüklənir...</h1>
+            <div id="profilePageLoading" class="text-gray-400 mt-2 text-sm animate-pulse">Yüklənir...</div>
+            <h1 class="text-3xl font-bold tracking-wide mt-4 hidden" id="profilePageName"></h1>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">

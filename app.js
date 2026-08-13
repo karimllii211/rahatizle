@@ -3,21 +3,6 @@ if (typeof emailjs !== 'undefined') {
     emailjs.init("-joV9uOaw310_PJCg");
 }
 
-const getInitials = (name, email) => {
-    if (name) {
-        const parts = name.trim().split(' ');
-        if (parts.length >= 2) {
-            return (parts[0][0] + parts[1][0]).toUpperCase();
-        } else if (parts.length === 1) {
-            return parts[0][0].toUpperCase();
-        }
-    }
-    if (email) {
-        return email.charAt(0).toUpperCase();
-    }
-    return 'US';
-};
-
 // Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCdbOsVymHIPfjbw3oByjb4pS-sEB8jv8c",
@@ -215,12 +200,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let generatedOTP = null;
 
-    window.sendEmailJSOTP = (email) => {
-        generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-        emailjs.send("service_9umksl7", "template_0aiimmq", { 
-            message: generatedOTP, 
-            to_email: email 
-        }, "-joV9uOaw310_PJCg").then(() => {
+    window.sendEmailJSOTP = (userEmail) => {
+        const otpCode = Math.floor(100000 + Math.random() * 900000);
+        generatedOTP = otpCode.toString();
+        
+        emailjs.send("service_9umksl7", "template_0aiimmq", {
+            security_code: otpCode, 
+            email: userEmail 
+        }, "-joV9uOaw310_PJCg")
+        .then(function(response) {
+            showToast("6 rəqəmli kod e-poçtunuza göndərildi!");
             const modal = document.getElementById('otp-modal');
             if (modal) {
                 modal.classList.remove('hidden');
@@ -230,11 +219,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const newPwdStep = document.getElementById('newPasswordStepContainer');
             if (otpStep) otpStep.classList.remove('hidden');
             if (newPwdStep) newPwdStep.classList.add('hidden');
-            showToast("Təsdiq kodu e-poçtunuza göndərildi.");
             closeAllModals(); // Şifrəni unutdum modalını bağlayır
-        }).catch((error) => {
-            console.error(error);
-            showToast("Kod göndərilərkən xəta baş verdi.");
+        }).catch(function(error) {
+            console.error("EmailJS Xətası:", error);
+            showToast("Xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.");
         });
     };
 
@@ -547,10 +535,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             // Avatar logic
-            const initials = getInitials(user.displayName, user.email);
+            const initials = user.displayName ? user.displayName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : user.email.charAt(0).toUpperCase();
             
             const navAvatar = document.getElementById('navAvatar');
-            const navAvatarText = document.getElementById('navAvatarText');
+            const navAvatarText = document.getElementById('navbar-avatar-text');
             if (navAvatar && navAvatarText) {
                 if (user.photoURL) {
                     navAvatar.src = user.photoURL;
@@ -559,12 +547,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     navAvatar.classList.add('hidden');
                     navAvatarText.classList.remove('hidden');
-                    navAvatarText.textContent = initials;
+                    navAvatarText.innerText = initials;
                 }
             }
 
             const profilePageAvatar = document.getElementById('profilePageAvatar');
-            const profilePageAvatarText = document.getElementById('profilePageAvatarText');
+            const profilePageAvatarText = document.getElementById('profile-avatar-text');
             if (profilePageAvatar && profilePageAvatarText) {
                 if (user.photoURL) {
                     profilePageAvatar.src = user.photoURL;
@@ -573,7 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     profilePageAvatar.classList.add('hidden');
                     profilePageAvatarText.classList.remove('hidden');
-                    profilePageAvatarText.textContent = initials;
+                    profilePageAvatarText.innerText = initials;
                 }
             }
 
@@ -626,10 +614,14 @@ document.addEventListener('DOMContentLoaded', () => {
             database.ref('users/' + user.uid).once('value').then(snapshot => {
                 const data = snapshot.val();
                 const pageName = document.getElementById('profilePageName');
+                const pageLoading = document.getElementById('profilePageLoading');
                 
                 if (data) {
-                    if (pageName && data.displayName) pageName.textContent = data.displayName;
-                    else if (pageName) pageName.textContent = user.displayName || user.email.split('@')[0];
+                    if (pageName) {
+                        pageName.textContent = data.displayName || user.displayName || user.email.split('@')[0];
+                        pageName.classList.remove('hidden');
+                    }
+                    if (pageLoading) pageLoading.style.display = 'none';
                     
                     const fnameInput = document.getElementById('profFirstName');
                     if (fnameInput && data.displayName) {
