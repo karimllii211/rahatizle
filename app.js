@@ -575,27 +575,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-                            const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, oldPwdPrompt);
-                            await currentUser.reauthenticateWithCredential(credential);
-                            await currentUser.updatePassword(newPwd);
-                            showToast("Sessiya yeniləndi və şifrə uğurla dəyişdirildi!");
-                            const modal = document.getElementById('otp-modal');
-                            if (modal) {
-                                modal.classList.add('hidden');
-                                modal.classList.remove('flex');
-                            }
-                        } catch (reauthErr) {
-                            showToast("Köhnə şifrə yalnışdır. Təkrar cəhd edin.");
-                        }
-                    } else {
-                        showToast("Şifrəni yeniləmək üçün sessiya təsdiqlənməlidir.");
-                    }
-                } else {
-                    showToast(getErrorMessage(err.code));
-                }
-            });
-        });
-    }
+
 
     window.deleteRoom = async (roomId) => {
         const confirmDelete = await showConfirmModal("Otağı silmək istədiyinizə əminsiniz?");
