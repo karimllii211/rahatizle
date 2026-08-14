@@ -442,17 +442,24 @@ function initRoom() {
             await videoActiveRef.set(true);
 
             mainVideo.oncanplay = async () => {
-                if (mainVideo.captureStream) {
-                    localStream = mainVideo.captureStream();
-                } else if (mainVideo.mozCaptureStream) {
-                    localStream = mainVideo.mozCaptureStream();
-                } else {
-                    return showToast("Brauzeriniz video axını dəstəkləmir!");
+                try {
+                    if (mainVideo.captureStream) {
+                        localStream = mainVideo.captureStream();
+                    } else if (mainVideo.mozCaptureStream) {
+                        localStream = mainVideo.mozCaptureStream();
+                    } else {
+                        return showToast("Brauzeriniz video axını dəstəkləmir!");
+                    }
+                    
+                    await signalingRef.remove();
+                    setupPeerConnection(); // onnegotiationneeded triggers createOffer
+                } catch (error) {
+                    console.error("CaptureStream xətası:", error);
+                    showToast("Bu video formatı canlı yayım üçün dəstəklənmir. Zəhmət olmasa standart MP4 və ya WebM formatında video seçin");
+                    if (closeVideoBtn) closeVideoBtn.click(); // Uğursuz olduqda təmizlə
+                } finally {
+                    mainVideo.oncanplay = null; // Yalnız ilk dəfə
                 }
-                
-                await signalingRef.remove();
-                setupPeerConnection(); // onnegotiationneeded triggers createOffer
-                mainVideo.oncanplay = null; // Yalnız ilk dəfə
             };
             
             mainVideo.play();
