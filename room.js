@@ -266,4 +266,166 @@ function initRoom() {
         // Scroll to bottom
         chatMessages.scrollTop = chatMessages.scrollHeight;
     });
+
+    // --- 4. WebRTC (P2P) və Local Video Playback ---
+    const localVideoUpload = document.getElementById('local-video-upload');
+    const mainVideo = document.getElementById('main-video');
+    const videoPlaceholder = document.getElementById('video-placeholder');
+    
+    let localStream = null;
+    let peerConnection = null;
+    let isBroadcaster = false;
+
+    const servers = {
+        iceServers: [
+            { urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }
+        ]
+    };
+
+    const signalingRef = database.ref(`rooms/${currentRoomId}/signaling`);
+    const playbackRef = database.ref(`rooms/${currentRoomId}/playback`);
+
+    const setupPeerConnection = () => {
+        peerConnection = new RTCPeerConnection(servers);
+
+        peerConnection.onicecandidate = event => {
+            if (event.candidate) {
+                signalingRef.child('candidates').push({
+                    candidate: event.candidate.toJSON(),
+                    uid: currentUser.uid
+                });
+            }
+        };
+
+        peerConnection.ontrack = event => {
+            if (!isBroadcaster && mainVideo) { 
+                mainVideo.srcObject = event.streams[0];
+                mainVideo.classList.remove('hidden');
+                if (videoPlaceholder) videoPlaceholder.classList.add('hidden');
+            }
+        };
+
+        if (localStream) {
+            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+        }
+    };
+
+    const createOffer = async () => {
+        setupPeerConnection();
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        await signalingRef.child('offer').set({
+            sdp: offer.sdp,
+            type: offer.type,
+            uid: currentUser.uid
+        });
+    };
+
+    const createAnswer = async (offerSDP) => {
+        setupPeerConnection();
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(offerSDP));
+        const answer = await peerConnection.createAnswer();
+        await peerConnection.setLocalDescription(answer);
+        await signalingRef.child('answer').set({
+            sdp: answer.sdp,
+            type: answer.type,
+            uid: currentUser.uid
+        });
+    };
+
+    // Siqnalizasiya Dinləyiciləri
+    signalingRef.on('value', async snapshot => {
+        const data = snapshot.val();
+        if (!data) return;
+
+        if (!isBroadcaster && data.offer && data.offer.uid !== currentUser.uid) {
+            if (!peerConnection || peerConnection.signalingState === "stable") {
+                await createAnswer(data.offer);
+            }
+        }
+
+        if (isBroadcaster && data.answer && data.answer.uid !== currentUser.uid) {
+            if (peerConnection && peerConnection.signalingState !== "stable") {
+                const remoteDesc = new RTCSessionDescription(data.answer);
+                await peerConnection.setRemoteDescription(remoteDesc).catch(e => console.error(e));
+            }
+        }
+    });
+
+    signalingRef.child('candidates').on('child_added', snapshot => {
+        const data = snapshot.val();
+        if (data && data.uid !== currentUser.uid && peerConnection) {
+            const candidate = new RTCIceCandidate(data.candidate);
+            peerConnection.addIceCandidate(candidate).catch(e => console.error(e));
+        }
+    });
+
+    // Fayl Seçildikdə (Local Playback və Yayımın Başlaması)
+    if (localVideoUpload && mainVideo) {
+        localVideoUpload.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            isBroadcaster = true;
+            const objectURL = URL.createObjectURL(file);
+            mainVideo.src = objectURL;
+            mainVideo.classList.remove('hidden');
+            if (videoPlaceholder) videoPlaceholder.classList.add('hidden');
+
+            mainVideo.oncanplay = async () => {
+                if (mainVideo.captureStream) {
+                    localStream = mainVideo.captureStream();
+                } else if (mainVideo.mozCaptureStream) {
+                    localStream = mainVideo.mozCaptureStream();
+                } else {
+                    return showToast("Brauzeriniz video axını dəstəkləmir!");
+                }
+                
+                await signalingRef.remove();
+                await createOffer();
+                mainVideo.oncanplay = null; // Yalnız ilk dəfə işləsin
+            };
+            
+            mainVideo.play();
+        });
+    }
+
+    // --- 5. Video Sinxronizasiyası (Firebase Playback) ---
+    let isSeekingFromRemote = false;
+
+    if (mainVideo) {
+        mainVideo.addEventListener('play', () => {
+            if (isSeekingFromRemote) return;
+            playbackRef.set({ state: 'play', time: mainVideo.currentTime, uid: currentUser.uid });
+        });
+
+        mainVideo.addEventListener('pause', () => {
+            if (isSeekingFromRemote) return;
+            playbackRef.set({ state: 'pause', time: mainVideo.currentTime, uid: currentUser.uid });
+        });
+
+        mainVideo.addEventListener('seeked', () => {
+            if (isSeekingFromRemote) return;
+            playbackRef.set({ state: 'seeked', time: mainVideo.currentTime, uid: currentUser.uid });
+        });
+
+        playbackRef.on('value', snapshot => {
+            const data = snapshot.val();
+            if (!data || data.uid === currentUser.uid) return;
+
+            isSeekingFromRemote = true;
+            
+            if (Math.abs(mainVideo.currentTime - data.time) > 1) {
+                mainVideo.currentTime = data.time;
+            }
+
+            if (data.state === 'play' && mainVideo.paused) {
+                mainVideo.play().catch(e => console.error("Play xətası:", e));
+            } else if (data.state === 'pause' && !mainVideo.paused) {
+                mainVideo.pause();
+            }
+
+            setTimeout(() => isSeekingFromRemote = false, 500);
+        });
+    }
 }
