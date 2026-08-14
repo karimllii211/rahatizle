@@ -280,17 +280,12 @@ function initRoom() {
 
     const servers = {
         iceServers: [
-            { 
-                urls: [
-                    'stun:stun1.l.google.com:19302', 
-                    'stun:stun2.l.google.com:19302',
-                    'stun:stun3.l.google.com:19302',
-                    'stun:stun4.l.google.com:19302'
-                ] 
-            }
+            { urls: "stun:stun.relay.metered.ca:80" },
+            { urls: "turn:global.relay.metered.ca:80", username: "8efca8d1dc36b4cb57912d97", credential: "InngPFUIWmzTLEKP" },
+            { urls: "turn:global.relay.metered.ca:80?transport=tcp", username: "8efca8d1dc36b4cb57912d97", credential: "InngPFUIWmzTLEKP" },
+            { urls: "turn:global.relay.metered.ca:443", username: "8efca8d1dc36b4cb57912d97", credential: "InngPFUIWmzTLEKP" },
+            { urls: "turns:global.relay.metered.ca:443?transport=tcp", username: "8efca8d1dc36b4cb57912d97", credential: "InngPFUIWmzTLEKP" }
         ],
-        // TURN server üçün boş konfiqurasiya yeri
-        // { urls: 'turn:YOUR_TURN_SERVER', username: '', credential: '' }
         iceTransportPolicy: 'all'
     };
 
