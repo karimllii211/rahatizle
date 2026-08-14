@@ -104,6 +104,8 @@ function initRoom() {
         window.location.replace('index.html');
         return;
     }
+    
+    console.log("🚀 Room.js tam yükləndi. Otaq ID: ", currentRoomId);
 
     // UI Elements
     const roomCodeDisplay = document.getElementById('roomCodeDisplay');
@@ -310,6 +312,8 @@ function initRoom() {
             // Qonaq girən kimi offer-i dinləyir (Dəqiq Axın B)
             listenForOffer();
         }
+        
+        console.log("👤 Mənim Rolum: ", isHost ? "HOST" : "GUEST");
     });
 
     const setupPeerConnection = () => {
@@ -388,14 +392,14 @@ function initRoom() {
             type: offer.type,
             uid: currentUser.uid
         });
-        console.log("Host Offer yaratdı");
+        console.log("📡 Host Offer yaratdı və Firebase-ə göndərdi.");
 
         // Host yalnız Answer-i dinləyir (Davamlı)
         signalingRef.child('answer').on('value', async snapshot => {
             const data = snapshot.val();
             if (data && data.uid !== currentUser.uid && peerConnection.signalingState !== "stable") {
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(data));
-                console.log("Host Answer aldı və remoteDescription təyin etdi");
+                console.log("✅ Host Answer aldı, əlaqə qurulur!");
                 // Yalnız setRemote bitdikdən sonra Host candidates-i oxuyur
                 listenForCandidates();
             }
@@ -407,7 +411,7 @@ function initRoom() {
         signalingRef.child('offer').on('value', async snapshot => {
             const data = snapshot.val();
             if (data && data.uid !== currentUser.uid) {
-                console.log("Qonaq Offer aldı, peerConnection yaradılır...");
+                console.log("📥 Qonaq Offer aldı, Answer yaradır...");
                 if (!peerConnection) setupPeerConnection();
                 if (peerConnection.signalingState === "stable") {
                     await peerConnection.setRemoteDescription(new RTCSessionDescription(data));
@@ -418,7 +422,7 @@ function initRoom() {
                         type: answer.type,
                         uid: currentUser.uid
                     });
-                    console.log("Qonaq Offer aldı və Answer göndərdi");
+                    console.log("📤 Qonaq Answer göndərdi.");
                     
                     // Yalnız setRemote bitdikdən və Answer yaradıldıqdan sonra Guest candidates-i oxuyur
                     listenForCandidates();
@@ -491,6 +495,8 @@ function initRoom() {
             const file = e.target.files[0];
             if (!file) return;
 
+            console.log("📁 Fayl seçildi, video yüklənir...");
+
             const objectURL = URL.createObjectURL(file);
             mainVideo.src = objectURL;
             mainVideo.classList.remove('hidden');
@@ -502,17 +508,15 @@ function initRoom() {
             mainVideo.oncanplay = async () => {
                 try {
                     const stream = mainVideo.captureStream ? mainVideo.captureStream() : (mainVideo.webkitCaptureStream ? mainVideo.webkitCaptureStream() : (mainVideo.mozCaptureStream ? mainVideo.mozCaptureStream() : null));
-                    if (stream) {
-                        localStream = stream;
-                    } else {
-                        return showToast("Brauzeriniz canlı axını dəstəkləmir!");
-                    }
+                    if (!stream) throw new Error("Stream yaradıla bilmədi (Brauzer dəstəkləmir)");
+                    console.log("✅ Video Stream uğurla yaradıldı!", stream.getTracks());
+                    localStream = stream;
                     
                     await signalingRef.remove();
                     startHostWebRTC();
                 } catch (error) {
-                    console.error("CaptureStream xətası:", error);
-                    showToast("Bu video formatı canlı axın üçün dəstəklənmir. Zəhmət olmasa standart MP4 və ya WebM formatında video seçin.");
+                    console.error("❌ Stream xətası:", error);
+                    alert("Bu brauzer (və ya video formatı) canlı yayımı dəstəkləmir.");
                     if (closeVideoBtn) closeVideoBtn.click(); // Uğursuz olduqda təmizlə
                 } finally {
                     mainVideo.oncanplay = null; // Yalnız ilk dəfə
