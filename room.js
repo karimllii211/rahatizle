@@ -335,7 +335,25 @@ function initRoom() {
                 mainVideo.playsInline = true;
                 mainVideo.classList.remove('hidden');
                 if (videoPlaceholder) videoPlaceholder.classList.add('hidden');
-                mainVideo.play().catch(e => console.error("Avtomatik oynatma xətası:", e));
+                mainVideo.play().catch(e => {
+                    console.error("Avtomatik oynatma xətası:", e);
+                    if (e.name === 'NotAllowedError' || e.name === 'NotSupportedError') {
+                        let playBtn = document.getElementById('safariPlayBtn');
+                        if (!playBtn) {
+                            playBtn = document.createElement('button');
+                            playBtn.id = 'safariPlayBtn';
+                            playBtn.className = 'absolute z-50 bg-[#FF014C] hover:bg-red-600 text-white font-bold py-4 px-8 rounded-full shadow-2xl tracking-widest uppercase transition-all duration-300';
+                            playBtn.innerText = 'Videonu Başlatmaq üçün Toxunun';
+                            mainVideo.parentElement.appendChild(playBtn);
+                            
+                            playBtn.addEventListener('click', () => {
+                                mainVideo.play();
+                                playBtn.style.display = 'none';
+                            });
+                        }
+                        playBtn.style.display = 'block';
+                    }
+                });
                 console.log("Qonaq Track aldı");
             }
         };
@@ -470,19 +488,18 @@ function initRoom() {
 
             mainVideo.oncanplay = async () => {
                 try {
-                    if (mainVideo.captureStream) {
-                        localStream = mainVideo.captureStream();
-                    } else if (mainVideo.mozCaptureStream) {
-                        localStream = mainVideo.mozCaptureStream();
+                    const stream = mainVideo.captureStream ? mainVideo.captureStream() : (mainVideo.webkitCaptureStream ? mainVideo.webkitCaptureStream() : (mainVideo.mozCaptureStream ? mainVideo.mozCaptureStream() : null));
+                    if (stream) {
+                        localStream = stream;
                     } else {
-                        return showToast("Brauzeriniz video axını dəstəkləmir!");
+                        return showToast("Brauzeriniz canlı axını dəstəkləmir!");
                     }
                     
                     await signalingRef.remove();
                     startHostWebRTC();
                 } catch (error) {
                     console.error("CaptureStream xətası:", error);
-                    showToast("Bu video formatı canlı yayım üçün dəstəklənmir. Zəhmət olmasa standart MP4 və ya WebM formatında video seçin");
+                    showToast("Bu video formatı canlı axın üçün dəstəklənmir. Zəhmət olmasa standart MP4 və ya WebM formatında video seçin.");
                     if (closeVideoBtn) closeVideoBtn.click(); // Uğursuz olduqda təmizlə
                 } finally {
                     mainVideo.oncanplay = null; // Yalnız ilk dəfə
