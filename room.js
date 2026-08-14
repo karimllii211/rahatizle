@@ -513,42 +513,51 @@ function initRoom() {
             if (closeVideoBtn) closeVideoBtn.classList.remove('hidden');
 
             await videoActiveRef.set(true);
+            
+            // Dərhal yükləməyə məcbur et
+            mainVideo.load();
 
-            mainVideo.oncanplay = async () => {
+            mainVideo.onloadeddata = async () => {
+                console.log("⏳ Video kadrları oxundu, axın (stream) məcbur edilir...");
                 try {
+                    window.isWebRTCSetupPhase = true; // Sinxronizasiyanı müvəqqəti dayandır
+                    
+                    // Brauzeri "oyatmaq" üçün videonu anlıq səssiz başlat
+                    mainVideo.muted = true; 
+                    await mainVideo.play(); 
+
+                    // Stream-i dərhal yaxala
                     const stream = mainVideo.captureStream ? mainVideo.captureStream() : (mainVideo.webkitCaptureStream ? mainVideo.webkitCaptureStream() : (mainVideo.mozCaptureStream ? mainVideo.mozCaptureStream() : null));
-                    if (!stream) throw new Error("Stream yaradıla bilmədi (Brauzer dəstəkləmir)");
+
+                    if (!stream || stream.getTracks().length === 0) throw new Error("Stream boşdur və ya yaradıla bilmədi.");
                     console.log("✅ Video Stream uğurla yaradıldı!", stream.getTracks());
                     localStream = stream;
-                    
+
+                    // Offer yarat və Firebase-ə göndər
                     await signalingRef.remove();
                     startHostWebRTC();
+
+                    // Stream yaxalandıqdan və siqnal getdikdən sonra videonu dərhal dayandır (Qonaqla eyni vaxtda başlamaq üçün)
+                    mainVideo.pause(); 
+                    mainVideo.currentTime = 0; // Başa qaytar
+                    
+                    window.isWebRTCSetupPhase = false; // Sinxronizasiyanı bərpa et
                 } catch (error) {
-                    console.error("❌ Stream xətası:", error);
-                    alert("Bu brauzer (və ya video formatı) canlı yayımı dəstəkləmir.");
+                    console.error("❌ Stream yaxalama xətası:", error);
+                    alert("Videonun axına çevrilməsi uğursuz oldu. Fərqli format yoxlayın.");
                     if (closeVideoBtn) closeVideoBtn.click(); // Uğursuz olduqda təmizlə
+                    window.isWebRTCSetupPhase = false;
                 } finally {
-                    mainVideo.oncanplay = null; // Yalnız ilk dəfə
+                    mainVideo.onloadeddata = null; // Yalnız ilk dəfə
                 }
             };
-            
-            const playPromise = mainVideo.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    if (error.name === 'AbortError') {
-                        console.log("Host play əmri pause() tərəfindən dayandırıldı - Bu normaldır.");
-                    } else {
-                        console.error("Host oynatma xətası:", error);
-                    }
-                });
-            }
         });
     }
 
     // --- 5. Təmizlənmiş Sinxronizasiya (Host to Guest) ---
     if (mainVideo) {
         const syncState = (state) => {
-            if (isHost) {
+            if (isHost && !window.isWebRTCSetupPhase) {
                 playerStateRef.set({ state, time: mainVideo.currentTime, timestamp: Date.now() });
             }
         };
