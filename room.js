@@ -319,7 +319,8 @@ function initRoom() {
 
         peerConnection.onicecandidate = event => {
             if (event.candidate) {
-                signalingRef.child('candidates').push({
+                const target = isHost ? 'host' : 'guest';
+                signalingRef.child('candidates').child(target).push({
                     candidate: event.candidate.toJSON(),
                     uid: currentUser.uid
                 });
@@ -334,6 +335,8 @@ function initRoom() {
                 mainVideo.playsInline = true;
                 mainVideo.classList.remove('hidden');
                 if (videoPlaceholder) videoPlaceholder.classList.add('hidden');
+                mainVideo.play().catch(e => console.error("Avtomatik oynatma xətası:", e));
+                console.log("Qonaq Track aldı");
             }
         };
     };
@@ -354,13 +357,15 @@ function initRoom() {
             type: offer.type,
             uid: currentUser.uid
         });
+        console.log("Host Offer yaratdı");
 
-        // Host yalnız Answer-i dinləyir
+        // Host yalnız Answer-i dinləyir (Davamlı)
         signalingRef.child('answer').on('value', async snapshot => {
             const data = snapshot.val();
             if (data && data.uid !== currentUser.uid && peerConnection.signalingState !== "stable") {
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(data));
-                // Yalnız setRemote bitdikdən sonra Host candidates-i oxuyur (Dəqiq Axın C)
+                console.log("Host Answer aldı və remoteDescription təyin etdi");
+                // Yalnız setRemote bitdikdən sonra Host candidates-i oxuyur
                 listenForCandidates();
             }
         });
@@ -371,6 +376,7 @@ function initRoom() {
         signalingRef.child('offer').on('value', async snapshot => {
             const data = snapshot.val();
             if (data && data.uid !== currentUser.uid) {
+                console.log("Qonaq Offer aldı, peerConnection yaradılır...");
                 if (!peerConnection) setupPeerConnection();
                 if (peerConnection.signalingState === "stable") {
                     await peerConnection.setRemoteDescription(new RTCSessionDescription(data));
@@ -381,8 +387,9 @@ function initRoom() {
                         type: answer.type,
                         uid: currentUser.uid
                     });
+                    console.log("Qonaq Offer aldı və Answer göndərdi");
                     
-                    // Yalnız setRemote bitdikdən və Answer yaradıldıqdan sonra Guest candidates-i oxuyur (Dəqiq Axın C)
+                    // Yalnız setRemote bitdikdən və Answer yaradıldıqdan sonra Guest candidates-i oxuyur
                     listenForCandidates();
                 }
             }
@@ -395,11 +402,15 @@ function initRoom() {
         if (listeningForCandidates) return;
         listeningForCandidates = true;
         
-        signalingRef.child('candidates').on('child_added', snapshot => {
+        const targetToListen = isHost ? 'guest' : 'host';
+        console.log("ICE Candidates dinlənilməyə başlandı: " + targetToListen);
+        
+        signalingRef.child('candidates').child(targetToListen).on('child_added', snapshot => {
             const data = snapshot.val();
             if (data && data.uid !== currentUser.uid && peerConnection) {
                 const candidate = new RTCIceCandidate(data.candidate);
                 peerConnection.addIceCandidate(candidate).catch(e => console.error(e));
+                console.log("ICE Candidate əlavə edildi");
             }
         });
     };
