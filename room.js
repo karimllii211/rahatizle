@@ -335,25 +335,38 @@ function initRoom() {
                 mainVideo.playsInline = true;
                 mainVideo.classList.remove('hidden');
                 if (videoPlaceholder) videoPlaceholder.classList.add('hidden');
-                mainVideo.play().catch(e => {
-                    console.error("Avtomatik oynatma xətası:", e);
-                    if (e.name === 'NotAllowedError' || e.name === 'NotSupportedError') {
-                        let playBtn = document.getElementById('safariPlayBtn');
-                        if (!playBtn) {
-                            playBtn = document.createElement('button');
-                            playBtn.id = 'safariPlayBtn';
-                            playBtn.className = 'absolute z-50 bg-[#FF014C] hover:bg-red-600 text-white font-bold py-4 px-8 rounded-full shadow-2xl tracking-widest uppercase transition-all duration-300';
-                            playBtn.innerText = 'Videonu Başlatmaq üçün Toxunun';
-                            mainVideo.parentElement.appendChild(playBtn);
-                            
-                            playBtn.addEventListener('click', () => {
-                                mainVideo.play();
-                                playBtn.style.display = 'none';
-                            });
+                const playPromise = mainVideo.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        // Oynatma uğurla başladı.
+                    }).catch(error => {
+                        if (error.name === 'AbortError') {
+                            console.log("Play əmri pause() tərəfindən dayandırıldı - Bu normaldır, xəta deyil.");
+                        } else if (error.name === 'NotAllowedError' || error.name === 'NotSupportedError') {
+                            console.error("Autoplay bloklandı, istifadəçi klikləməlidir.");
+                            let playBtn = document.getElementById('safariPlayBtn');
+                            if (!playBtn) {
+                                playBtn = document.createElement('button');
+                                playBtn.id = 'safariPlayBtn';
+                                playBtn.className = 'absolute z-50 bg-[#FF014C] hover:bg-red-600 text-white font-bold py-4 px-8 rounded-full shadow-2xl tracking-widest uppercase transition-all duration-300';
+                                playBtn.innerText = 'Videonu Başlatmaq üçün Toxunun';
+                                mainVideo.parentElement.appendChild(playBtn);
+                                
+                                playBtn.addEventListener('click', () => {
+                                    const userPlayPromise = mainVideo.play();
+                                    if (userPlayPromise !== undefined) {
+                                        userPlayPromise.then(() => {
+                                            playBtn.style.display = 'none';
+                                        }).catch(e => console.error("Toxunma ilə oynatma xətası:", e));
+                                    } else {
+                                        playBtn.style.display = 'none';
+                                    }
+                                });
+                            }
+                            playBtn.style.display = 'block';
                         }
-                        playBtn.style.display = 'block';
-                    }
-                });
+                    });
+                }
                 console.log("Qonaq Track aldı");
             }
         };
@@ -506,7 +519,16 @@ function initRoom() {
                 }
             };
             
-            mainVideo.play();
+            const playPromise = mainVideo.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    if (error.name === 'AbortError') {
+                        console.log("Host play əmri pause() tərəfindən dayandırıldı - Bu normaldır.");
+                    } else {
+                        console.error("Host oynatma xətası:", error);
+                    }
+                });
+            }
         });
     }
 
@@ -534,7 +556,18 @@ function initRoom() {
             }
 
             if (data.state === 'play' && mainVideo.paused) {
-                mainVideo.play().catch(e => console.error("Play xətası:", e));
+                const playPromise = mainVideo.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        // Uğurla oynatıldı
+                    }).catch(error => {
+                        if (error.name === 'AbortError') {
+                            console.log("Sinxronizasiya: Play əmri pause() tərəfindən dayandırıldı.");
+                        } else {
+                            console.error("Sinxronizasiya: Play xətası:", error);
+                        }
+                    });
+                }
             } else if (data.state === 'pause' && !mainVideo.paused) {
                 mainVideo.pause();
             }
