@@ -277,7 +277,6 @@ function initRoom() {
     let localStream = null;
     let peerConnection = null;
     let isHost = false;
-    let iceCandidateQueue = [];
 
     const servers = {
         iceServers: [
@@ -290,6 +289,8 @@ function initRoom() {
                 ] 
             }
         ],
+        // TURN server üçün boş konfiqurasiya yeri
+        // { urls: 'turn:YOUR_TURN_SERVER', username: '', credential: '' }
         iceTransportPolicy: 'all'
     };
 
@@ -308,8 +309,11 @@ function initRoom() {
         } else {
             isHost = false;
             mainVideo.controls = false;
-            mainVideo.style.pointerEvents = 'none'; // Guest cannot interact
-            if (localVideoBtn) localVideoBtn.parentElement.classList.add('hidden'); // Hide upload button for guest
+            mainVideo.style.pointerEvents = 'none';
+            if (localVideoBtn) localVideoBtn.parentElement.classList.add('hidden');
+            
+            // Qonaq girən kimi offer-i dinləyir (Dəqiq Axın B)
+            listenForOffer();
         }
     });
 
@@ -330,35 +334,24 @@ function initRoom() {
         peerConnection.ontrack = event => {
             if (!isHost && mainVideo) { 
                 mainVideo.srcObject = event.streams[0];
+                mainVideo.autoplay = true;
+                mainVideo.muted = true;
+                mainVideo.playsInline = true;
                 mainVideo.classList.remove('hidden');
                 if (videoPlaceholder) videoPlaceholder.classList.add('hidden');
             }
         };
-
-        // ICE Connection State Change (ICE Restart məntiqi)
-        peerConnection.oniceconnectionstatechange = () => {
-            if (peerConnection.iceConnectionState === 'disconnected' || peerConnection.iceConnectionState === 'failed') {
-                if (isHost) {
-                    console.warn("Şəbəkə kəsildi, ICE Restart edilir...");
-                    createOffer();
-                }
-            }
-        };
-
-        // Gec qoşulmalar və ya track əlavə olunanda avtomatik offer yaratmaq
-        peerConnection.onnegotiationneeded = async () => {
-            if (isHost) {
-                await createOffer();
-            }
-        };
-
-        if (isHost && localStream) {
-            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-        }
     };
 
-    const createOffer = async () => {
+    // --- DƏQİQ AXIN: HOST ---
+    window.startHostWebRTC = async () => {
+        if (!isHost) return;
         setupPeerConnection();
+        
+        if (localStream) {
+            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+        }
+
         const offer = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offer);
         await signalingRef.child('offer').set({
@@ -366,61 +359,55 @@ function initRoom() {
             type: offer.type,
             uid: currentUser.uid
         });
-    };
 
-    const createAnswer = async (offerSDP) => {
-        setupPeerConnection();
-        await peerConnection.setRemoteDescription(new RTCSessionDescription(offerSDP));
-        flushIceQueue();
-        const answer = await peerConnection.createAnswer();
-        await peerConnection.setLocalDescription(answer);
-        await signalingRef.child('answer').set({
-            sdp: answer.sdp,
-            type: answer.type,
-            uid: currentUser.uid
+        // Host yalnız Answer-i dinləyir
+        signalingRef.child('answer').on('value', async snapshot => {
+            const data = snapshot.val();
+            if (data && data.uid !== currentUser.uid && peerConnection.signalingState !== "stable") {
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data));
+                // Yalnız setRemote bitdikdən sonra Host candidates-i oxuyur (Dəqiq Axın C)
+                listenForCandidates();
+            }
         });
     };
 
-    const flushIceQueue = () => {
-        if (peerConnection && peerConnection.remoteDescription) {
-            while (iceCandidateQueue.length > 0) {
-                const candidate = iceCandidateQueue.shift();
-                peerConnection.addIceCandidate(candidate).catch(e => console.error(e));
+    // --- DƏQİQ AXIN: GUEST ---
+    const listenForOffer = () => {
+        signalingRef.child('offer').on('value', async snapshot => {
+            const data = snapshot.val();
+            if (data && data.uid !== currentUser.uid) {
+                if (!peerConnection) setupPeerConnection();
+                if (peerConnection.signalingState === "stable") {
+                    await peerConnection.setRemoteDescription(new RTCSessionDescription(data));
+                    const answer = await peerConnection.createAnswer();
+                    await peerConnection.setLocalDescription(answer);
+                    await signalingRef.child('answer').set({
+                        sdp: answer.sdp,
+                        type: answer.type,
+                        uid: currentUser.uid
+                    });
+                    
+                    // Yalnız setRemote bitdikdən və Answer yaradıldıqdan sonra Guest candidates-i oxuyur (Dəqiq Axın C)
+                    listenForCandidates();
+                }
             }
-        }
+        });
     };
 
-    // Siqnalizasiya Dinləyiciləri
-    signalingRef.on('value', async snapshot => {
-        const data = snapshot.val();
-        if (!data) return;
-
-        if (!isHost && data.offer && data.offer.uid !== currentUser.uid) {
-            if (!peerConnection || peerConnection.signalingState === "stable") {
-                await createAnswer(data.offer);
-            }
-        }
-
-        if (isHost && data.answer && data.answer.uid !== currentUser.uid) {
-            if (peerConnection && peerConnection.signalingState !== "stable") {
-                const remoteDesc = new RTCSessionDescription(data.answer);
-                await peerConnection.setRemoteDescription(remoteDesc).catch(e => console.error(e));
-                flushIceQueue();
-            }
-        }
-    });
-
-    signalingRef.child('candidates').on('child_added', snapshot => {
-        const data = snapshot.val();
-        if (data && data.uid !== currentUser.uid && peerConnection) {
-            const candidate = new RTCIceCandidate(data.candidate);
-            if (peerConnection.remoteDescription) {
+    // --- DƏQİQ AXIN C: NAMİZƏDLƏR ---
+    let listeningForCandidates = false;
+    const listenForCandidates = () => {
+        if (listeningForCandidates) return;
+        listeningForCandidates = true;
+        
+        signalingRef.child('candidates').on('child_added', snapshot => {
+            const data = snapshot.val();
+            if (data && data.uid !== currentUser.uid && peerConnection) {
+                const candidate = new RTCIceCandidate(data.candidate);
                 peerConnection.addIceCandidate(candidate).catch(e => console.error(e));
-            } else {
-                iceCandidateQueue.push(candidate);
             }
-        }
-    });
+        });
+    };
 
     // Videonu Bağla Düyməsi (Yalnız Host)
     if (closeVideoBtn) {
@@ -486,7 +473,7 @@ function initRoom() {
                     }
                     
                     await signalingRef.remove();
-                    setupPeerConnection(); // onnegotiationneeded triggers createOffer
+                    startHostWebRTC();
                 } catch (error) {
                     console.error("CaptureStream xətası:", error);
                     showToast("Bu video formatı canlı yayım üçün dəstəklənmir. Zəhmət olmasa standart MP4 və ya WebM formatında video seçin");
