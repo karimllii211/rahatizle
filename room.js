@@ -289,7 +289,8 @@ function initRoom() {
                     'stun:stun4.l.google.com:19302'
                 ] 
             }
-        ]
+        ],
+        iceTransportPolicy: 'all'
     };
 
     const signalingRef = database.ref(`rooms/${currentRoomId}/signaling`);

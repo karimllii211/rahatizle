@@ -20,6 +20,7 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const database = firebase.database();
 const provider = new firebase.auth.GoogleAuthProvider();
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(console.error);
 
 document.addEventListener('DOMContentLoaded', () => {
     
@@ -324,6 +325,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (changeEmailBtn && reauthModal) {
         changeEmailBtn.addEventListener('click', () => {
+            if (currentUser && currentUser.providerData && currentUser.providerData[0] && currentUser.providerData[0].providerId === 'google.com') {
+                return showToast("Google hesablarının e-poçtu dəyişdirilə bilməz.");
+            }
             document.getElementById('currentPasswordInput').value = '';
             showModal(reauthModal);
         });
