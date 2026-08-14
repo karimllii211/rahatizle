@@ -317,11 +317,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- E-POÇTU DƏYİŞ MƏNTİQİ ---
+    // --- E-POÇTU DƏYİŞ MƏNTİQİ (PRE-REAUTH) ---
     const changeEmailBtn = document.getElementById('changeEmailBtn');
     const changeEmailModal = document.getElementById('change-email-modal');
-    if (changeEmailBtn && changeEmailModal) {
-        changeEmailBtn.addEventListener('click', () => showModal(changeEmailModal));
+    const reauthModal = document.getElementById('reauth-modal');
+    
+    if (changeEmailBtn && reauthModal) {
+        changeEmailBtn.addEventListener('click', () => {
+            document.getElementById('currentPasswordInput').value = '';
+            showModal(reauthModal);
+        });
+    }
+
+    const verifyReAuthBtn = document.getElementById('verifyReAuthBtn');
+    if (verifyReAuthBtn) {
+        verifyReAuthBtn.addEventListener('click', async () => {
+            const pwd = document.getElementById('currentPasswordInput').value;
+            if (!pwd) return showToast("Şifrəni daxil edin.");
+            
+            try {
+                const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, pwd);
+                await currentUser.reauthenticateWithCredential(credential);
+                showToast("Təhlükəsizlik təsdiqləndi. İndi yeni e-poçtu yaza bilərsiniz.");
+                closeAllModals();
+                if (changeEmailModal) showModal(changeEmailModal);
+            } catch (error) {
+                showToast("Şifrə yanlışdır və ya xəta baş verdi.");
+                console.error(error);
+            }
+        });
     }
 
     const sendEmailOTPBtn = document.getElementById('sendEmailOTPBtn');
@@ -345,33 +369,8 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast("E-poçtunuz uğurla yeniləndi!");
         } catch (error) {
             console.error("Email yeniləmə xətası:", error);
-            if (error.code === 'auth/requires-recent-login') {
-                showModal(document.getElementById('reauth-modal'));
-            } else {
-                showToast(getErrorMessage(error.code));
-            }
+            showToast(getErrorMessage(error.code));
         }
-    }
-
-    const verifyReAuthBtn = document.getElementById('verifyReAuthBtn');
-    if (verifyReAuthBtn) {
-        verifyReAuthBtn.addEventListener('click', async () => {
-            const pwd = document.getElementById('currentPasswordInput').value;
-            if (!pwd) return showToast("Şifrəni daxil edin.");
-            
-            try {
-                const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, pwd);
-                await currentUser.reauthenticateWithCredential(credential);
-                showToast("Təhlükəsizlik təsdiqləndi.");
-                closeAllModals();
-                if (newEmailPending) {
-                    await executeEmailUpdate(newEmailPending);
-                }
-            } catch (error) {
-                showToast("Şifrə yanlışdır və ya xəta baş verdi.");
-                console.error(error);
-            }
-        });
     }
     
     // Resend OTP düymələri üçün
@@ -458,7 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!email || !password) return showToast("E-poçt və şifrəni daxil edin.");
             
             auth.signInWithEmailAndPassword(email, password)
-                .catch(err => showToast(getErrorMessage(err.code)));
+                .catch(err => showToast("Giriş xətası: " + err.code + " - " + err.message));
         });
     }
 

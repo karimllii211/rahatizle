@@ -277,6 +277,7 @@ function initRoom() {
     let localStream = null;
     let peerConnection = null;
     let isHost = false;
+    let iceCandidateQueue = [];
 
     const servers = {
         iceServers: [
@@ -369,6 +370,7 @@ function initRoom() {
     const createAnswer = async (offerSDP) => {
         setupPeerConnection();
         await peerConnection.setRemoteDescription(new RTCSessionDescription(offerSDP));
+        flushIceQueue();
         const answer = await peerConnection.createAnswer();
         await peerConnection.setLocalDescription(answer);
         await signalingRef.child('answer').set({
@@ -376,6 +378,15 @@ function initRoom() {
             type: answer.type,
             uid: currentUser.uid
         });
+    };
+
+    const flushIceQueue = () => {
+        if (peerConnection && peerConnection.remoteDescription) {
+            while (iceCandidateQueue.length > 0) {
+                const candidate = iceCandidateQueue.shift();
+                peerConnection.addIceCandidate(candidate).catch(e => console.error(e));
+            }
+        }
     };
 
     // Siqnalizasiya Dinləyiciləri
@@ -393,6 +404,7 @@ function initRoom() {
             if (peerConnection && peerConnection.signalingState !== "stable") {
                 const remoteDesc = new RTCSessionDescription(data.answer);
                 await peerConnection.setRemoteDescription(remoteDesc).catch(e => console.error(e));
+                flushIceQueue();
             }
         }
     });
@@ -401,7 +413,11 @@ function initRoom() {
         const data = snapshot.val();
         if (data && data.uid !== currentUser.uid && peerConnection) {
             const candidate = new RTCIceCandidate(data.candidate);
-            peerConnection.addIceCandidate(candidate).catch(e => console.error(e));
+            if (peerConnection.remoteDescription) {
+                peerConnection.addIceCandidate(candidate).catch(e => console.error(e));
+            } else {
+                iceCandidateQueue.push(candidate);
+            }
         }
     });
 
