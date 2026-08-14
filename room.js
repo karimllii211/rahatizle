@@ -311,9 +311,42 @@ function initRoom() {
             
             // Qonaq girən kimi offer-i dinləyir (Dəqiq Axın B)
             listenForOffer();
+            
+            // Yenilənməni bildir (Guest Refresh Trigger)
+            roomRef.child('guestTrigger').set(Date.now());
+            signalingRef.child('candidates').remove(); // Köhnə candidate-ləri təmizlə
         }
         
         console.log("👤 Mənim Rolum: ", isHost ? "HOST" : "GUEST");
+
+        if (isHost) {
+            roomRef.child('guestTrigger').on('value', async snapshot => {
+                if (snapshot.exists() && mainVideo.src) {
+                    console.log("🔄 Qonaq yenidən qoşuldu, WebRTC sıfırlanır...");
+                    
+                    if (peerConnection) {
+                        peerConnection.close();
+                    }
+                    peerConnection = null;
+                    
+                    setupPeerConnection();
+                    
+                    const stream = mainVideo.captureStream ? mainVideo.captureStream() : (mainVideo.webkitCaptureStream ? mainVideo.webkitCaptureStream() : (mainVideo.mozCaptureStream ? mainVideo.mozCaptureStream() : null));
+                    if (stream) {
+                        stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+                    }
+                    
+                    const offer = await peerConnection.createOffer();
+                    await peerConnection.setLocalDescription(offer);
+                    await signalingRef.child('offer').set({
+                        type: offer.type,
+                        sdp: offer.sdp,
+                        uid: currentUser.uid
+                    });
+                    console.log("📡 Yeni Offer göndərildi!");
+                }
+            });
+        }
     });
 
     const setupPeerConnection = () => {
@@ -520,6 +553,7 @@ function initRoom() {
             mainVideo.onloadeddata = async () => {
                 console.log("⏳ Video kadrları oxundu, axın (stream) məcbur edilir...");
                 try {
+                    mainVideo.loop = true; // Stream ölümünün qarşısını al
                     window.isWebRTCSetupPhase = true; // Sinxronizasiyanı müvəqqəti dayandır
                     
                     // Brauzeri "oyatmaq" üçün videonu anlıq səssiz başlat
