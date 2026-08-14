@@ -102,13 +102,20 @@
             <!-- Security & Rooms -->
             <div class="flex flex-col gap-8">
                 
-                <!-- Password Change (EmailJS) -->
+                <!-- Security & Password -->
                 <div class="bg-[#080808] border border-white/5 p-8 rounded-3xl">
                     <h2 class="text-xl font-bold mb-6 tracking-wide text-[#FF014C] uppercase">Təhlükəsizlik</h2>
                     <p class="text-xs text-gray-500 mb-4">Şifrənizi dəyişmək üçün e-poçtunuza təsdiq kodu göndəriləcək.</p>
-                    <button type="button" id="requestPasswordChangeBtn" class="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold py-3 rounded-xl transition-all duration-300 uppercase tracking-wider text-sm">
+                    <button type="button" id="requestPasswordChangeBtn" class="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold py-3 rounded-xl transition-all duration-300 uppercase tracking-wider text-sm mb-4">
                         Şifrəni Dəyiş
                     </button>
+
+                    <div id="emailChangeContainer" class="hidden border-t border-white/10 pt-4 mt-4">
+                        <p class="text-xs text-gray-500 mb-4">E-poçtunuzu dəyişmək üçün yeni ünvana təsdiq kodu göndəriləcək.</p>
+                        <button type="button" id="changeEmailBtn" class="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold py-3 rounded-xl transition-all duration-300 uppercase tracking-wider text-sm">
+                            E-poçtu Dəyiş
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Active Rooms -->
@@ -160,6 +167,43 @@
                 </div>
                 <button type="button" id="setNewPasswordBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all duration-500 uppercase tracking-wider">
                     Şifrəni Yenilə
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- E-poçt Dəyişmə Modalı -->
+    <div id="change-email-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4 transition-all duration-500">
+        <div class="relative max-w-sm mx-auto w-full bg-[#030303] p-8 rounded-2xl border border-red-600 shadow-[0_0_20px_rgba(220,38,38,0.2)] animate-fade-in duration-500">
+            <button class="close-email-modal absolute top-5 right-5 text-gray-500 hover:text-white transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            <h2 class="text-2xl font-bold mb-4 text-center tracking-wider text-white uppercase">Yeni E-poçt</h2>
+            <p class="text-center text-gray-400 text-sm mb-6">Yeni e-poçt ünvanınızı daxil edin. Bu ünvana təsdiq kodu göndəriləcək.</p>
+            
+            <div class="space-y-4">
+                <input type="email" id="newEmailInput" placeholder="yeni@email.com" class="w-full bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all text-sm">
+                <button type="button" id="sendEmailOTPBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all duration-300 uppercase tracking-wider">
+                    Kod Göndər
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Re-Auth Modalı (Firebase Təhlükəsizlik) -->
+    <div id="reauth-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4 transition-all duration-500">
+        <div class="relative max-w-sm mx-auto w-full bg-[#030303] p-8 rounded-2xl border border-red-600 shadow-[0_0_20px_rgba(220,38,38,0.2)] animate-fade-in duration-500">
+            <button class="close-reauth-modal absolute top-5 right-5 text-gray-500 hover:text-white transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            <h2 class="text-xl font-bold mb-4 text-center tracking-wider text-white uppercase text-red-500">Təhlükəsizlik Təsdiqi</h2>
+            <p class="text-center text-gray-400 text-sm mb-6">E-poçtunuzu dəyişmək üçün hesabınızın təhlükəsizliyini təsdiqləməlisiniz. Hazırkı şifrənizi daxil edin.</p>
+            
+            <div class="space-y-4">
+                <div class="relative">
+                    <input type="password" id="currentPasswordInput" placeholder="Hazırkı şifrə" class="w-full bg-black text-white px-5 py-3 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 transition-all pr-12">
+                    <button type="button" class="toggle-password absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none">
+                        <svg class="w-5 h-5 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                    </button>
+                </div>
+                <button type="button" id="verifyReAuthBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all duration-300 uppercase tracking-wider">
+                    Təsdiqlə
                 </button>
             </div>
         </div>

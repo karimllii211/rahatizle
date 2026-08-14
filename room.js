@@ -280,7 +280,14 @@ function initRoom() {
 
     const servers = {
         iceServers: [
-            { urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }
+            { 
+                urls: [
+                    'stun:stun1.l.google.com:19302', 
+                    'stun:stun2.l.google.com:19302',
+                    'stun:stun3.l.google.com:19302',
+                    'stun:stun4.l.google.com:19302'
+                ] 
+            }
         ]
     };
 
@@ -323,6 +330,16 @@ function initRoom() {
                 mainVideo.srcObject = event.streams[0];
                 mainVideo.classList.remove('hidden');
                 if (videoPlaceholder) videoPlaceholder.classList.add('hidden');
+            }
+        };
+
+        // ICE Connection State Change (ICE Restart məntiqi)
+        peerConnection.oniceconnectionstatechange = () => {
+            if (peerConnection.iceConnectionState === 'disconnected' || peerConnection.iceConnectionState === 'failed') {
+                if (isHost) {
+                    console.warn("Şəbəkə kəsildi, ICE Restart edilir...");
+                    createOffer();
+                }
             }
         };
 
