@@ -332,46 +332,55 @@ function initRoom() {
         };
 
         peerConnection.ontrack = event => {
-            if (!isHost && mainVideo) { 
-                mainVideo.srcObject = event.streams[0];
-                mainVideo.autoplay = true;
-                mainVideo.muted = true;
-                mainVideo.playsInline = true;
-                mainVideo.classList.remove('hidden');
-                if (videoPlaceholder) videoPlaceholder.classList.add('hidden');
-                const playPromise = mainVideo.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        // Oynatma uğurla başladı.
-                    }).catch(error => {
-                        if (error.name === 'AbortError') {
-                            console.log("Play əmri pause() tərəfindən dayandırıldı - Bu normaldır, xəta deyil.");
-                        } else if (error.name === 'NotAllowedError' || error.name === 'NotSupportedError') {
-                            console.error("Autoplay bloklandı, istifadəçi klikləməlidir.");
-                            let playBtn = document.getElementById('safariPlayBtn');
-                            if (!playBtn) {
-                                playBtn = document.createElement('button');
-                                playBtn.id = 'safariPlayBtn';
-                                playBtn.className = 'absolute z-50 bg-[#FF014C] hover:bg-red-600 text-white font-bold py-4 px-8 rounded-full shadow-2xl tracking-widest uppercase transition-all duration-300';
-                                playBtn.innerText = 'Videonu Başlatmaq üçün Toxunun';
-                                mainVideo.parentElement.appendChild(playBtn);
-                                
-                                playBtn.addEventListener('click', () => {
-                                    const userPlayPromise = mainVideo.play();
-                                    if (userPlayPromise !== undefined) {
-                                        userPlayPromise.then(() => {
-                                            playBtn.style.display = 'none';
-                                        }).catch(e => console.error("Toxunma ilə oynatma xətası:", e));
-                                    } else {
-                                        playBtn.style.display = 'none';
+            if (!isHost && mainVideo) {
+                if (mainVideo.srcObject !== event.streams[0]) {
+                    mainVideo.srcObject = event.streams[0];
+                    console.log("🎥 Qonaq stream aldı və srcObject təyin edildi!");
+                    mainVideo.autoplay = true;
+                    mainVideo.muted = true;
+                    mainVideo.playsInline = true;
+                    mainVideo.classList.remove('hidden');
+                    if (videoPlaceholder) videoPlaceholder.classList.add('hidden');
+                    
+                    // Safari üçün məcburi yeniləmə
+                    mainVideo.load();
+                    
+                    mainVideo.onloadedmetadata = () => {
+                        console.log("✅ Video metadataları oxundu, oynadılır...");
+                        const playPromise = mainVideo.play();
+                        if (playPromise !== undefined) {
+                            playPromise.then(() => {
+                                // Oynatma uğurla başladı.
+                            }).catch(error => {
+                                if (error.name === 'AbortError') {
+                                    console.log("Play əmri pause() tərəfindən dayandırıldı - Bu normaldır, xəta deyil.");
+                                } else if (error.name === 'NotAllowedError' || error.name === 'NotSupportedError') {
+                                    console.error("❌ Safari Autoplay xətası (Toxunuş lazımdır):", error);
+                                    let playBtn = document.getElementById('safariPlayBtn');
+                                    if (!playBtn) {
+                                        playBtn = document.createElement('button');
+                                        playBtn.id = 'safariPlayBtn';
+                                        playBtn.className = 'absolute z-50 bg-[#FF014C] hover:bg-red-600 text-white font-bold py-4 px-8 rounded-full shadow-2xl tracking-widest uppercase transition-all duration-300';
+                                        playBtn.innerText = 'Videonu Başlatmaq üçün Toxunun';
+                                        mainVideo.parentElement.appendChild(playBtn);
+                                        
+                                        playBtn.addEventListener('click', () => {
+                                            const userPlayPromise = mainVideo.play();
+                                            if (userPlayPromise !== undefined) {
+                                                userPlayPromise.then(() => {
+                                                    playBtn.style.display = 'none';
+                                                }).catch(e => console.error("Toxunma ilə oynatma xətası:", e));
+                                            } else {
+                                                playBtn.style.display = 'none';
+                                            }
+                                        });
                                     }
-                                });
-                            }
-                            playBtn.style.display = 'block';
+                                    playBtn.style.display = 'block';
+                                }
+                            });
                         }
-                    });
+                    };
                 }
-                console.log("Qonaq Track aldı");
             }
         };
     };
@@ -551,6 +560,7 @@ function initRoom() {
         // Yalnız Guest oxuyur
         playerStateRef.on('value', snapshot => {
             if (isHost) return; // Dövrün qarşısını alırıq
+            if (!mainVideo.srcObject || mainVideo.readyState === 0) return; // Video hazır deyilsə dayan
 
             const data = snapshot.val();
             if (!data) return;
