@@ -1,6 +1,5 @@
 {
   "name": "rahatizle",
-  
   "dependencies": {
     "firebase-admin": "^11.11.1"
   },
@@ -8,7 +7,9 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:css": "tailwindcss -i ./src/input.css -o ./styles.css --minify",
+    "watch:css": "tailwindcss -i ./src/input.css -o ./styles.css --watch",
+    "build": "npm run build:css"
   },
   "repository": {
     "type": "git",
@@ -20,5 +21,8 @@
   "bugs": {
     "url": "https://github.com/karimlli211/rahatizle/issues"
   },
-  "homepage": "https://github.com/karimlli211/rahatizle#readme"
+  "homepage": "https://github.com/karimlli211/rahatizle#readme",
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
 }

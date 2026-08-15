@@ -1,0 +1,360 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   RAHAT İZLE — qlobal stillər
+   Bütün animasiyalar yalnız `transform` və `opacity` üzərində işləyir, yəni
+   kompozitor qatında (GPU) icra olunur və layout/paint təkrarı yaratmır.
+   ========================================================================== */
+
+@layer base {
+  :root {
+    --brand: #FF014C;
+    --ease-out-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
+    --nav-h: 72px;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    background-color: #030712;
+    color: #fff;
+    overflow-x: hidden;
+  }
+
+  /* Mobil brauzerlərdə üfüqi sürüşməni tamamilə bağlayır */
+  html,
+  body {
+    max-width: 100%;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #030712;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--brand);
+    border-radius: 4px;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  /* `hidden` atributu Tailwind-in display siniflərini üstələməlidir */
+  [hidden] {
+    display: none !important;
+  }
+
+  /* iOS-da input-a toxunanda avtomatik zoom-un qarşısını alır */
+  @media (max-width: 767px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px;
+    }
+  }
+}
+
+/* ==========================================================================
+   1. SƏHİFƏ KEÇİDİ
+   ========================================================================== */
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.page-enter {
+  animation: pageFadeIn 0.45s var(--ease-out-soft) both;
+}
+
+/* ==========================================================================
+   2. SCROLL-REVEAL
+   Element ekrana girənə qədər gizli qalır, sonra bir dəfə açılır.
+   `.js-reveal` sinfi yalnız JS aktiv olduqda əlavə olunur — beləliklə JS
+   yüklənmirsə məzmun gizli qalmır.
+   ========================================================================== */
+.js-reveal [data-reveal] {
+  opacity: 0;
+  transform: translate3d(0, 24px, 0);
+  transition:
+    opacity 0.6s var(--ease-out-soft),
+    transform 0.6s var(--ease-out-soft);
+  will-change: opacity, transform;
+}
+
+.js-reveal [data-reveal='left'] {
+  transform: translate3d(-28px, 0, 0);
+}
+.js-reveal [data-reveal='right'] {
+  transform: translate3d(28px, 0, 0);
+}
+.js-reveal [data-reveal='scale'] {
+  transform: scale3d(0.94, 0.94, 1);
+}
+
+.js-reveal [data-reveal].is-revealed {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+  /* Animasiya bitdikdən sonra kompozitor qatını boşaldırıq */
+  will-change: auto;
+}
+
+/* Ardıcıl elementlər üçün kaskad gecikməsi */
+[data-reveal-delay='1'] {
+  transition-delay: 70ms;
+}
+[data-reveal-delay='2'] {
+  transition-delay: 140ms;
+}
+[data-reveal-delay='3'] {
+  transition-delay: 210ms;
+}
+[data-reveal-delay='4'] {
+  transition-delay: 280ms;
+}
+[data-reveal-delay='5'] {
+  transition-delay: 350ms;
+}
+
+/* ==========================================================================
+   3. MİKRO-ANİMASİYALAR
+   ========================================================================== */
+
+/* Bütün düymələr: basıldıqda kiçik geri-bildirim */
+.btn-press {
+  transition:
+    transform 0.18s var(--ease-out-soft),
+    box-shadow 0.28s var(--ease-out-soft),
+    background-color 0.28s var(--ease-out-soft),
+    border-color 0.28s var(--ease-out-soft),
+    color 0.28s var(--ease-out-soft);
+  transform: translateZ(0);
+}
+.btn-press:active {
+  transform: scale3d(0.96, 0.96, 1);
+}
+
+/* Əsas (brend) düymə: üzərinə gələndə qalxır və işıq zolağı keçir */
+.btn-glow {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.btn-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(110deg, transparent 25%, rgba(255, 255, 255, 0.28) 50%, transparent 75%);
+  transform: translate3d(-120%, 0, 0);
+  transition: transform 0.75s var(--ease-out-soft);
+  pointer-events: none;
+}
+
+/* Kart elementləri */
+.card-lift {
+  transition:
+    transform 0.35s var(--ease-out-soft),
+    border-color 0.35s var(--ease-out-soft),
+    background-color 0.35s var(--ease-out-soft),
+    box-shadow 0.35s var(--ease-out-soft);
+  transform: translateZ(0);
+}
+
+.card-lift .card-icon {
+  transition:
+    transform 0.35s var(--ease-out-soft),
+    color 0.35s var(--ease-out-soft);
+}
+
+/* Naviqasiya linkləri: altdan sürüşən xətt */
+.nav-link {
+  position: relative;
+  transition: color 0.25s var(--ease-out-soft);
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  height: 2px;
+  width: 100%;
+  background: var(--brand);
+  transform: scale3d(0, 1, 1);
+  transform-origin: left center;
+  transition: transform 0.3s var(--ease-out-soft);
+}
+
+/* Yalnız həqiqi kursoru olan cihazlarda hover effektləri işə düşür —
+   toxunma ekranlarında "yapışan hover" problemi yaranmır. */
+@media (hover: hover) and (pointer: fine) {
+  .btn-glow:hover::after {
+    transform: translate3d(120%, 0, 0);
+  }
+  .btn-lift:hover {
+    transform: translate3d(0, -2px, 0);
+  }
+  .card-lift:hover {
+    transform: translate3d(0, -6px, 0);
+  }
+  .card-lift:hover .card-icon {
+    transform: scale3d(1.12, 1.12, 1);
+  }
+  .nav-link:hover::after {
+    transform: scale3d(1, 1, 1);
+  }
+  .poster-tilt:hover {
+    transform: translate3d(0, -8px, 0) rotate(1deg) scale3d(1.02, 1.02, 1);
+  }
+}
+
+/* Modal açılışı */
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0) scale3d(0.97, 0.97, 1);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+  }
+}
+.animate-modal {
+  animation: modalIn 0.28s var(--ease-out-soft) both;
+  /* Uzun formalar (məs. qeydiyyat) alçaq ekranlarda kəsilməsin: kart özü
+     sürüşür, beləliklə flex-mərkəzləmə ilə yuxarı hissənin itməsi problemi
+     yaranmır. */
+  max-height: 90vh;
+  max-height: 90dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Toast bildirişi */
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -16px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+.animate-toast {
+  animation: toastIn 0.3s var(--ease-out-soft) both;
+}
+
+/* Chat mesajı */
+@keyframes msgIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+.animate-msg {
+  animation: msgIn 0.25s var(--ease-out-soft) both;
+}
+
+/* Mobil menyu paneli */
+.mobile-menu {
+  transform: translate3d(0, -8px, 0);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.25s var(--ease-out-soft),
+    transform 0.25s var(--ease-out-soft),
+    visibility 0.25s;
+}
+.mobile-menu.is-open {
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Hamburger → X keçidi */
+.burger-line {
+  transition:
+    transform 0.3s var(--ease-out-soft),
+    opacity 0.2s var(--ease-out-soft);
+  transform-origin: center;
+}
+[aria-expanded='true'] .burger-line-1 {
+  transform: translateY(6px) rotate(45deg);
+}
+[aria-expanded='true'] .burger-line-2 {
+  opacity: 0;
+  transform: scaleX(0);
+}
+[aria-expanded='true'] .burger-line-3 {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* ==========================================================================
+   4. MOBİL UYĞUNLAŞMA (320px – 768px)
+   ========================================================================== */
+@media (max-width: 767px) {
+  /* Arxa plandakı böyük blur dairələri mobil GPU-nu ciddi yükləyir */
+  .bg-orb {
+    display: none;
+  }
+
+  /* backdrop-blur mobil cihazlarda bahalıdır — bərk fonla əvəz olunur */
+  .nav-shell {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background-color: #050505;
+  }
+
+  /* Toast ekranın enini aşmasın */
+  #custom-toast {
+    left: 1rem;
+    right: 1rem;
+    top: 1rem;
+    max-width: none;
+  }
+}
+
+/* Çox dar ekranlar (320px) */
+@media (max-width: 360px) {
+  .nav-cta-label {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   5. HƏRƏKƏTİN AZALDILMASI
+   İstifadəçi sistem səviyyəsində animasiyaları söndürübsə, hər şey dayanır.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .js-reveal [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -2,75 +2,53 @@
 <html lang="az">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rahat İzle - Əlaqə</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
-        body {
-            animation: pageFadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#030303">
+    <meta name="description" content="Rahat İzle komandası ilə e-poçt vasitəsilə əlaqə saxlayın.">
+    <title>Rahat İzle — Əlaqə</title>
+    <link rel="icon" type="image/png" href="logo.png">
 
-            font-family: 'Inter', sans-serif;
-            background-color: #030303;
-            color: #ffffff;
-        }
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Inter:wght@400;500;600;700&display=swap">
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in {
-            animation: fadeIn 0.6s ease-out forwards;
-        }
-            @keyframes pageFadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-    </style>
-    <link rel="stylesheet" href="mobile.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="animations.js"></script>
 </head>
-<body class="antialiased min-h-screen flex flex-col items-center justify-center p-4 selection:bg-[#FF014C] selection:text-white relative overflow-hidden">
-    
-    <!-- Background Effects -->
-    <div class="absolute inset-0 pointer-events-none -z-10">
-        <div class="absolute top-[20%] -left-[10%] w-[40vw] h-[40vw] rounded-full bg-[#FF014C]/10 blur-[120px]"></div>
-        <div class="absolute bottom-[20%] -right-[10%] w-[50vw] h-[50vw] rounded-full bg-purple-900/10 blur-[150px]"></div>
+<body class="page-enter relative flex min-h-screen flex-col items-center justify-center bg-[#030303] p-4 font-sans text-white antialiased selection:bg-[#FF014C] selection:text-white">
+
+    <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
+        <div class="bg-orb absolute left-[-10%] top-[20%] h-[40vw] w-[40vw] rounded-full bg-[#FF014C]/10 blur-[120px]"></div>
+        <div class="bg-orb absolute bottom-[20%] right-[-10%] h-[50vw] w-[50vw] rounded-full bg-purple-900/10 blur-[150px]"></div>
     </div>
 
-    <!-- Go Back Button -->
-    <a href="index.html" class="absolute top-8 left-8 md:top-12 md:left-12 flex items-center gap-2 text-[#C8C8C8] hover:text-white transition-colors group z-10">
-        <svg class="w-6 h-6 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18"></path></svg>
-        <span class="font-bold text-sm uppercase tracking-widest">Ana Səhifəyə Qayıt</span>
+    <a href="index.html" class="group absolute left-4 top-6 z-10 flex items-center gap-2 text-[#C8C8C8] transition-colors hover:text-white sm:left-8 sm:top-8 md:left-12 md:top-12">
+        <svg class="h-5 w-5 transition-transform group-hover:-translate-x-1 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18"></path></svg>
+        <span class="text-xs font-bold uppercase tracking-widest sm:text-sm">Ana Səhifəyə Qayıt</span>
     </a>
 
-    <!-- Contact Content -->
-    <div class="w-full max-w-2xl mx-auto flex flex-col items-center text-center animate-fade-in z-10">
-        
-        <div class="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-8 border border-white/10 shadow-[0_0_30px_rgba(255,1,76,0.15)]">
-            <svg class="w-10 h-10 text-[#FF014C]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+    <main class="z-10 mx-auto flex w-full max-w-2xl flex-col items-center px-2 pt-20 text-center sm:pt-0">
+
+        <div class="mb-8 flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/5 shadow-[0_0_30px_rgba(255,1,76,0.15)] sm:h-20 sm:w-20" data-reveal="scale">
+            <svg class="h-8 w-8 text-[#FF014C] sm:h-10 sm:w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
         </div>
 
-        <h1 class="font-['Manrope'] font-extrabold text-5xl md:text-7xl tracking-wider text-white mb-6">
+        <h1 class="mb-6 font-display text-[2rem] font-extrabold tracking-wider text-white xs:text-4xl sm:text-5xl md:text-6xl" data-reveal data-reveal-delay="1">
             BİZİMLƏ <span class="text-[#FF014C]">ƏLAQƏ</span>
         </h1>
-        
-        <p class="text-[#C8C8C8] text-lg md:text-xl max-w-lg mb-12 leading-relaxed">
+
+        <p class="mb-10 max-w-lg text-base leading-relaxed text-[#C8C8C8] sm:mb-12 sm:text-lg md:text-xl" data-reveal data-reveal-delay="2">
             Hər hansı bir sualınız, təklifiniz və ya probleminiz varsa, e-poçt vasitəsilə bizə yaza bilərsiniz. Komandamız ən qısa zamanda sizinlə əlaqə saxlayacaqdır.
         </p>
 
-        <a href="mailto:founder@rahatizle.site" class="group relative inline-flex items-center justify-center px-8 py-5 text-xl md:text-2xl font-bold text-white transition-all duration-300 bg-white/5 border border-white/10 hover:border-[#FF014C] rounded-2xl overflow-hidden shadow-[0_0_20px_rgba(255,1,76,0.1)] hover:shadow-[0_0_40px_rgba(255,1,76,0.4)]">
-            <span class="absolute inset-0 w-full h-full -mt-1 rounded-lg opacity-30 bg-gradient-to-b from-transparent via-transparent to-[#FF014C] pointer-events-none"></span>
-            <span class="relative flex items-center gap-4">
-                founder@rahatizle.site
-                <svg class="w-6 h-6 text-white group-hover:text-[#FF014C] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-            </span>
+        <a href="mailto:founder@rahatizle.site" class="btn-press btn-glow btn-lift group inline-flex w-full max-w-md items-center justify-center gap-3 overflow-hidden rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-base font-bold text-white shadow-[0_0_20px_rgba(255,1,76,0.1)] hover:border-[#FF014C] hover:shadow-[0_0_40px_rgba(255,1,76,0.4)] sm:px-8 sm:py-5 sm:text-xl md:text-2xl" data-reveal data-reveal-delay="3">
+            <span class="truncate">founder@rahatizle.site</span>
+            <svg class="h-5 w-5 shrink-0 text-white transition-all group-hover:translate-x-1 group-hover:text-[#FF014C] sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
         </a>
 
-        <div class="mt-16 flex items-center gap-2 opacity-30">
-            <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm0 2v12h16V6H4zm2 2h2v8H6V8zm4 0h2v8h-2V8zm4 0h2v8h-2V8z"/></svg>
-            <span class="font-['Manrope'] font-extrabold text-lg tracking-wider text-white">RAHAT İZLE.</span>
+        <div class="mt-12 flex items-center gap-2 opacity-30 sm:mt-16" data-reveal data-reveal-delay="4">
+            <img src="logo.png" alt="Rahat İzle" width="224" height="128" loading="lazy" decoding="async" class="h-6 w-auto">
         </div>
-    </div>
-
+    </main>
 </body>
 </html>

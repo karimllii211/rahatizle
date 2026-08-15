@@ -2,37 +2,23 @@
 <html lang="az">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rahat İzle - Profil</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- EmailJS CDN -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
-        body {
-            animation: pageFadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
- font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        
-        .avatar-overlay {
-            background: rgba(0,0,0,0.5);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .avatar-container:hover .avatar-overlay {
-            opacity: 1;
-        }
-            @keyframes pageFadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-    </style>
-    <link rel="stylesheet" href="mobile.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#030303">
+    <meta name="robots" content="noindex">
+    <title>Rahat İzle — Profil</title>
+    <link rel="icon" type="image/png" href="logo.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Inter:wght@400;500;600;700&display=swap">
+
+    <link rel="stylesheet" href="styles.css">
+    <script src="animations.js"></script>
 </head>
-<body class="bg-[#030303] text-white min-h-screen flex flex-col">
+<body class="page-enter flex min-h-screen flex-col bg-[#030303] font-sans text-white antialiased">
 
     <!-- Navbar -->
-    <nav class="w-full px-6 py-6 border-b border-white/5 bg-[#030303]/80 backdrop-blur-md sticky top-0 z-40">
+    <nav class="nav-shell sticky top-0 z-40 w-full border-b border-white/5 bg-[#030303]/85 px-4 py-4 backdrop-blur-md sm:px-6 sm:py-6">
         <div class="max-w-[1400px] mx-auto flex items-center justify-between">
             <div class="flex items-center gap-6">
                 <a href="index.html" class="text-gray-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
@@ -41,7 +27,7 @@
                 </a>
             </div>
             <div class="flex items-center gap-2">
-                <span class="font-['Manrope'] font-extrabold text-2xl tracking-wider text-white">RAHAT İZLE<span class="text-[#FF014C]">.</span></span>
+                <img src="logo.png" alt="Rahat İzle" width="224" height="128" decoding="async" class="h-7 w-auto sm:h-8">
             </div>
         </div>
     </nav>
@@ -49,8 +35,8 @@
     <div class="flex-1 w-full max-w-[1000px] mx-auto px-4 md:px-8 py-12 flex flex-col gap-12">
         
         <!-- Header & Avatar Section -->
-        <div class="flex flex-col items-center justify-center animate-fade-in-up">
-            <div class="relative w-32 h-32 rounded-full border-2 border-red-600 shadow-[0_0_20px_rgba(220,38,38,0.2)] overflow-hidden mb-4 avatar-container cursor-pointer bg-red-900/40 flex items-center justify-center" onclick="document.getElementById('profile-image-upload').click()">
+        <div class="flex flex-col items-center justify-center animate-modal-up">
+            <div class="relative w-32 h-32 rounded-full border-2 border-red-600 shadow-[0_0_20px_rgba(220,38,38,0.2)] overflow-hidden mb-4 avatar-container cursor-pointer bg-red-900/40 flex items-center justify-center" data-trigger-file="profile-image-upload">
                 <img id="profilePageAvatar" src="" alt="Profile" class="w-full h-full object-cover hidden">
                 <span id="profilePageAvatarText" class="text-white font-bold text-4xl"></span>
                 <div class="avatar-overlay absolute inset-0 flex items-center justify-center">
@@ -65,16 +51,14 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             
             <!-- Personal Information -->
-            <div class="bg-[#080808] border border-white/5 p-8 rounded-3xl h-fit">
+            <div class="bg-[#080808] border border-white/5 p-5 sm:p-8 rounded-3xl h-fit">
                 <h2 class="text-xl font-bold mb-6 tracking-wide text-[#FF014C] uppercase">Şəxsi Məlumatlar</h2>
-                <form id="profileInfoForm" class="space-y-4" onsubmit="event.preventDefault();">
-                    <div class="flex gap-4">
-                        <div class="w-1/2">
+                <form id="profileInfoForm" class="space-y-4" data-no-submit>
+                    <div class="flex flex-col gap-4 sm:flex-row"><div class="w-full sm:w-1/2">
                             <label class="block text-xs text-gray-400 mb-1 tracking-wider uppercase">Ad</label>
                             <input type="text" id="profFirstName" class="w-full bg-black text-white px-4 py-3 border border-white/10 rounded-xl focus:outline-none focus:border-red-500 transition-all text-sm">
                         </div>
-                        <div class="w-1/2">
-                            <label class="block text-xs text-gray-400 mb-1 tracking-wider uppercase">Soyad</label>
+                        <div class="w-full sm:w-1/2"><label class="block text-xs text-gray-400 mb-1 tracking-wider uppercase">Soyad</label>
                             <input type="text" id="profLastName" class="w-full bg-black text-white px-4 py-3 border border-white/10 rounded-xl focus:outline-none focus:border-red-500 transition-all text-sm">
                         </div>
                     </div>
@@ -110,7 +94,7 @@
             <div class="flex flex-col gap-8">
                 
                 <!-- Security & Password -->
-                <div class="bg-[#080808] border border-white/5 p-8 rounded-3xl">
+                <div class="bg-[#080808] border border-white/5 p-5 sm:p-8 rounded-3xl">
                     <h2 class="text-xl font-bold mb-6 tracking-wide text-[#FF014C] uppercase">Təhlükəsizlik</h2>
                     <p class="text-xs text-gray-500 mb-4">Şifrənizi dəyişmək üçün e-poçtunuza təsdiq kodu göndəriləcək.</p>
                     <button type="button" id="requestPasswordChangeBtn" class="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold py-3 rounded-xl transition-all duration-300 uppercase tracking-wider text-sm mb-4">
@@ -125,7 +109,7 @@
                 </div>
 
                 <!-- Active Rooms -->
-                <div class="bg-[#080808] border border-white/5 p-8 rounded-3xl flex-1 flex flex-col">
+                <div class="bg-[#080808] border border-white/5 p-5 sm:p-8 rounded-3xl flex-1 flex flex-col">
                     <h2 class="text-xl font-bold mb-6 tracking-wide text-[#FF014C] uppercase">Aktiv Otaqlarım</h2>
                     <div id="profileRoomsList" class="flex-1 flex flex-col gap-3 max-h-60 overflow-y-auto pr-2">
                         <div class="text-sm text-gray-500 py-4 text-center">Aktiv otaq tapılmadı.</div>
@@ -133,11 +117,11 @@
                 </div>
 
                 <!-- Danger Zone -->
-                <div class="flex gap-4 mt-auto">
-                    <button id="logoutBtn" class="w-1/2 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white font-bold py-3 rounded-xl border border-white/5 hover:border-gray-500/50 transition-all duration-300 text-sm">
+                <div class="mt-auto flex flex-col gap-3 sm:flex-row sm:gap-4">
+                    <button id="logoutBtn" class="w-full sm:w-1/2 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white font-bold py-3 rounded-xl border border-white/5 hover:border-gray-500/50 transition-all duration-300 text-sm">
                         Çıxış Et
                     </button>
-                    <button id="deleteAccountBtn" class="w-1/2 bg-red-900/20 hover:bg-red-600 text-[#FF014C] hover:text-white font-bold py-3 rounded-xl border border-[#FF014C]/30 hover:border-transparent transition-all duration-300 text-sm">
+                    <button id="deleteAccountBtn" class="w-full sm:w-1/2 bg-red-900/20 hover:bg-red-600 text-[#FF014C] hover:text-white font-bold py-3 rounded-xl border border-[#FF014C]/30 hover:border-transparent transition-all duration-300 text-sm">
                         Hesabı Sil
                     </button>
                 </div>
@@ -148,7 +132,7 @@
 
     <!-- OTP Modalı (Şifrə dəyişdirmək üçün) -->
     <div id="otp-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4 transition-all duration-500">
-        <div class="relative max-w-sm mx-auto w-full bg-[#030303] p-8 rounded-2xl border border-red-600 shadow-[0_0_20px_rgba(220,38,38,0.2)] animate-fade-in duration-500">
+        <div class="relative max-w-sm mx-auto w-full bg-[#030303] p-6 sm:p-8 rounded-2xl border border-red-600 shadow-[0_0_20px_rgba(220,38,38,0.2)] animate-modal duration-500">
             <button class="close-otp-modal absolute top-5 right-5 text-gray-500 hover:text-white transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             <h2 class="text-2xl font-bold mb-4 text-center tracking-wider text-white uppercase">Təsdiq Kodu</h2>
             <p class="text-center text-gray-400 text-sm mb-6">E-poçtunuza 6 rəqəmli kod göndərildi.</p>
@@ -180,7 +164,7 @@
 
     <!-- E-poçt Dəyişmə Modalı -->
     <div id="change-email-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4 transition-all duration-500">
-        <div class="relative max-w-sm mx-auto w-full bg-[#030303] p-8 rounded-2xl border border-red-600 shadow-[0_0_20px_rgba(220,38,38,0.2)] animate-fade-in duration-500">
+        <div class="relative max-w-sm mx-auto w-full bg-[#030303] p-6 sm:p-8 rounded-2xl border border-red-600 shadow-[0_0_20px_rgba(220,38,38,0.2)] animate-modal duration-500">
             <button class="close-email-modal absolute top-5 right-5 text-gray-500 hover:text-white transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             <h2 class="text-2xl font-bold mb-4 text-center tracking-wider text-white uppercase">Yeni E-poçt</h2>
             <p class="text-center text-gray-400 text-sm mb-6">Yeni e-poçt ünvanınızı daxil edin. Bu ünvana təsdiq kodu göndəriləcək.</p>
@@ -196,7 +180,7 @@
 
     <!-- Re-Auth Modalı (Firebase Təhlükəsizlik) -->
     <div id="reauth-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4 transition-all duration-500">
-        <div class="relative max-w-sm mx-auto w-full bg-[#030303] p-8 rounded-2xl border border-red-600 shadow-[0_0_20px_rgba(220,38,38,0.2)] animate-fade-in duration-500">
+        <div class="relative max-w-sm mx-auto w-full bg-[#030303] p-6 sm:p-8 rounded-2xl border border-red-600 shadow-[0_0_20px_rgba(220,38,38,0.2)] animate-modal duration-500">
             <button class="close-reauth-modal absolute top-5 right-5 text-gray-500 hover:text-white transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             <h2 class="text-xl font-bold mb-4 text-center tracking-wider text-white uppercase text-red-500">Təhlükəsizlik Təsdiqi</h2>
             <p class="text-center text-gray-400 text-sm mb-6">E-poçtunuzu dəyişmək üçün hesabınızın təhlükəsizliyini təsdiqləməlisiniz. Hazırkı şifrənizi daxil edin.</p>
@@ -216,7 +200,7 @@
     </div>
 
     <!-- CUSTOM TOAST & CONFIRM -->
-    <div id="custom-toast" class="hidden fixed top-6 right-6 z-50 bg-black border border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.4)] rounded-xl px-6 py-4 items-center gap-4 transition-all max-w-md">
+    <div id="custom-toast" role="status" aria-live="polite" class="hidden animate-toast fixed right-4 top-4 z-[60] bg-black border border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.4)] rounded-xl px-6 py-4 items-center gap-4 transition-all max-w-md">
         <span id="toast-message" class="text-white font-medium">Bildiriş mətni bura gələcək</span>
         <button id="toast-close-btn" class="text-gray-400 hover:text-red-500 transition-colors ml-auto focus:outline-none">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -224,7 +208,7 @@
     </div>
 
     <div id="custom-confirm" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4">
-        <div class="bg-black border border-red-600 shadow-[0_0_25px_rgba(220,38,38,0.3)] rounded-2xl p-8 max-w-md w-full text-center animate-fade-in">
+        <div class="bg-black border border-red-600 shadow-[0_0_25px_rgba(220,38,38,0.3)] rounded-2xl p-8 max-w-md w-full text-center animate-modal">
             <h3 class="text-2xl font-bold text-white mb-4 uppercase tracking-wider">Diqqət</h3>
             <p id="confirm-message" class="text-gray-300 mb-8 text-lg">Bu əməliyyatı etmək istədiyinizə əminsiniz?</p>
             <div class="flex items-center justify-center gap-4">
@@ -235,9 +219,10 @@
     </div>
 
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
-    <script src="app.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+    <script defer src="app.js"></script>
 </body>
 </html>

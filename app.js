@@ -35,7 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
         toastMessage.textContent = message;
         customToast.classList.remove('hidden');
         customToast.classList.add('flex');
-        
+        // Animasiyanı hər göstərişdə yenidən işə salırıq
+        customToast.classList.remove('animate-toast');
+        void customToast.offsetWidth;
+        customToast.classList.add('animate-toast');
+
         clearTimeout(toastTimeout);
         toastTimeout = setTimeout(() => {
             closeToast();
@@ -221,18 +225,16 @@ document.addEventListener('DOMContentLoaded', () => {
         switchToLoginBtn.addEventListener('click', () => showModal(loginModal));
     }
     
-    // --- XSS & UTILS ---
-    const escapeHTML = (str) => {
+    // --- INPUT VALİDASİYASI ---
+    // Qeyd: mətnlər HTML kimi deyil, `textContent`/`value` ilə göstərilir, ona görə
+    // yazarkən HTML-escape etmək lazım deyil (əks halda "O'Brien" → "O&#39;Brien"
+    // kimi görünürdü). Bunun əvəzinə uzunluq və nəzarət simvolları yoxlanılır.
+    const cleanText = (str, maxLength = 60) => {
         if (!str) return '';
-        return str.replace(/[&<>'"]/g, 
-            tag => ({
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                "'": '&#39;',
-                '"': '&quot;'
-            }[tag] || tag)
-        );
+        return str
+            .replace(/[\u0000-\u001F\u007F]/g, '') // nəzarət simvolları
+            .trim()
+            .slice(0, maxLength);
     };
 
     // --- ŞİFRƏNİ UNUTDUM ---
@@ -246,12 +248,17 @@ document.addEventListener('DOMContentLoaded', () => {
         sendOTPBtn.addEventListener('click', () => {
             const email = document.getElementById('forgotEmail').value.trim();
             if (!email) return showToast("E-poçt daxil edin!");
-            sendEmailJSOTP(email);
+            otpMode = 'password';
+            requestPasswordResetCode(email);
         });
     }
 
-    // --- EMAILJS OTP (HƏM PROFIL, HƏM ŞİFRƏNİ UNUTDUM ÜÇÜN) ---
-    let generatedOTP = null;
+    // --- OTP (HƏM PROFIL, HƏM ŞİFRƏNİ UNUTDUM ÜÇÜN) ---
+    // Şifrə bərpası üçün kod serverdə yaradılır və serverdən göndərilir;
+    // brauzer yalnız kodsuz dəyərsiz olan "token"i saxlayır.
+    let generatedOTP = null;      // yalnız e-poçt dəyişmə axını üçün
+    let resetToken = null;        // yalnız şifrə bərpası axını üçün
+    let enteredResetCode = null;
     let resendInterval = null;
     let currentOTPRecoveryEmail = null;
     let otpMode = 'password'; // 'password' və ya 'email'
@@ -281,28 +288,69 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     };
 
+    const openOTPModal = () => {
+        const modal = document.getElementById('otp-modal');
+        if (modal) {
+            closeAllModals();
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+        const otpStep = document.getElementById('otpStepContainer');
+        const newPwdStep = document.getElementById('newPasswordStepContainer');
+        if (otpStep) otpStep.classList.remove('hidden');
+        if (newPwdStep) newPwdStep.classList.add('hidden');
+        startResendTimer();
+    };
+
+    // Şifrə bərpası: kodu server yaradır və göndərir.
+    const requestPasswordResetCode = async (userEmail) => {
+        currentOTPRecoveryEmail = userEmail;
+        resetToken = null;
+        enteredResetCode = null;
+        try {
+            const response = await fetch('/api/reset-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'request', email: userEmail })
+            });
+            const data = await response.json().catch(() => ({}));
+
+            if (response.ok && data.token) {
+                resetToken = data.token;
+                showToast("Əgər bu e-poçt qeydiyyatdadırsa, 6 rəqəmli kod göndərildi!");
+                openOTPModal();
+                return;
+            }
+
+            // Server e-poçt göndərə bilmirsə, Firebase-in öz bərpa məktubuna keçirik.
+            if (response.status === 503) {
+                await auth.sendPasswordResetEmail(userEmail);
+                closeAllModals();
+                showToast("Şifrə bərpa linki e-poçtunuza göndərildi.");
+                return;
+            }
+
+            showToast(data.error || "Xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.");
+        } catch (error) {
+            console.error("Şifrə bərpası xətası:", error);
+            showToast("Şəbəkə xətası baş verdi. Zəhmət olmasa yenidən cəhd edin.");
+        }
+    };
+
+    // E-poçt dəyişmə axını: kod yeni ünvana sahib olduğunuzu təsdiqləyir.
+    // Bu əməliyyat onsuz da cari şifrə ilə yenidən təsdiqdən (reauth) keçir.
     window.sendEmailJSOTP = (userEmail) => {
         currentOTPRecoveryEmail = userEmail;
-        const otpCode = Math.floor(100000 + Math.random() * 900000);
-        generatedOTP = otpCode.toString();
-        
+        const otpCode = String(Math.floor(100000 + Math.random() * 900000));
+        generatedOTP = otpCode;
+
         emailjs.send("service_9umksl7", "template_0aiimmq", {
-            security_code: otpCode, 
-            email: userEmail 
+            security_code: otpCode,
+            email: userEmail
         }, "-joV9uOaw310_PJCg")
-        .then(function(response) {
+        .then(function() {
             showToast("6 rəqəmli kod e-poçtunuza göndərildi!");
-            const modal = document.getElementById('otp-modal');
-            if (modal) {
-                closeAllModals();
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-            }
-            const otpStep = document.getElementById('otpStepContainer');
-            const newPwdStep = document.getElementById('newPasswordStepContainer');
-            if (otpStep) otpStep.classList.remove('hidden');
-            if (newPwdStep) newPwdStep.classList.add('hidden');
-            startResendTimer();
+            openOTPModal();
         }).catch(function(error) {
             console.error("EmailJS Xətası:", error);
             showToast("Xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.");
@@ -314,7 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
         requestPasswordChangeBtn.addEventListener('click', () => {
             if (!currentUser || !currentUser.email) return;
             otpMode = 'password';
-            sendEmailJSOTP(currentUser.email);
+            requestPasswordResetCode(currentUser.email);
         });
     }
 
@@ -380,7 +428,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Resend OTP düymələri üçün
     document.querySelectorAll('#resendOTPBtn').forEach(btn => {
         btn.addEventListener('click', () => {
-            if (currentOTPRecoveryEmail) {
+            if (!currentOTPRecoveryEmail) return;
+            if (otpMode === 'password') {
+                requestPasswordResetCode(currentOTPRecoveryEmail);
+            } else {
                 sendEmailJSOTP(currentOTPRecoveryEmail);
             }
         });
@@ -390,18 +441,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (verifyOTPBtn) {
         verifyOTPBtn.addEventListener('click', () => {
             const entered = document.getElementById('otpInput').value.trim();
-            if (entered === generatedOTP) {
-                if (otpMode === 'password') {
-                    console.log("OTP düzgündür, API-yə müraciət edilir...");
-                    const otpStep = document.getElementById('otpStepContainer');
-                    const newPwdStep = document.getElementById('newPasswordStepContainer');
-                    if (otpStep) otpStep.classList.add('hidden');
-                    if (newPwdStep) newPwdStep.classList.remove('hidden');
-                    showToast("Kod təsdiqləndi! Yeni şifrənizi təyin edin.");
-                } else if (otpMode === 'email') {
-                    closeAllModals();
-                    executeEmailUpdate(newEmailPending);
-                }
+
+            if (otpMode === 'password') {
+                if (!/^\d{6}$/.test(entered)) return showToast("6 rəqəmli kodu daxil edin.");
+                if (!resetToken) return showToast("Sessiyanın vaxtı bitib. Yeni kod tələb edin.");
+                // Kodun doğruluğunu yalnız server yoxlaya bilər; kod şifrə ilə
+                // birlikdə növbəti addımda göndərilir.
+                enteredResetCode = entered;
+                const otpStep = document.getElementById('otpStepContainer');
+                const newPwdStep = document.getElementById('newPasswordStepContainer');
+                if (otpStep) otpStep.classList.add('hidden');
+                if (newPwdStep) newPwdStep.classList.remove('hidden');
+                showToast("Yeni şifrənizi təyin edin.");
+                return;
+            }
+
+            if (entered && entered === generatedOTP) {
+                generatedOTP = null;
+                closeAllModals();
+                executeEmailUpdate(newEmailPending);
             } else {
                 showToast("Kod yanlışdır.");
             }
@@ -411,39 +469,49 @@ document.addEventListener('DOMContentLoaded', () => {
     const setNewPasswordBtn = document.getElementById('setNewPasswordBtn');
     if (setNewPasswordBtn) {
         setNewPasswordBtn.addEventListener('click', async () => {
-            const newPwd = document.getElementById('newPasswordInput').value.trim();
-            if (newPwd.length < 6) return showToast("Şifrə ən azı 6 simvol olmalıdır.");
-            
-            if (!currentOTPRecoveryEmail) {
-                return showToast("XƏTA: Təsdiq üçün e-poçt tapılmadı.");
+            const newPwd = document.getElementById('newPasswordInput').value;
+            if (newPwd.length < 8) return showToast("Şifrə ən azı 8 simvol olmalıdır.");
+
+            if (!resetToken || !enteredResetCode) {
+                return showToast("Sessiyanın vaxtı bitib. Yeni kod tələb edin.");
             }
 
+            setNewPasswordBtn.disabled = true;
             try {
                 const response = await fetch('/api/reset-password', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: currentOTPRecoveryEmail, newPassword: newPwd })
+                    body: JSON.stringify({
+                        action: 'reset',
+                        token: resetToken,
+                        code: enteredResetCode,
+                        newPassword: newPwd
+                    })
                 });
-                
+
                 const data = await response.json().catch(() => ({}));
 
-                if (response.status === 404 || response.status === 500) {
-                    console.error(`Backend Xətası: Status ${response.status} - Məlumat tapılmadı və ya server xətası.`);
-                }
-
                 if (response.ok) {
+                    resetToken = null;
+                    enteredResetCode = null;
                     showToast("Şifrəniz uğurla yeniləndi! İndi giriş edə bilərsiniz.");
                     closeAllModals();
-                    const loginModal = document.getElementById('login-modal');
-                    if (loginModal) {
-                        showModal(loginModal);
-                    }
+                    if (loginModal) showModal(loginModal);
                 } else {
-                    showToast("Xəta: " + response.status + " - " + (data.error || data.message || "Server xətası"));
+                    showToast(data.error || "Şifrə yenilənə bilmədi.");
+                    // Kod yanlış idisə istifadəçini kod addımına qaytarırıq.
+                    if (response.status === 400) {
+                        const otpStep = document.getElementById('otpStepContainer');
+                        const newPwdStep = document.getElementById('newPasswordStepContainer');
+                        if (otpStep) otpStep.classList.remove('hidden');
+                        if (newPwdStep) newPwdStep.classList.add('hidden');
+                    }
                 }
             } catch (err) {
                 console.error("Şifrə yeniləmə xətası:", err);
                 showToast("Şəbəkə xətası baş verdi.");
+            } finally {
+                setNewPasswordBtn.disabled = false;
             }
         });
     }
@@ -461,7 +529,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!email || !password) return showToast("E-poçt və şifrəni daxil edin.");
             
             auth.signInWithEmailAndPassword(email, password)
-                .catch(err => showToast("Giriş xətası: " + err.code + " - " + err.message));
+                .catch(err => {
+                    console.error("Giriş xətası:", err.code);
+                    showToast(getErrorMessage(err.code));
+                });
         });
     }
 
@@ -529,8 +600,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (completeRegisterBtn) {
         completeRegisterBtn.addEventListener('click', () => {
-            const fname = escapeHTML(regFirstName.value.trim());
-            const lname = escapeHTML(regLastName.value.trim());
+            const fname = cleanText(regFirstName.value);
+            const lname = cleanText(regLastName.value);
             const email = regEmail.value.trim();
             const pwd = regPassword.value.trim();
             const pwdConf = regPasswordConfirm.value.trim();
@@ -549,8 +620,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return showToast("Şifrələr eyni deyil! Zəhmət olmasa düzgün daxil edin.");
             }
 
-            if (pwd.length < 6) {
-                return showToast("Şifrə ən azı 6 simvol olmalıdır!");
+            if (pwd.length < 8) {
+                return showToast("Şifrə ən azı 8 simvol olmalıdır!");
             }
 
             auth.createUserWithEmailAndPassword(email, pwd)
@@ -580,46 +651,88 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- PROFİL MƏNTİQİ (profile.html) ---
-    const avatarUpload = document.getElementById('avatarUpload');
-    if (avatarUpload) {
-        avatarUpload.addEventListener('change', (e) => {
-            if (!currentUser) return;
-            const file = e.target.files[0];
-            if (!file) return;
+    // --- PROFİL ŞƏKLİ ---
+    const AVATAR_MAX_BYTES = 5 * 1024 * 1024;   // qəbul edilən fayl həddi
+    const AVATAR_MAX_PX = 256;                  // saxlanılan ölçü
+    const ALLOWED_AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const base64String = event.target.result;
-                
-                currentUser.updateProfile({ photoURL: base64String }).then(() => {
-                    const profilePageAvatar = document.getElementById('profilePageAvatar');
-                    if (profilePageAvatar) profilePageAvatar.src = base64String;
-                    
-                    const navAvatar = document.getElementById('navAvatar');
-                    if (navAvatar) {
-                        navAvatar.src = base64String;
-                        navAvatar.classList.remove('hidden');
-                        const txt = document.getElementById('navAvatarText');
-                        if (txt) txt.classList.add('hidden');
-                    }
+    // Şəkli brauzerdə kiçildirik: əks halda böyük base64 sətri Firebase-in
+    // photoURL limitini aşır və yükləmə tamamilə uğursuz olur.
+    const processAvatarFile = (file) => new Promise((resolve, reject) => {
+        if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
+            return reject(new Error("Yalnız JPG, PNG, WEBP və ya GIF şəkil yükləyə bilərsiniz."));
+        }
+        if (file.size > AVATAR_MAX_BYTES) {
+            return reject(new Error("Şəklin ölçüsü 5 MB-dan çox olmamalıdır."));
+        }
 
-                    database.ref('users/' + currentUser.uid).update({ photoURL: base64String });
-                    showToast("Profil şəkli yeniləndi!");
-                }).catch(err => showToast("Şəkil yenilənərkən xəta baş verdi."));
-            };
-            reader.readAsDataURL(file);
+        const objectUrl = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+            URL.revokeObjectURL(objectUrl);
+            const scale = Math.min(1, AVATAR_MAX_PX / Math.max(img.width, img.height));
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.max(1, Math.round(img.width * scale));
+            canvas.height = Math.max(1, Math.round(img.height * scale));
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', 0.82));
+        };
+        img.onerror = () => {
+            URL.revokeObjectURL(objectUrl);
+            reject(new Error("Şəkil oxuna bilmədi."));
+        };
+        img.src = objectUrl;
+    });
+
+    const applyAvatarToUI = (dataUrl) => {
+        const pairs = [
+            ['profilePageAvatar', 'profilePageAvatarText'],
+            ['navAvatar', 'navbar-avatar-text']
+        ];
+        pairs.forEach(([imgId, textId]) => {
+            const img = document.getElementById(imgId);
+            const text = document.getElementById(textId);
+            if (img) {
+                img.src = dataUrl;
+                img.classList.remove('hidden');
+            }
+            if (text) text.classList.add('hidden');
         });
-    }
+    };
+
+    const handleAvatarSelection = async (input) => {
+        if (!currentUser) return;
+        const file = input.files && input.files[0];
+        if (!file) return;
+
+        try {
+            const dataUrl = await processAvatarFile(file);
+            await database.ref('users/' + currentUser.uid).update({ photoURL: dataUrl });
+            // Auth profili yalnız qısa URL-ləri qəbul edir; base64 buraya yazılmır.
+            applyAvatarToUI(dataUrl);
+            showToast("Profil şəkli uğurla yeniləndi!");
+        } catch (err) {
+            console.error("Şəkil yükləmə xətası:", err);
+            showToast(err.message || "Şəkil yüklənərkən xəta baş verdi.");
+        } finally {
+            input.value = '';
+        }
+    };
+
+    ['avatarUpload', 'profile-image-upload'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) input.addEventListener('change', () => handleAvatarSelection(input));
+    });
 
     const saveProfileBtn = document.getElementById('saveProfileBtn');
     if (saveProfileBtn) {
         saveProfileBtn.addEventListener('click', () => {
             if (!currentUser) return;
             
-            const fname = escapeHTML(document.getElementById('profFirstName').value.trim());
-            const lname = escapeHTML(document.getElementById('profLastName').value.trim());
-            const phone = escapeHTML(document.getElementById('profPhone').value.trim());
+            const fname = cleanText(document.getElementById('profFirstName').value);
+            const lname = cleanText(document.getElementById('profLastName').value);
+            const phone = cleanText(document.getElementById('profPhone').value, 20);
             const gender = document.getElementById('profGender').value;
             
             if (!fname) return showToast("Ad mütləqdir!");
@@ -641,54 +754,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // --- PROFIL ŞƏKLİ YÜKLƏMƏ ---
-    const profileImageUpload = document.getElementById('profile-image-upload');
-    if (profileImageUpload) {
-        profileImageUpload.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file || !currentUser) return;
-            
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const base64String = event.target.result;
-                
-                // Auth Profile yenilənir
-                currentUser.updateProfile({
-                    photoURL: base64String
-                }).then(() => {
-                    // Firebase DB yenilənir
-                    return database.ref('users/' + currentUser.uid).update({
-                        photoURL: base64String
-                    });
-                }).then(() => {
-                    // UI dərhal yenilənir
-                    const profilePageAvatar = document.getElementById('profilePageAvatar');
-                    const profilePageAvatarText = document.getElementById('profilePageAvatarText');
-                    const navAvatar = document.getElementById('navAvatar');
-                    const navAvatarText = document.getElementById('navbar-avatar-text');
-                    
-                    if (profilePageAvatar) {
-                        profilePageAvatar.src = base64String;
-                        profilePageAvatar.classList.remove('hidden');
-                        if (profilePageAvatarText) profilePageAvatarText.classList.add('hidden');
-                    }
-                    if (navAvatar) {
-                        navAvatar.src = base64String;
-                        navAvatar.classList.remove('hidden');
-                        if (navAvatarText) navAvatarText.classList.add('hidden');
-                    }
-                    showToast("Profil şəkli uğurla yeniləndi!");
-                }).catch(err => {
-                    showToast("Şəkil yüklənərkən xəta baş verdi.");
-                    console.error(err);
-                });
-            };
-            reader.readAsDataURL(file);
-        });
-    }
-
-
-
     window.deleteRoom = async (roomId) => {
         const confirmDelete = await showConfirmModal("Otağı silmək istədiyinizə əminsiniz?");
         if (confirmDelete) {
@@ -713,8 +778,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentUser = null;
     let userRoomsRef = null;
 
+    // Naviqasiyada və mobil menyuda təkrarlanan elementlər sinif üzrə idarə olunur.
+    const setAuthVisibility = (signedIn) => {
+        document.querySelectorAll('.auth-guest-only').forEach(el => { el.hidden = signedIn; });
+        document.querySelectorAll('.auth-user-only').forEach(el => { el.hidden = !signedIn; });
+    };
+
     auth.onAuthStateChanged(user => {
         currentUser = user;
+        setAuthVisibility(!!user);
         if (user) {
             closeAllModals();
             if (navUserView) { navUserView.classList.remove('hidden'); navUserView.classList.add('flex'); }
@@ -755,49 +827,92 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Otaqları yüklə
-            userRoomsRef = database.ref('rooms');
+            // Otaqları yüklə — yalnız bu istifadəçinin otaqları serverdən gətirilir,
+            // beləliklə bütün otaqların məlumatı brauzerə düşmür.
+            const ICON_ENTER = 'M14 5l7 7m0 0l-7 7m7-7H3';
+            const ICON_TRASH = 'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16';
+
+            const iconButton = (pathD, className, title) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = className;
+                btn.title = title;
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('class', 'w-5 h-5');
+                svg.setAttribute('fill', 'none');
+                svg.setAttribute('stroke', 'currentColor');
+                svg.setAttribute('viewBox', '0 0 24 24');
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('stroke-linecap', 'round');
+                path.setAttribute('stroke-linejoin', 'round');
+                path.setAttribute('stroke-width', '2');
+                path.setAttribute('d', pathD);
+                svg.appendChild(path);
+                btn.appendChild(svg);
+                return btn;
+            };
+
+            // Otaq kartı DOM API ilə qurulur: baza məlumatı heç vaxt HTML kimi şərh edilmir.
+            const buildRoomCard = (roomId, room) => {
+                const card = document.createElement('div');
+                card.className = 'room-card bg-white/5 border border-white/10 rounded-xl p-4 flex items-center justify-between group';
+
+                const info = document.createElement('div');
+                const code = document.createElement('div');
+                code.className = 'text-[#FF014C] font-bold tracking-widest text-lg';
+                code.textContent = roomId;
+                const meta = document.createElement('div');
+                meta.className = 'text-xs text-gray-500';
+                const platform = room.creator.platform || 'Bilinmir';
+                const date = new Date(room.creator.createdAt || Date.now()).toLocaleDateString('az-AZ');
+                meta.textContent = `${platform} • ${date}`;
+                info.appendChild(code);
+                info.appendChild(meta);
+
+                const actions = document.createElement('div');
+                actions.className = 'flex items-center gap-2';
+
+                const enterBtn = iconButton(ICON_ENTER, 'p-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors', 'Otağa daxil ol');
+                enterBtn.addEventListener('click', () => {
+                    window.location.href = 'room.html?id=' + encodeURIComponent(roomId);
+                });
+
+                const deleteBtn = iconButton(ICON_TRASH, 'p-2 bg-red-900/30 hover:bg-red-600 text-red-500 hover:text-white rounded-lg transition-colors border border-red-900/50 hover:border-red-600', 'Otağı sil');
+                deleteBtn.addEventListener('click', () => window.deleteRoom(roomId));
+
+                actions.appendChild(enterBtn);
+                actions.appendChild(deleteBtn);
+                card.appendChild(info);
+                card.appendChild(actions);
+                return card;
+            };
+
+            userRoomsRef = database.ref('rooms').orderByChild('creator/uid').equalTo(user.uid);
             userRoomsRef.on('value', snapshot => {
                 const rooms = snapshot.val();
-                const list1 = document.getElementById('profileActiveRoomsList');
-                const list2 = document.getElementById('profileRoomsList');
-                
-                const updateList = (container) => {
-                    if (!container) return;
-                    container.innerHTML = '';
+                const containers = [
+                    document.getElementById('profileActiveRoomsList'),
+                    document.getElementById('profileRoomsList')
+                ].filter(Boolean);
+
+                containers.forEach(container => {
+                    container.textContent = '';
                     let hasRoom = false;
 
                     for (const roomId in rooms) {
                         const room = rooms[roomId];
-                        if (room.creator && room.creator.uid === user.uid) {
-                            hasRoom = true;
-                            const platform = room.creator.platform || 'Bilinmir';
-                            const date = new Date(room.creator.createdAt || Date.now()).toLocaleDateString('az-AZ');
-                            
-                            container.innerHTML += `
-                                <div class="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center justify-between group">
-                                    <div>
-                                        <div class="text-[#FF014C] font-bold tracking-widest text-lg">${roomId}</div>
-                                        <div class="text-xs text-gray-500">${platform} • ${date}</div>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <button onclick="window.location.href='room.html?id=${roomId}'" class="p-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors" title="Otağa daxil ol">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                                        </button>
-                                        <button onclick="deleteRoom('${roomId}')" class="p-2 bg-red-900/30 hover:bg-red-600 text-red-500 hover:text-white rounded-lg transition-colors border border-red-900/50 hover:border-red-600" title="Otağı sil">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            `;
-                        }
+                        if (!room || !room.creator) continue;
+                        hasRoom = true;
+                        container.appendChild(buildRoomCard(roomId, room));
                     }
+
                     if (!hasRoom) {
-                        container.innerHTML = '<div class="text-sm text-gray-500 py-4 text-center">Aktiv otaq tapılmadı.</div>';
+                        const empty = document.createElement('div');
+                        empty.className = 'text-sm text-gray-500 py-4 text-center';
+                        empty.textContent = 'Aktiv otaq tapılmadı.';
+                        container.appendChild(empty);
                     }
-                };
-                updateList(list1);
-                updateList(list2);
+                });
             });
             
             // Profil form məlumatlarını doldur
@@ -813,7 +928,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         pageName.textContent = data.displayName || user.displayName || user.email.split('@')[0];
                         pageName.classList.remove('hidden');
                     }
-                    
+
+                    // Avatar bazada saxlanılır (Auth photoURL uzunluq limiti səbəbindən).
+                    if (data.photoURL) applyAvatarToUI(data.photoURL);
+
                     const fnameInput = document.getElementById('profFirstName');
                     if (fnameInput && data.displayName) {
                         const parts = data.displayName.split(' ');
@@ -856,10 +974,16 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
         } else {
+            // Yalnız hesab sahibinə aid səhifələr qonaq üçün açıq qalmamalıdır.
+            if (/profile\.html$/.test(window.location.pathname)) {
+                window.location.replace('index.html');
+                return;
+            }
+
             if (navUserView) { navUserView.classList.add('hidden'); navUserView.classList.remove('flex'); }
             if (navGuestView) { navGuestView.classList.remove('hidden'); navGuestView.classList.add('flex'); }
             if (footerGuestLinks) { footerGuestLinks.classList.remove('hidden'); footerGuestLinks.classList.add('flex'); }
-            
+
             if (userRoomsRef) {
                 userRoomsRef.off('value');
                 userRoomsRef = null;

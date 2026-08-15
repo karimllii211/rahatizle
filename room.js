@@ -28,7 +28,11 @@ const showToast = (message) => {
     toastMessage.textContent = message;
     toast.classList.remove('hidden');
     toast.classList.add('flex');
-    
+    toast.classList.remove('animate-toast');
+    void toast.offsetWidth;
+    toast.classList.add('animate-toast');
+
+
     clearTimeout(toastTimeout);
     toastTimeout = setTimeout(() => {
         toast.classList.add('hidden');
@@ -133,6 +137,33 @@ function initRoom() {
         });
     }
 
+    // Mobil: sol panel (platformalar + fayl yükləmə) sürüşən çekmece kimi açılır.
+    // Əvvəllər bu panel kiçik ekranlarda tamamilə gizli idi və otağı yaradan
+    // telefondan video seçə bilmirdi.
+    const sidePanel = document.getElementById('sidePanel');
+    const openPanelBtn = document.getElementById('openPanelBtn');
+    const closePanelBtn = document.getElementById('closePanelBtn');
+    const panelBackdrop = document.getElementById('panelBackdrop');
+
+    const setPanelOpen = (open) => {
+        if (!sidePanel) return;
+        sidePanel.classList.toggle('-translate-x-full', !open);
+        if (panelBackdrop) panelBackdrop.classList.toggle('hidden', !open);
+    };
+
+    if (openPanelBtn) openPanelBtn.addEventListener('click', () => setPanelOpen(true));
+    if (closePanelBtn) closePanelBtn.addEventListener('click', () => setPanelOpen(false));
+    if (panelBackdrop) panelBackdrop.addEventListener('click', () => setPanelOpen(false));
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') setPanelOpen(false);
+    });
+    // Panelin içindəki seçimdən sonra mobildə avtomatik bağlanır
+    if (sidePanel) {
+        sidePanel.addEventListener('click', (e) => {
+            if (e.target.closest('.room-platform-btn') && window.innerWidth < 768) setPanelOpen(false);
+        });
+    }
+
     if (roomCodeDisplay) roomCodeDisplay.textContent = `KOD: ${currentRoomId}`;
 
     const roomRef = database.ref(`rooms/${currentRoomId}`);
@@ -216,7 +247,7 @@ function initRoom() {
     if (chatForm && chatInput) {
         chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const text = chatInput.value.trim();
+            const text = chatInput.value.trim().slice(0, 500);
             if (!text) return;
 
             try {
@@ -242,7 +273,7 @@ function initRoom() {
         const isMe = message.uid === currentUser.uid;
         
         const wrapperDiv = document.createElement('div');
-        wrapperDiv.className = `flex items-end gap-2 max-w-[85%] ${isMe ? 'self-end flex-row-reverse' : 'self-start'} animate-fade-in`;
+        wrapperDiv.className = `flex items-end gap-2 max-w-[85%] animate-msg ${isMe ? 'self-end flex-row-reverse' : 'self-start'}`;
 
         const avatarDiv = document.createElement('div');
         avatarDiv.className = `w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold border ${isMe ? 'bg-red-900/30 text-white border-red-500/50' : 'bg-white/10 text-gray-300 border-white/20'}`;
@@ -280,21 +311,27 @@ function initRoom() {
     let peerConnection = null;
     let isHost = false;
 
-    const getEnv = (key, fallback) => {
-        try { return process.env[key] || fallback; } 
-        catch (e) { return fallback; }
-    };
+    // Fayl seçimi inline `onclick` əvəzinə burada bağlanır (CSP üçün təhlükəsizdir).
+    if (localVideoBtn && localVideoUpload) {
+        localVideoBtn.addEventListener('click', () => {
+            if (!isHost) return showToast("Yalnız otağı yaradan video yükləyə bilər.");
+            localVideoUpload.click();
+        });
+    }
 
+    // TURN məlumatları brauzerə çatmalıdır, ona görə də gizli sayıla bilməz.
+    // Uzunmüddətli sabit parol əvəzinə serverdən qısamüddətli (ephemeral) TURN
+    // məlumatı verilməsi tövsiyə olunur — bax: RFC 8489 / coturn REST API.
+    // Dəyərlər window.RAHATIZLE_TURN vasitəsilə əvəz edilə bilər.
+    const turn = window.RAHATIZLE_TURN || {};
     const configuration = {
         sdpSemantics: 'unified-plan',
         iceServers: [
+            { urls: "stun:stun.l.google.com:19302" }, // Standart STUN
             {
-                urls: "stun:stun.l.google.com:19302" // Standart STUN
-            },
-            {
-                urls: getEnv('NEXT_PUBLIC_TURN_URL', 'turn:141.144.238.167:3478'),
-                username: getEnv('NEXT_PUBLIC_TURN_USERNAME', 'rahatizle'),
-                credential: getEnv('NEXT_PUBLIC_TURN_PASSWORD', 'Video2026!')
+                urls: turn.url || 'turn:141.144.238.167:3478',
+                username: turn.username || 'rahatizle',
+                credential: turn.credential || 'Video2026!'
             }
         ]
     };

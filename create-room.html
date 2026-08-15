@@ -2,209 +2,178 @@
 <html lang="az">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rahat İzle</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- EmailJS CDN -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
-        body {
-            animation: pageFadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#030712">
+    <meta name="description" content="Yeni izləmə otağı yaradın və ya mövcud otaq koduna qoşulun.">
+    <title>Rahat İzle — Otaq Yarat</title>
+    <link rel="icon" type="image/png" href="logo.png">
 
-            font-family: 'Inter', sans-serif;
-            background-color: #030712; /* gray-950/black mix */
-            color: #ffffff;
-        }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #030712; }
-        ::-webkit-scrollbar-thumb { background: #dc2626; border-radius: 4px; }
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Inter:wght@400;500;600;700&display=swap">
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95) translateY(-10px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        .animate-fade-in {
-            animation: fadeIn 0.3s ease-out forwards;
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in-up {
-            animation: fadeInUp 0.6s ease-out forwards;
-        }
-            @keyframes pageFadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-    </style>
-    <link rel="stylesheet" href="mobile.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="animations.js"></script>
 </head>
-<body class="antialiased min-h-screen flex flex-col items-center p-4 selection:bg-red-600 selection:text-white bg-black overflow-x-hidden font-sans">
+<body class="page-enter antialiased min-h-screen bg-[#030712] font-sans text-white selection:bg-[#FF014C] selection:text-white">
 
-    <div class="w-full max-w-full px-8 lg:px-16">
-        
-        <!-- DASHBOARD SECTION -->
-        <div id="dashboard-section" class="flex w-full flex-col min-h-[85vh] relative font-['Inter'] mt-4">
-            
-            <!-- Arxa Plan Qradientləri -->
-            <div class="absolute inset-0 overflow-hidden pointer-events-none -z-10">
-                <div class="absolute -top-[10%] -left-[10%] w-[50vw] h-[50vw] rounded-full bg-rose-900/20 blur-[120px]"></div>
-                <div class="absolute top-[40%] -right-[10%] w-[60vw] h-[60vw] rounded-full bg-purple-900/10 blur-[150px]"></div>
-            </div>
+    <!-- Arxa Plan Qradientləri -->
+    <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
+        <div class="bg-orb absolute -top-[10%] -left-[10%] h-[50vw] w-[50vw] rounded-full bg-rose-900/20 blur-[120px]"></div>
+        <div class="bg-orb absolute top-[40%] -right-[10%] h-[60vw] w-[60vw] rounded-full bg-purple-900/10 blur-[150px]"></div>
+    </div>
 
-            <!-- Navbar -->
-            <nav class="w-full flex items-center justify-between py-4 px-4 sm:py-6 sm:px-6 md:px-10 flex-wrap sm:flex-nowrap gap-4 border-b border-white/5 bg-[#030303]/80 backdrop-blur-md rounded-3xl animate-fade-in-up">
+    <!-- NAVBAR -->
+    <header class="sticky top-0 z-40 px-3 pt-3 sm:px-5 sm:pt-4">
+        <nav class="nav-shell relative mx-auto max-w-[1400px] rounded-2xl border border-white/10 bg-[#030303]/85 backdrop-blur-md">
+            <div class="flex h-16 items-center justify-between gap-2 px-3 sm:h-20 sm:gap-4 sm:px-6">
+
                 <!-- Logo -->
-                <a href="index.html" class="flex items-center gap-3">
-                    <img src="./RahatİzleLogo2.png" alt="Rahat İzle Logo" style="height: 95px; width: auto;" class="object-contain">
-                    <span class="hidden md:block font-['Manrope'] font-extrabold text-3xl tracking-wider text-white">RAHAT İZLE<span class="text-[#FF014C]">.</span></span>
+                <a href="index.html" class="flex shrink-0 items-center gap-2 sm:gap-3" aria-label="Rahat İzle ana səhifə">
+                    <img src="logo.png" alt="Rahat İzle" width="224" height="128" fetchpriority="high" decoding="async" class="h-8 w-auto sm:h-10">
                 </a>
-                
-                <!-- Center Links -->
-                <div class="hidden md:flex items-center gap-8">
-                    <a href="#" class="text-[#C8C8C8] hover:text-white transition-colors">Ana Səhifə</a>
-                    <a href="#" class="text-[#C8C8C8] hover:text-white transition-colors">Məlumat</a>
-                    <a href="contact.html" class="text-[#C8C8C8] hover:text-white transition-colors font-medium cursor-pointer">Əlaqə</a>
+
+                <!-- Masaüstü linklər -->
+                <div class="hidden items-center gap-8 md:flex">
+                    <a href="index.html" class="nav-link text-sm text-[#C8C8C8] hover:text-white">Ana Səhifə</a>
+                    <a href="create-room.html" class="nav-link text-sm text-[#C8C8C8] hover:text-white">Otaqlar</a>
+                    <a href="contact.html" class="nav-link text-sm text-[#C8C8C8] hover:text-white">Əlaqə</a>
                 </div>
 
-                <!-- Right Actions -->
-                <div class="flex items-center gap-4">
-                    <!-- Guest View -->
-                    <!-- Create Room Btn -->
-                    <a href="create-room.html" class="flex items-center gap-1 sm:gap-2 px-3 sm:px-6 py-2 bg-gradient-to-r from-[#FF014C] to-[#800020] shadow-[0_0_15px_rgba(255,1,76,0.3)] hover:shadow-[0_0_25px_rgba(255,1,76,0.5)] rounded-xl text-white font-bold transition-all duration-300 text-xs sm:text-base whitespace-nowrap">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                        OTAQ YARAT
+                <!-- Sağ tərəf -->
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <a href="create-room.html" class="btn-press btn-glow btn-lift hidden items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF014C] to-[#800020] px-4 py-2.5 text-sm font-bold text-white shadow-[0_0_15px_rgba(255,1,76,0.3)] hover:shadow-[0_0_25px_rgba(255,1,76,0.5)] sm:inline-flex">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        <span class="nav-cta-label">OTAQ YARAT</span>
                     </a>
-                    <div id="nav-guest-view" class="flex items-center gap-3">
-                        <button class="open-login-modal px-2 sm:px-5 py-2 text-[#C8C8C8] hover:text-white text-sm font-bold transition-all duration-300">Giriş</button>
-                        <button class="open-register-modal hidden sm:block  px-3 sm:px-5 py-2 bg-[#FF014C]/20 text-[#FF014C] hover:bg-[#FF014C] hover:text-white border border-[#FF014C]/50 text-sm font-bold rounded-full transition-all duration-300">Qeydiyyat</button>
+
+                    <!-- Qonaq -->
+                    <div id="nav-guest-view" class="flex items-center gap-2">
+                        <button type="button" class="open-login-modal btn-press rounded-lg px-3 py-2 text-sm font-bold text-[#C8C8C8] hover:text-white">Giriş</button>
+                        <button type="button" class="open-register-modal btn-press hidden rounded-full border border-[#FF014C]/50 bg-[#FF014C]/20 px-4 py-2 text-sm font-bold text-[#FF014C] hover:bg-[#FF014C] hover:text-white md:block">Qeydiyyat</button>
                     </div>
 
-                    <!-- User View -->
-                    <div id="nav-user-view" class="hidden items-center gap-4 relative">
-                        <a href="profile.html" class="flex items-center gap-2 group focus:outline-none px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all duration-300">
-                            <div class="relative w-7 h-7 rounded-full border border-white/20 group-hover:border-[#FF014C] bg-red-900/30 flex items-center justify-center overflow-hidden transition-colors">
-                                <img id="navAvatar" src="" alt="Profile" class="w-full h-full object-cover hidden">
-                                <span id="navbar-avatar-text" class="text-[#FF014C] font-bold text-xs tracking-widest hidden"></span>
-                            </div>
-                            <span id="dashboardUserName" class="text-sm font-medium text-[#C8C8C8] max-w-[100px] truncate hidden sm:block group-hover:text-white transition-colors">İstifadəçi Adı</span>
+                    <!-- Daxil olmuş istifadəçi -->
+                    <div id="nav-user-view" class="hidden items-center gap-3">
+                        <a href="profile.html" class="btn-press group flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2 py-1.5 hover:bg-white/10 sm:px-4 sm:py-2">
+                            <span class="relative flex h-7 w-7 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-red-900/30 transition-colors group-hover:border-[#FF014C]">
+                                <img id="navAvatar" src="" alt="" class="hidden h-full w-full object-cover">
+                                <span id="navbar-avatar-text" class="hidden text-xs font-bold tracking-widest text-[#FF014C]"></span>
+                            </span>
+                            <span id="dashboardUserName" class="hidden max-w-[100px] truncate text-sm font-medium text-[#C8C8C8] group-hover:text-white sm:block">İstifadəçi</span>
                         </a>
                     </div>
+
+                    <!-- Mobil menyu düyməsi -->
+                    <button type="button" id="mobileMenuToggle" aria-expanded="false" aria-controls="mobileMenu" aria-label="Menyunu aç"
+                            class="btn-press flex h-10 w-10 shrink-0 flex-col items-center justify-center gap-[5px] rounded-lg border border-white/10 bg-white/5 md:hidden">
+                        <span class="burger-line burger-line-1 block h-[2px] w-5 rounded bg-white"></span>
+                        <span class="burger-line burger-line-2 block h-[2px] w-5 rounded bg-white"></span>
+                        <span class="burger-line burger-line-3 block h-[2px] w-5 rounded bg-white"></span>
+                    </button>
                 </div>
-            </nav>
-
-            <!-- Main Content Container -->
-            <div class="flex-1 w-full flex flex-col gap-16 px-4 md:px-8 py-12">
-                
-                
-    <!-- Room Actions Content -->
-    <div class="w-full max-w-3xl mx-auto flex flex-col items-center text-center animate-fade-in-up z-10 px-4 mt-12 mb-20">
-        
-        <div class="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-8 border border-white/10 shadow-[0_0_30px_rgba(255,1,76,0.15)]">
-            <svg class="w-10 h-10 text-[#FF014C]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-        </div>
-
-        <h1 class="font-['Manrope'] font-extrabold text-4xl md:text-6xl tracking-tight text-white mb-6">
-            Yeni Otaq Yarat və ya <br><span class="text-[#FF014C]">Qoşul</span>
-        </h1>
-        
-        <p class="text-[#C8C8C8] text-lg max-w-lg mb-12 leading-relaxed font-medium">
-            Dostlarınızla birlikdə izləmək üçün dərhal bir otaq yaradın və onlara kodu göndərin. Və ya mövcud koda sahibsinizsə, aşağıdan daxil olun.
-        </p>
-
-        <div class="flex flex-col gap-6 w-full max-w-lg">
-            <button id="createRoomBtn" class="flex items-center justify-center gap-3 px-8 py-5 bg-gradient-to-r from-[#FF014C] to-[#b30035] shadow-[0_10px_30px_rgba(255,1,76,0.3)] hover:shadow-[0_15px_40px_rgba(255,1,76,0.5)] hover:-translate-y-1 rounded-2xl text-white font-bold transition-all duration-300 group w-full text-lg">
-                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                YENİ OTAQ YARAT
-            </button>
-            
-            <div class="relative flex items-center justify-center py-4">
-                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
-                <div class="relative bg-[#030303] px-4 text-sm text-neutral-500 font-bold tracking-widest uppercase">Və Yaxud</div>
             </div>
 
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center bg-white/5 border border-white/20 rounded-2xl overflow-hidden focus-within:border-white/40 hover:border-white/40 transition-colors duration-300 w-full h-auto">
-                <input type="text" id="roomCodeInput" placeholder="OTAQ KODUNU YAZIN" class="w-full h-16 sm:h-auto bg-transparent text-white px-6 focus:outline-none uppercase tracking-widest placeholder-white/30 text-base font-bold text-center sm:text-left border-b sm:border-b-0 border-white/10 sm:flex-1">
-                <button id="joinRoomBtn" class="h-16 sm:h-auto px-8 bg-white text-black hover:bg-gray-200 font-bold transition-colors duration-300 uppercase tracking-widest text-base sm:h-full">
-                    QOŞUL
+            <!-- Mobil menyu paneli -->
+            <div id="mobileMenu" class="mobile-menu absolute left-0 right-0 top-full mt-2 rounded-2xl border border-white/10 bg-[#080808] p-4 shadow-2xl md:hidden">
+                <div class="flex flex-col">
+                    <a href="index.html" class="rounded-lg px-3 py-3 text-[#C8C8C8] transition-colors hover:bg-white/5 hover:text-white">Ana Səhifə</a>
+                    <a href="create-room.html" class="rounded-lg px-3 py-3 text-[#C8C8C8] transition-colors hover:bg-white/5 hover:text-white">Otaqlar</a>
+                    <a href="contact.html" class="rounded-lg px-3 py-3 text-[#C8C8C8] transition-colors hover:bg-white/5 hover:text-white">Əlaqə</a>
+
+                    <a href="create-room.html" class="btn-press mt-3 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#FF014C] to-[#800020] px-4 py-3.5 text-sm font-bold text-white">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        OTAQ YARAT
+                    </a>
+                    <button type="button" class="open-register-modal auth-guest-only btn-press mt-2 rounded-xl border border-[#FF014C]/50 bg-[#FF014C]/10 px-4 py-3.5 text-sm font-bold text-[#FF014C]">Qeydiyyat</button>
+                    <a href="profile.html" class="auth-user-only btn-press mt-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3.5 text-center text-sm font-bold text-white" hidden>Profilim</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-10">
+        <section class="mx-auto flex w-full max-w-3xl flex-col items-center py-12 text-center md:py-20">
+
+            <div class="mb-8 flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/5 shadow-[0_0_30px_rgba(255,1,76,0.15)] sm:h-20 sm:w-20" data-reveal="scale">
+                <svg class="h-8 w-8 text-[#FF014C] sm:h-10 sm:w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+
+            <h1 class="mb-6 font-display text-[1.75rem] font-extrabold leading-tight tracking-tight text-white xs:text-4xl md:text-5xl lg:text-6xl" data-reveal data-reveal-delay="1">
+                Yeni Otaq Yarat və ya <br class="hidden sm:block"><span class="text-[#FF014C]">Qoşul</span>
+            </h1>
+
+            <p class="mb-10 max-w-lg text-base leading-relaxed text-[#C8C8C8] sm:text-lg" data-reveal data-reveal-delay="2">
+                Dostlarınızla birlikdə izləmək üçün dərhal bir otaq yaradın və onlara kodu göndərin. Və ya mövcud koda sahibsinizsə, aşağıdan daxil olun.
+            </p>
+
+            <div class="flex w-full max-w-lg flex-col gap-6" data-reveal data-reveal-delay="3">
+                <button type="button" id="createRoomBtn" class="btn-press btn-glow btn-lift flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[#FF014C] to-[#b30035] px-6 py-5 text-base font-bold text-white shadow-[0_10px_30px_rgba(255,1,76,0.3)] hover:shadow-[0_15px_40px_rgba(255,1,76,0.5)] sm:text-lg">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    YENİ OTAQ YARAT
                 </button>
+
+                <div class="relative flex items-center justify-center py-2">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
+                    <span class="relative bg-[#030712] px-4 text-xs font-bold uppercase tracking-widest text-neutral-500">Və Yaxud</span>
+                </div>
+
+                <form id="joinRoomForm" class="flex w-full flex-col items-stretch overflow-hidden rounded-2xl border border-white/20 bg-white/5 transition-colors focus-within:border-white/40 sm:flex-row" data-no-submit>
+                    <label for="roomCodeInput" class="sr-only">Otaq kodu</label>
+                    <input type="text" id="roomCodeInput" placeholder="OTAQ KODUNU YAZIN" maxlength="6" autocomplete="off" autocapitalize="characters"
+                           class="h-14 w-full border-b border-white/10 bg-transparent px-6 text-center text-base font-bold uppercase tracking-widest text-white placeholder-white/30 focus:outline-none sm:h-16 sm:flex-1 sm:border-b-0 sm:text-left">
+                    <button type="submit" id="joinRoomBtn" class="btn-press h-14 bg-white px-8 text-base font-bold uppercase tracking-widest text-black transition-colors hover:bg-gray-200 sm:h-16">
+                        QOŞUL
+                    </button>
+                </form>
             </div>
-        </div>
-    </div>
-<!-- Footer -->
-                <footer class="w-full mt-10 pt-8 pb-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 animate-fade-in-up" style="animation-delay: 0.4s; opacity: 0;">
-                    <div class="flex items-center gap-2 opacity-50 hover:opacity-100 transition-opacity cursor-pointer">
-                        <svg class="w-6 h-6 text-[#FF014C]" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm0 2v12h16V6H4zm2 2h2v8H6V8zm4 0h2v8h-2V8zm4 0h2v8h-2V8z"/></svg>
-                        <span class="font-['Manrope'] font-extrabold text-xl tracking-wider text-white">RAHAT İZLE<span class="text-[#FF014C]">.</span></span>
-                    </div>
-                    <div class="flex items-center gap-6">
-                        <a href="#" class="text-[#C8C8C8] hover:text-white transition-colors duration-300 text-sm">Ana Səhifə</a>
-                        <a href="#" class="text-[#C8C8C8] hover:text-white transition-colors duration-300 text-sm">Məlumat</a>
-                        <a href="contact.html" class="text-[#C8C8C8] hover:text-white transition-colors duration-300 text-sm">Əlaqə</a>
-                        <div id="footer-guest-links" class="flex items-center gap-6">
-                            <button class="open-login-modal text-[#C8C8C8] hover:text-[#FF014C] transition-colors duration-300 text-sm font-bold">Giriş</button>
-                            <button class="open-register-modal hidden sm:block  text-[#C8C8C8] hover:text-[#FF014C] transition-colors duration-300 text-sm font-bold">Qeydiyyat</button>
-                        </div>
-                    </div>
-                </footer>
+        </section>
 
+        <!-- FOOTER -->
+        <footer class="mt-10 flex flex-col items-center justify-between gap-6 border-t border-white/5 py-10 md:flex-row" data-reveal>
+            <div class="flex items-center gap-2 opacity-60 transition-opacity hover:opacity-100">
+                <img src="logo.png" alt="Rahat İzle" width="224" height="128" loading="lazy" decoding="async" class="h-7 w-auto">
             </div>
-        </div>
-    </div>
+            <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
+                <a href="index.html" class="text-sm text-[#C8C8C8] transition-colors hover:text-white">Ana Səhifə</a>
+                <a href="create-room.html" class="text-sm text-[#C8C8C8] transition-colors hover:text-white">Otaqlar</a>
+                <a href="contact.html" class="text-sm text-[#C8C8C8] transition-colors hover:text-white">Əlaqə</a>
+                <div id="footer-guest-links" class="flex items-center gap-6">
+                    <button type="button" class="open-login-modal text-sm font-bold text-[#C8C8C8] transition-colors hover:text-[#FF014C]">Giriş</button>
+                    <button type="button" class="open-register-modal hidden text-sm font-bold text-[#C8C8C8] transition-colors hover:text-[#FF014C] sm:block">Qeydiyyat</button>
+                </div>
+            </div>
+        </footer>
+    </main>
 
-
-    <!-- PLATFORM SELECTION MODAL SILINDI (Artıq birbaşa otaq yaranır) -->
 
     <!-- LOGIN MODAL -->
-    <div id="login-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4">
-        <div class="relative max-w-md mx-auto w-full bg-[#030303] p-8 rounded-2xl border border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.2)] animate-fade-in">
-            <button class="close-auth-modal absolute top-5 right-5 text-gray-500 hover:text-white transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-            <h2 class="text-3xl font-bold mb-8 text-center tracking-wider uppercase text-white">Giriş</h2>
-            
-            <form id="loginForm" class="space-y-5" onsubmit="event.preventDefault();">
-                <div>
-                    <input type="email" id="loginEmail" placeholder="E-poçt" class="w-full bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500">
-                </div>
+    <div id="login-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+        <div class="animate-modal relative mx-auto w-full max-w-md rounded-2xl border border-red-600 bg-[#030303] p-6 shadow-[0_0_15px_rgba(220,38,38,0.2)] sm:p-8">
+            <button type="button" class="close-auth-modal btn-press absolute right-5 top-5 text-gray-500 hover:text-white" aria-label="Bağla"><svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            <h2 class="mb-8 text-center text-2xl font-bold uppercase tracking-wider text-white sm:text-3xl">Giriş</h2>
+
+            <form id="loginForm" class="space-y-5" data-no-submit>
+                <input type="email" id="loginEmail" autocomplete="email" placeholder="E-poçt" class="w-full rounded-xl border border-red-600 bg-black px-5 py-4 text-white placeholder-gray-500 transition-all focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
                 <div class="relative">
-                    <input type="password" id="loginPassword" placeholder="Şifrə" class="w-full bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500 pr-12">
-                    <button type="button" class="toggle-password absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none">
-                        <svg class="w-5 h-5 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                    <input type="password" id="loginPassword" autocomplete="current-password" placeholder="Şifrə" class="w-full rounded-xl border border-red-600 bg-black px-5 py-4 pr-12 text-white placeholder-gray-500 transition-all focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+                    <button type="button" class="toggle-password absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none" aria-label="Şifrəni göstər">
+                        <svg class="eye-icon h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                     </button>
                 </div>
-                <div class="flex justify-between items-center w-full pb-2">
-                    <button type="button" id="forgotPasswordBtn" class="text-gray-400 hover:text-red-500 transition-colors duration-300 text-sm">
-                        Şifrəni unutdum?
-                    </button>
-                </div>
-                
-                <button type="button" id="loginBtn" class="w-full bg-transparent border border-red-600 hover:bg-red-600 text-white font-bold py-4 rounded-xl transition-all duration-300 shadow-[0_0_10px_rgba(220,38,38,0.4)] hover:shadow-[0_0_20px_rgba(220,38,38,0.6)] uppercase tracking-wider">
-                    Daxil ol
-                </button>
+                <button type="button" id="forgotPasswordBtn" class="text-sm text-gray-400 transition-colors hover:text-red-500">Şifrəni unutdum?</button>
+                <button type="button" id="loginBtn" class="btn-press w-full rounded-xl border border-red-600 bg-transparent py-4 font-bold uppercase tracking-wider text-white shadow-[0_0_10px_rgba(220,38,38,0.4)] hover:bg-red-600 hover:shadow-[0_0_20px_rgba(220,38,38,0.6)]">Daxil ol</button>
             </form>
 
             <div class="mt-6 flex flex-col gap-4">
-                <button type="button" id="switchToRegisterBtn" class="w-full bg-transparent hover:bg-red-950/30 text-white font-medium py-3 border border-red-600 rounded-xl transition-all duration-300 text-sm">
-                    Yeni Hesab Yarat
-                </button>
-                
-                <div class="flex items-center gap-4 my-2">
-                    <div class="flex-1 h-px bg-red-900/50"></div>
-                    <span class="text-xs text-gray-500 uppercase tracking-widest">və ya</span>
-                    <div class="flex-1 h-px bg-red-900/50"></div>
+                <button type="button" id="switchToRegisterBtn" class="btn-press w-full rounded-xl border border-red-600 bg-transparent py-3 text-sm font-medium text-white hover:bg-red-950/30">Yeni Hesab Yarat</button>
+                <div class="my-2 flex items-center gap-4">
+                    <div class="h-px flex-1 bg-red-900/50"></div>
+                    <span class="text-xs uppercase tracking-widest text-gray-500">və ya</span>
+                    <div class="h-px flex-1 bg-red-900/50"></div>
                 </div>
-
-                <button id="googleLoginBtn" class="w-full flex items-center justify-center gap-3 bg-transparent hover:bg-red-950/30 text-white font-medium py-3 border border-red-600 rounded-xl transition-all duration-300 shadow-[0_0_10px_rgba(220,38,38,0.2)]">
-                    <svg class="w-5 h-5" viewBox="0 0 48 48">
-                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.14 7.09-10.36 7.09-17.65z"/>
-                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-                    </svg>
+                <button type="button" id="googleLoginBtn" class="btn-press flex w-full items-center justify-center gap-3 rounded-xl border border-red-600 bg-transparent py-3 font-medium text-white shadow-[0_0_10px_rgba(220,38,38,0.2)] hover:bg-red-950/30">
+                    <svg class="h-5 w-5" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.14 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
                     Google ilə Daxil Ol
                 </button>
             </div>
@@ -212,224 +181,124 @@
     </div>
 
     <!-- REGISTER MODAL -->
-    <div id="register-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4 transition-all duration-500">
-        <div class="relative max-w-md mx-auto w-full bg-[#030303] p-8 rounded-2xl border border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.2)] animate-fade-in duration-500">
-            <button class="close-auth-modal absolute top-5 right-5 text-gray-500 hover:text-white transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-            <h2 class="text-3xl font-bold mb-8 text-center tracking-wider uppercase text-white">Qeydiyyat</h2>
-            
-            <form id="registerForm" class="space-y-4" onsubmit="event.preventDefault();">
-                <div class="flex gap-4">
-                    <input type="text" id="regFirstName" placeholder="Ad" class="w-1/2 bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500">
-                    <input type="text" id="regLastName" placeholder="Soyad" class="w-1/2 bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500">
+    <div id="register-modal" class="hidden fixed inset-0 z-50 items-center justify-center overflow-y-auto bg-black/80 p-4 backdrop-blur-sm">
+        <div class="animate-modal relative mx-auto my-auto w-full max-w-md rounded-2xl border border-red-600 bg-[#030303] p-6 shadow-[0_0_15px_rgba(220,38,38,0.2)] sm:p-8">
+            <button type="button" class="close-auth-modal btn-press absolute right-5 top-5 text-gray-500 hover:text-white" aria-label="Bağla"><svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            <h2 class="mb-8 text-center text-2xl font-bold uppercase tracking-wider text-white sm:text-3xl">Qeydiyyat</h2>
+
+            <form id="registerForm" class="space-y-4" data-no-submit>
+                <div class="flex flex-col gap-4 sm:flex-row">
+                    <input type="text" id="regFirstName" autocomplete="given-name" placeholder="Ad" class="w-full rounded-xl border border-red-600 bg-black px-5 py-4 text-white placeholder-gray-500 transition-all focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 sm:w-1/2">
+                    <input type="text" id="regLastName" autocomplete="family-name" placeholder="Soyad" class="w-full rounded-xl border border-red-600 bg-black px-5 py-4 text-white placeholder-gray-500 transition-all focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 sm:w-1/2">
                 </div>
-                <div class="flex gap-4">
-                    <input type="email" id="regEmail" placeholder="E-poçt ünvanı" class="w-1/2 bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500">
-                    <select id="regGender" class="w-1/2 bg-black text-gray-400 px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all">
+                <div class="flex flex-col gap-4 sm:flex-row">
+                    <input type="email" id="regEmail" autocomplete="email" placeholder="E-poçt ünvanı" class="w-full rounded-xl border border-red-600 bg-black px-5 py-4 text-white placeholder-gray-500 transition-all focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 sm:w-1/2">
+                    <select id="regGender" class="w-full rounded-xl border border-red-600 bg-black px-5 py-4 text-gray-400 transition-all focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 sm:w-1/2">
                         <option value="" disabled selected>Cinsiyyət Seç</option>
                         <option value="male">Kişi</option>
                         <option value="female">Qadın</option>
                         <option value="other">Digər</option>
                     </select>
                 </div>
-                <div class="flex gap-4">
-                    <div class="relative w-1/2">
-                        <input type="password" id="regPassword" placeholder="Şifrə" class="w-full bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500 pr-10">
-                        <button type="button" class="toggle-password absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none">
-                            <svg class="w-4 h-4 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                <div class="flex flex-col gap-4 sm:flex-row">
+                    <div class="relative w-full sm:w-1/2">
+                        <input type="password" id="regPassword" autocomplete="new-password" placeholder="Şifrə" class="w-full rounded-xl border border-red-600 bg-black px-5 py-4 pr-10 text-white placeholder-gray-500 transition-all focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+                        <button type="button" class="toggle-password absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none" aria-label="Şifrəni göstər">
+                            <svg class="eye-icon h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                         </button>
                     </div>
-                    <div class="relative w-1/2">
-                        <input type="password" id="regPasswordConfirm" placeholder="Təkrar Şifrə" class="w-full bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500 pr-10">
-                        <button type="button" class="toggle-password absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none">
-                            <svg class="w-4 h-4 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                    <div class="relative w-full sm:w-1/2">
+                        <input type="password" id="regPasswordConfirm" autocomplete="new-password" placeholder="Təkrar Şifrə" class="w-full rounded-xl border border-red-600 bg-black px-5 py-4 pr-10 text-white placeholder-gray-500 transition-all focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+                        <button type="button" class="toggle-password absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none" aria-label="Şifrəni göstər">
+                            <svg class="eye-icon h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                         </button>
                     </div>
                 </div>
-                
-                <button type="button" id="completeRegisterBtn" class="w-full bg-transparent border border-red-600 hover:bg-red-600 text-white font-bold py-4 mt-2 rounded-xl transition-all duration-300 shadow-[0_0_10px_rgba(220,38,38,0.4)] hover:shadow-[0_0_20px_rgba(220,38,38,0.6)] uppercase tracking-wider">
-                    Qeydiyyatı Tamamla
-                </button>
+                <p class="text-xs text-gray-500">Şifrə ən azı 8 simvol olmalıdır.</p>
+                <button type="button" id="completeRegisterBtn" class="btn-press mt-2 w-full rounded-xl border border-red-600 bg-transparent py-4 font-bold uppercase tracking-wider text-white shadow-[0_0_10px_rgba(220,38,38,0.4)] hover:bg-red-600 hover:shadow-[0_0_20px_rgba(220,38,38,0.6)]">Qeydiyyatı Tamamla</button>
             </form>
 
             <div class="mt-6 flex flex-col gap-4">
-                <div class="flex items-center gap-4 my-2">
-                    <div class="flex-1 h-px bg-red-900/50"></div>
-                    <span class="text-xs text-gray-500 uppercase tracking-widest">və ya</span>
-                    <div class="flex-1 h-px bg-red-900/50"></div>
+                <div class="my-2 flex items-center gap-4">
+                    <div class="h-px flex-1 bg-red-900/50"></div>
+                    <span class="text-xs uppercase tracking-widest text-gray-500">və ya</span>
+                    <div class="h-px flex-1 bg-red-900/50"></div>
                 </div>
-
-                <button id="googleRegisterBtn" class="w-full flex items-center justify-center gap-3 bg-transparent hover:bg-red-950/30 text-white font-medium py-3 border border-red-600 rounded-xl transition-all duration-300 shadow-[0_0_10px_rgba(220,38,38,0.2)]">
-                    <svg class="w-5 h-5" viewBox="0 0 48 48">
-                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.14 7.09-10.36 7.09-17.65z"/>
-                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-                    </svg>
+                <button type="button" id="googleRegisterBtn" class="btn-press flex w-full items-center justify-center gap-3 rounded-xl border border-red-600 bg-transparent py-3 font-medium text-white shadow-[0_0_10px_rgba(220,38,38,0.2)] hover:bg-red-950/30">
+                    <svg class="h-5 w-5" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.14 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
                     Google ilə Qeydiyyat
                 </button>
-                
-                <div class="text-center mt-2">
-                    <button type="button" id="switchToLoginBtn" class="text-gray-400 hover:text-red-500 transition-colors duration-300 text-sm underline underline-offset-4">
-                        Geri qayıdıb giriş et
-                    </button>
+                <div class="mt-2 text-center">
+                    <button type="button" id="switchToLoginBtn" class="text-sm text-gray-400 underline underline-offset-4 transition-colors hover:text-red-500">Geri qayıdıb giriş et</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- FORGOT PASSWORD MODAL -->
-    <div id="forgot-password-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4 transition-all duration-500">
-        <div class="relative max-w-sm mx-auto w-full bg-[#030303] p-8 rounded-2xl border border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.2)] animate-fade-in duration-500">
-            <button class="close-auth-modal absolute top-5 right-5 text-gray-500 hover:text-white transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-            <h2 class="text-3xl font-bold mb-4 text-center tracking-wider uppercase text-white">Şifrənin Bərpası</h2>
-            <p class="text-center text-gray-400 text-sm mb-6">Qeydiyyatdan keçdiyiniz e-poçt ünvanını daxil edin. Sizə bərpa kodu göndəriləcək.</p>
-            
-            <form id="forgotPasswordForm" class="space-y-5" onsubmit="event.preventDefault();">
-                <div>
-                    <input type="email" id="forgotEmail" placeholder="E-poçt" class="w-full bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder-gray-500">
-                </div>
-                
-                <button type="button" id="sendOTPBtn" class="w-full bg-transparent border border-red-600 hover:bg-red-600 text-white font-bold py-4 rounded-xl transition-all duration-300 shadow-[0_0_10px_rgba(220,38,38,0.4)] hover:shadow-[0_0_20px_rgba(220,38,38,0.6)] uppercase tracking-wider">
-                    Göndər
-                </button>
+    <div id="forgot-password-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+        <div class="animate-modal relative mx-auto w-full max-w-sm rounded-2xl border border-red-600 bg-[#030303] p-6 shadow-[0_0_15px_rgba(220,38,38,0.2)] sm:p-8">
+            <button type="button" class="close-auth-modal btn-press absolute right-5 top-5 text-gray-500 hover:text-white" aria-label="Bağla"><svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            <h2 class="mb-4 text-center text-2xl font-bold uppercase tracking-wider text-white sm:text-3xl">Şifrənin Bərpası</h2>
+            <p class="mb-6 text-center text-sm text-gray-400">Qeydiyyatdan keçdiyiniz e-poçt ünvanını daxil edin. Sizə bərpa kodu göndəriləcək.</p>
+            <form id="forgotPasswordForm" class="space-y-5" data-no-submit>
+                <input type="email" id="forgotEmail" autocomplete="email" placeholder="E-poçt" class="w-full rounded-xl border border-red-600 bg-black px-5 py-4 text-white placeholder-gray-500 transition-all focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+                <button type="button" id="sendOTPBtn" class="btn-press w-full rounded-xl border border-red-600 bg-transparent py-4 font-bold uppercase tracking-wider text-white shadow-[0_0_10px_rgba(220,38,38,0.4)] hover:bg-red-600 hover:shadow-[0_0_20px_rgba(220,38,38,0.6)]">Göndər</button>
             </form>
         </div>
     </div>
 
-    <!-- OTP Modalı (Şifrə dəyişdirmək üçün) -->
-    <div id="otp-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4">
-        <div class="relative max-w-sm mx-auto w-full bg-[#030303] p-8 rounded-2xl border border-red-600 shadow-[0_0_20px_rgba(220,38,38,0.2)] animate-fade-in">
-            <button class="close-otp-modal absolute top-5 right-5 text-gray-500 hover:text-white transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-            <h2 class="text-2xl font-bold mb-4 text-center tracking-wider text-white uppercase">Təsdiq Kodu</h2>
-            <p class="text-center text-gray-400 text-sm mb-6">E-poçtunuza 6 rəqəmli kod göndərildi.</p>
-            
+    <!-- OTP MODAL -->
+    <div id="otp-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+        <div class="animate-modal relative mx-auto w-full max-w-sm rounded-2xl border border-red-600 bg-[#030303] p-6 shadow-[0_0_20px_rgba(220,38,38,0.2)] sm:p-8">
+            <button type="button" class="close-otp-modal btn-press absolute right-5 top-5 text-gray-500 hover:text-white" aria-label="Bağla"><svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            <h2 class="mb-4 text-center text-2xl font-bold uppercase tracking-wider text-white">Təsdiq Kodu</h2>
+            <p class="mb-6 text-center text-sm text-gray-400">E-poçtunuza 6 rəqəmli kod göndərildi.</p>
+
             <div id="otpStepContainer" class="space-y-4">
-                <input type="text" id="otpInput" placeholder="Kodu daxil edin" class="w-full bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all text-center tracking-widest text-lg" maxlength="6">
-                <button type="button" id="verifyOTPBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all duration-300 uppercase tracking-wider">
-                    Kodu Təsdiqlə
-                </button>
-                <div class="flex flex-col items-center gap-2 mt-4">
-                    <button type="button" id="resendOTPBtn" class="text-sm text-gray-400 hover:text-white transition-colors">Kodu yenidən göndər</button>
-                    <span id="resendTimer" class="text-xs text-red-500 hidden">60s</span>
+                <input type="text" id="otpInput" inputmode="numeric" autocomplete="one-time-code" pattern="\d{6}" placeholder="Kodu daxil edin" maxlength="6" class="w-full rounded-xl border border-red-600 bg-black px-5 py-4 text-center text-lg tracking-widest text-white transition-all focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+                <button type="button" id="verifyOTPBtn" class="btn-press w-full rounded-xl bg-red-600 py-3 font-bold uppercase tracking-wider text-white hover:bg-red-700">Kodu Təsdiqlə</button>
+                <div class="mt-4 flex flex-col items-center gap-2">
+                    <button type="button" id="resendOTPBtn" class="text-sm text-gray-400 transition-colors hover:text-white">Kodu yenidən göndər</button>
+                    <span id="resendTimer" class="hidden text-xs text-red-500">60s</span>
                 </div>
             </div>
 
-            <div id="newPasswordStepContainer" class="space-y-4 hidden">
+            <div id="newPasswordStepContainer" class="hidden space-y-4">
                 <div class="relative">
-                    <input type="password" id="newPasswordInput" placeholder="Yeni şifrə" class="w-full bg-black text-white px-5 py-3 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 transition-all pr-12">
-                    <button type="button" class="toggle-password absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none">
-                        <svg class="w-5 h-5 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                    <input type="password" id="newPasswordInput" autocomplete="new-password" placeholder="Yeni şifrə (ən azı 8 simvol)" class="w-full rounded-xl border border-red-600 bg-black px-5 py-3 pr-12 text-white transition-all focus:border-red-500 focus:outline-none">
+                    <button type="button" class="toggle-password absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none" aria-label="Şifrəni göstər">
+                        <svg class="eye-icon h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                     </button>
                 </div>
-                <button type="button" id="setNewPasswordBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all duration-500 uppercase tracking-wider">
-                    Şifrəni Yenilə
-                </button>
+                <button type="button" id="setNewPasswordBtn" class="btn-press w-full rounded-xl bg-red-600 py-3 font-bold uppercase tracking-wider text-white hover:bg-red-700 disabled:opacity-50">Şifrəni Yenilə</button>
             </div>
         </div>
     </div>
 
-    <!-- CUSTOM TOAST BİLDİRİŞİ -->
-    <div id="custom-toast" class="hidden fixed top-6 right-6 z-50 bg-black border border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.4)] rounded-xl px-6 py-4 items-center gap-4 transition-all max-w-md">
-        <span id="toast-message" class="text-white font-medium">Bildiriş mətni bura gələcək</span>
-        <button id="toast-close-btn" class="text-gray-400 hover:text-red-500 transition-colors ml-auto focus:outline-none">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+    <!-- TOAST -->
+    <div id="custom-toast" class="hidden animate-toast fixed right-6 top-6 z-[60] max-w-md items-center gap-4 rounded-xl border border-red-600 bg-black px-6 py-4 shadow-[0_0_15px_rgba(220,38,38,0.4)]" role="status" aria-live="polite">
+        <span id="toast-message" class="font-medium text-white"></span>
+        <button type="button" id="toast-close-btn" class="ml-auto text-gray-400 transition-colors hover:text-red-500 focus:outline-none" aria-label="Bağla">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
     </div>
 
-    <!-- CUSTOM CONFIRM MODALI -->
-    <div id="custom-confirm" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4">
-        <div class="bg-black border border-red-600 shadow-[0_0_25px_rgba(220,38,38,0.3)] rounded-2xl p-8 max-w-md w-full text-center animate-fade-in">
-            <h3 class="text-2xl font-bold text-white mb-4 uppercase tracking-wider">Diqqət</h3>
-            <p id="confirm-message" class="text-gray-300 mb-8 text-lg">Bu əməliyyatı etmək istədiyinizə əminsiniz?</p>
+    <!-- CONFIRM -->
+    <div id="custom-confirm" class="hidden fixed inset-0 z-[60] items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+        <div class="animate-modal w-full max-w-md rounded-2xl border border-red-600 bg-black p-6 text-center shadow-[0_0_25px_rgba(220,38,38,0.3)] sm:p-8">
+            <h3 class="mb-4 text-2xl font-bold uppercase tracking-wider text-white">Diqqət</h3>
+            <p id="confirm-message" class="mb-8 text-base text-gray-300 sm:text-lg">Bu əməliyyatı etmək istədiyinizə əminsiniz?</p>
             <div class="flex items-center justify-center gap-4">
-                <button id="confirm-no-btn" class="px-6 py-3 bg-transparent border border-gray-600 hover:bg-gray-800 text-white font-bold rounded-xl transition-all w-1/2">
-                    Xeyr
-                </button>
-                <button id="confirm-yes-btn" class="px-6 py-3 bg-red-700 hover:bg-red-800 text-white font-bold rounded-xl transition-all duration-300 w-1/2 shadow-[0_0_10px_rgba(220,38,38,0.4)]">
-                    Bəli
-                </button>
+                <button type="button" id="confirm-no-btn" class="btn-press w-1/2 rounded-xl border border-gray-600 bg-transparent px-6 py-3 font-bold text-white hover:bg-gray-800">Xeyr</button>
+                <button type="button" id="confirm-yes-btn" class="btn-press w-1/2 rounded-xl bg-red-700 px-6 py-3 font-bold text-white shadow-[0_0_10px_rgba(220,38,38,0.4)] hover:bg-red-800">Bəli</button>
             </div>
         </div>
     </div>
 
-    <!-- PROFIL MODALI LƏĞV EDİLDİ (Əvəzinə profile.html) -->
-
-    <!-- Firebase SDK (compat versions) -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
-    <script src="app.js"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    const mainCreateBtn = document.getElementById('createRoomBtn');
-    const mainJoinBtn = document.getElementById('joinRoomBtn');
-    const mainCodeInput = document.getElementById('roomCodeInput');
-
-    if (mainCreateBtn) {
-        mainCreateBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const user = firebase.auth().currentUser;
-            if (!user) {
-                const loginModal = document.getElementById('login-modal');
-                if (loginModal) { 
-                    loginModal.classList.remove('hidden'); 
-                    loginModal.classList.add('flex'); 
-                }
-                return;
-            }
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let code = '';
-            for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
-            const defaultPlatform = "netflix";
-            
-            mainCreateBtn.innerHTML = '<svg class="animate-spin h-5 w-5 mr-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> YARADILIR...';
-            
-            firebase.database().ref('rooms/' + code + '/creator').set({
-                uid: user.uid,
-                name: user.displayName || user.email.split('@')[0],
-                photoURL: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName || user.email.split('@')[0]}&background=dc2626&color=fff`,
-                platform: defaultPlatform,
-                createdAt: firebase.database.ServerValue.TIMESTAMP
-            }).then(() => {
-                window.location.href = `room.html?id=${code}&platform=${defaultPlatform}`;
-            }).catch(error => {
-                alert("Otaq yaradılarkən xəta baş verdi.");
-                console.error(error);
-                mainCreateBtn.innerHTML = 'YENİ OTAQ YARAT';
-            });
-        });
-    }
-
-    if (mainJoinBtn) {
-        mainJoinBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const code = mainCodeInput ? mainCodeInput.value.trim().toUpperCase() : '';
-            if (!code) {
-                alert("Otaq kodunu daxil edin.");
-                return;
-            }
-            window.location.href = `room.html?id=${code}`;
-        });
-    }
-});
-</script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+    <script defer src="app.js"></script>
 </body>
-
-</html><script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.animationPlayState = 'running';
-                    entry.target.style.opacity = '1';
-                }
-            });
-        }, { threshold: 0.1 });
-
-        document.querySelectorAll('.animate-fade-in-up, .animate-fade-in').forEach(el => {
-            el.style.animationPlayState = 'paused'; // pause initially until scrolled
-            observer.observe(el);
-        });
-    });
-</script>
+</html>
