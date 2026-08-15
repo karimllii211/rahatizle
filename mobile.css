@@ -75,4 +75,9 @@
         width: 90% !important;
         margin: 0 auto !important;
     }
+    
+    /* Ensure Logo fits on mobile */
+    nav img[src*="RahatİzleLogo2.png"] {
+        height: 55px !important;
+    }
 }
