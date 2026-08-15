@@ -36,16 +36,27 @@ EmailJS panelində **Account → Security → "Allow API calls from non-browser
 applications"** seçimini aktiv edin. Kod artıq serverdə yaradılır və serverdən
 göndərilir — bu, brauzerin kodu bilməsinin qarşısını alır.
 
-**Əgər bu dəyişənlər təyin edilməyibsə:** şifrə bərpası avtomatik olaraq
-Firebase-in öz bərpa məktubuna keçir (istifadəçiyə link gəlir). Sayt işləməyə
-davam edir, sadəcə 6 rəqəmli kod axını əvəzinə link axını olur.
+**Əgər bu dəyişənlər təyin edilməyibsə:** şifrə bərpası, şifrə dəyişikliyi və
+email dəyişikliyi — hər üçü — kodu göndərə bilmir və istifadəçiyə "Kod
+göndərilə bilmədi, bir az sonra yenidən cəhd edin" xətası göstərilir. Heç bir
+ehtiyat (fallback) yolu yoxdur — bu dəyişənlər olmadan bu üç funksiya işləmir.
+
+### Email dəyişikliyi üçün ayrı endpoint
+
+`api/verify-email-otp.js` eyni EmailJS dəyişənlərindən istifadə edir, amma
+Firebase Admin SDK-ya ehtiyac duymur — o, yalnız istifadəçinin yeni e-poçt
+ünvanına sahib olduğunu təsdiqləyir, faktiki email yeniləməsi (`updateEmail`)
+brauzerdə, artıq daxil olmuş Firebase sessiyası ilə baş verir. Paylaşılan
+OTP məntiqi (`api/_otp.js`) hər iki endpoint tərəfindən istifadə olunur.
 
 ---
 
 ## Realtime Database qaydaları
 
-Aşağıdakı qaydalar `otaqlarım` sorğusunun indeksdən istifadə etməsi üçün lazımdır
-(indeks olmadan da işləyir, sadəcə konsolda xəbərdarlıq verir və yavaş olur):
+Aşağıdakı qaydalar `otaqlarım` sorğusunun (profil səhifəsindəki otaq siyahısı
+və hesab silinərkən "öz otaqlarını tap" sorğusu) indeksdən istifadə etməsi
+üçün lazımdır (indeks olmadan da işləyir, sadəcə konsolda xəbərdarlıq verir
+və yavaş olur):
 
 ```json
 {
@@ -58,6 +69,14 @@ Aşağıdakı qaydalar `otaqlarım` sorğusunun indeksdən istifadə etməsi ü�
 ```
 
 > Qeyd: bazanın strukturuna toxunulmayıb — bu, yalnız indeks tövsiyəsidir.
+
+### Hesab silinməsinin əhatəsi
+
+Hesab silinərkən istifadəçinin **yaratdığı otaqlar** (və içindəki bütün
+chat/izləyici/siqnal məlumatı) və profil qeydi silinir. Bilərəkdən buraxılan
+hissə: istifadəçinin **başqalarının otaqlarında** yazdığı mesajlar və orada
+qalan izləyici qeydləri təmizlənmir — bunları tapmaq üçün bazada indeks yoxdur,
+tam skan bahalı olardı və mövcud təhlükəsizlik qaydaları ilə bloklana bilər.
 
 ---
 

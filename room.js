@@ -311,6 +311,36 @@ function initRoom() {
     let peerConnection = null;
     let isHost = false;
 
+    // Safari-nin avtomatik-oxutma siyasəti istifadəçi toxunuşu olmadan play()-i
+    // rədd edir. Bu, həm ilk stream alındıqda, həm də sinxronizasiya vasitəsilə
+    // reaktiv şəkildə play çağırıldıqda baş verə bilər — hər iki yerdə eyni
+    // bərpa düyməsi göstərilir.
+    function showManualPlayButton(videoEl) {
+        let playBtn = document.getElementById('safariPlayBtn');
+        if (!playBtn) {
+            playBtn = document.createElement('button');
+            playBtn.id = 'safariPlayBtn';
+            playBtn.className = 'absolute z-50 bg-[#FF014C] hover:bg-red-600 text-white font-bold py-4 px-8 rounded-full shadow-2xl tracking-widest uppercase transition-all duration-300';
+            playBtn.innerText = 'Videonu Başlatmaq üçün Toxunun';
+            videoEl.parentElement.appendChild(playBtn);
+
+            const playVideoHandler = (e) => {
+                e.preventDefault();
+                const userPlayPromise = videoEl.play();
+                if (userPlayPromise !== undefined) {
+                    userPlayPromise.then(() => {
+                        playBtn.style.display = 'none';
+                    }).catch(err => console.error("Toxunma ilə oynatma xətası:", err));
+                } else {
+                    playBtn.style.display = 'none';
+                }
+            };
+            playBtn.addEventListener('click', playVideoHandler);
+            playBtn.addEventListener('touchstart', playVideoHandler, { passive: false });
+        }
+        playBtn.style.display = 'block';
+    }
+
     // Fayl seçimi inline `onclick` əvəzinə burada bağlanır (CSP üçün təhlükəsizdir).
     if (localVideoBtn && localVideoUpload) {
         localVideoBtn.addEventListener('click', () => {
@@ -445,29 +475,7 @@ function initRoom() {
                                     console.log("Play əmri pause() tərəfindən dayandırıldı - Bu normaldır, xəta deyil.");
                                 } else if (error.name === 'NotAllowedError' || error.name === 'NotSupportedError') {
                                     console.error("❌ Safari Autoplay xətası (Toxunuş lazımdır):", error);
-                                    let playBtn = document.getElementById('safariPlayBtn');
-                                    if (!playBtn) {
-                                        playBtn = document.createElement('button');
-                                        playBtn.id = 'safariPlayBtn';
-                                        playBtn.className = 'absolute z-50 bg-[#FF014C] hover:bg-red-600 text-white font-bold py-4 px-8 rounded-full shadow-2xl tracking-widest uppercase transition-all duration-300';
-                                        playBtn.innerText = 'Videonu Başlatmaq üçün Toxunun';
-                                        mainVideo.parentElement.appendChild(playBtn);
-                                        
-                                        const playVideoHandler = (e) => {
-                                            e.preventDefault();
-                                            const userPlayPromise = mainVideo.play();
-                                            if (userPlayPromise !== undefined) {
-                                                userPlayPromise.then(() => {
-                                                    playBtn.style.display = 'none';
-                                                }).catch(e => console.error("Toxunma ilə oynatma xətası:", e));
-                                            } else {
-                                                playBtn.style.display = 'none';
-                                            }
-                                        };
-                                        playBtn.addEventListener('click', playVideoHandler);
-                                        playBtn.addEventListener('touchstart', playVideoHandler, { passive: false });
-                                    }
-                                    playBtn.style.display = 'block';
+                                    showManualPlayButton(mainVideo);
                                 }
                             });
                         }
@@ -696,7 +704,10 @@ function initRoom() {
                     }).catch(error => {
                         if (error.name === 'AbortError') {
                             console.log("Sinxronizasiya: Play əmri pause() tərəfindən dayandırıldı.");
-                        } else if (error.name !== 'NotAllowedError') {
+                        } else if (error.name === 'NotAllowedError' || error.name === 'NotSupportedError') {
+                            console.error("❌ Sinxronizasiya: Safari Autoplay xətası (Toxunuş lazımdır):", error);
+                            showManualPlayButton(mainVideo);
+                        } else {
                             console.error("Sinxronizasiya: Play xətası:", error);
                         }
                     });

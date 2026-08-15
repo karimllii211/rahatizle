@@ -1,8 +1,3 @@
-// EmailJS Initialization
-if (typeof emailjs !== 'undefined') {
-    emailjs.init("-joV9uOaw310_PJCg");
-}
-
 // Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCdbOsVymHIPfjbw3oByjb4pS-sEB8jv8c",
@@ -254,11 +249,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- OTP (HƏM PROFIL, HƏM ŞİFRƏNİ UNUTDUM ÜÇÜN) ---
-    // Şifrə bərpası üçün kod serverdə yaradılır və serverdən göndərilir;
+    // Kod hər iki axın üçün serverdə yaradılır və serverdən göndərilir;
     // brauzer yalnız kodsuz dəyərsiz olan "token"i saxlayır.
-    let generatedOTP = null;      // yalnız e-poçt dəyişmə axını üçün
-    let resetToken = null;        // yalnız şifrə bərpası axını üçün
+    let resetToken = null;        // şifrə bərpası axını üçün
     let enteredResetCode = null;
+    let emailChangeToken = null;  // e-poçt dəyişmə axını üçün
     let resendInterval = null;
     let currentOTPRecoveryEmail = null;
     let otpMode = 'password'; // 'password' və ya 'email'
@@ -322,11 +317,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Server e-poçt göndərə bilmirsə, Firebase-in öz bərpa məktubuna keçirik.
             if (response.status === 503) {
-                await auth.sendPasswordResetEmail(userEmail);
-                closeAllModals();
-                showToast("Şifrə bərpa linki e-poçtunuza göndərildi.");
+                showToast(data.error || "Kod göndərilə bilmədi. Zəhmət olmasa bir az sonra yenidən cəhd edin.");
                 return;
             }
 
@@ -337,24 +329,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // E-poçt dəyişmə axını: kod yeni ünvana sahib olduğunuzu təsdiqləyir.
-    // Bu əməliyyat onsuz da cari şifrə ilə yenidən təsdiqdən (reauth) keçir.
-    window.sendEmailJSOTP = (userEmail) => {
-        currentOTPRecoveryEmail = userEmail;
-        const otpCode = String(Math.floor(100000 + Math.random() * 900000));
-        generatedOTP = otpCode;
+    // E-poçt dəyişmə axını: kod serverdə yaradılır və yeni ünvana göndərilir,
+    // bununla istifadəçinin həmin ünvana sahib olduğu sübut edilir. Bu əməliyyat
+    // onsuz da cari şifrə ilə yenidən təsdiqdən (reauth) keçir.
+    const requestEmailChangeCode = async (newEmail) => {
+        currentOTPRecoveryEmail = newEmail;
+        emailChangeToken = null;
+        try {
+            const response = await fetch('/api/verify-email-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'request', newEmail })
+            });
+            const data = await response.json().catch(() => ({}));
 
-        emailjs.send("service_9umksl7", "template_0aiimmq", {
-            security_code: otpCode,
-            email: userEmail
-        }, "-joV9uOaw310_PJCg")
-        .then(function() {
-            showToast("6 rəqəmli kod e-poçtunuza göndərildi!");
-            openOTPModal();
-        }).catch(function(error) {
-            console.error("EmailJS Xətası:", error);
-            showToast("Xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.");
-        });
+            if (response.ok && data.token) {
+                emailChangeToken = data.token;
+                showToast("6 rəqəmli kod e-poçtunuza göndərildi!");
+                openOTPModal();
+                return;
+            }
+
+            showToast(data.error || "Kod göndərilə bilmədi. Zəhmət olmasa yenidən cəhd edin.");
+        } catch (error) {
+            console.error("Email OTP xətası:", error);
+            showToast("Şəbəkə xətası baş verdi.");
+        }
     };
 
     const requestPasswordChangeBtn = document.getElementById('requestPasswordChangeBtn');
@@ -408,7 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             otpMode = 'email';
             newEmailPending = newEmail;
-            sendEmailJSOTP(newEmail);
+            requestEmailChangeCode(newEmail);
         });
     }
 
@@ -432,14 +432,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (otpMode === 'password') {
                 requestPasswordResetCode(currentOTPRecoveryEmail);
             } else {
-                sendEmailJSOTP(currentOTPRecoveryEmail);
+                requestEmailChangeCode(currentOTPRecoveryEmail);
             }
         });
     });
 
     const verifyOTPBtn = document.getElementById('verifyOTPBtn');
     if (verifyOTPBtn) {
-        verifyOTPBtn.addEventListener('click', () => {
+        verifyOTPBtn.addEventListener('click', async () => {
             const entered = document.getElementById('otpInput').value.trim();
 
             if (otpMode === 'password') {
@@ -456,12 +456,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            if (entered && entered === generatedOTP) {
-                generatedOTP = null;
-                closeAllModals();
-                executeEmailUpdate(newEmailPending);
-            } else {
-                showToast("Kod yanlışdır.");
+            // otpMode === 'email'
+            if (!/^\d{6}$/.test(entered)) return showToast("6 rəqəmli kodu daxil edin.");
+            if (!emailChangeToken) return showToast("Sessiyanın vaxtı bitib. Yeni kod tələb edin.");
+
+            verifyOTPBtn.disabled = true;
+            try {
+                const response = await fetch('/api/verify-email-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'verify', token: emailChangeToken, code: entered })
+                });
+                const data = await response.json().catch(() => ({}));
+                if (response.ok && data.verified) {
+                    emailChangeToken = null;
+                    closeAllModals();
+                    executeEmailUpdate(newEmailPending);
+                } else {
+                    showToast(data.error || "Kod yanlışdır.");
+                }
+            } catch (error) {
+                showToast("Şəbəkə xətası baş verdi.");
+            } finally {
+                verifyOTPBtn.disabled = false;
             }
         });
     }
@@ -1006,20 +1023,33 @@ document.addEventListener('DOMContentLoaded', () => {
     if (deleteAccountBtn) {
         deleteAccountBtn.addEventListener('click', async () => {
             if (!currentUser) return;
-            
+
             const confirmDelete = await showConfirmModal("Hesabınızı və bütün məlumatlarınızı birdəfəlik silmək istədiyinizə əminsiniz?");
-            if (confirmDelete) {
-                database.ref('users/' + currentUser.uid).remove()
-                    .then(() => {
-                        return currentUser.delete();
-                    })
-                    .then(() => {
-                        auth.signOut();
-                        window.location.replace('index.html');
-                    })
-                    .catch(error => {
-                        showToast(getErrorMessage(error.code));
-                    });
+            if (!confirmDelete) return;
+
+            try {
+                const uid = currentUser.uid;
+
+                // İstifadəçinin yaratdığı otaqları tap (dashboard siyahısı üçün
+                // istifadə olunan eyni sorğu) və hər birini sil — bu, içindəki
+                // viewers/messages/signaling/playerState-i avtomatik kaskadla silir.
+                // Qeyd: başqalarının otaqlarında qalan mesaj/izləyici qeydləri
+                // toxunulmur — bunları tapmaq üçün bazada indeks yoxdur və tam
+                // skan bahalı/mövcud təhlükəsizlik qaydaları ilə bloklana bilər.
+                const ownedRoomsSnap = await database.ref('rooms')
+                    .orderByChild('creator/uid').equalTo(uid).get();
+                const ownedRooms = ownedRoomsSnap.val() || {};
+                await Promise.all(
+                    Object.keys(ownedRooms).map(roomId => database.ref('rooms/' + roomId).remove())
+                );
+
+                await database.ref('users/' + uid).remove();
+                await currentUser.delete();
+                await auth.signOut();
+
+                window.location.replace('index.html');
+            } catch (error) {
+                showToast(getErrorMessage(error.code));
             }
         });
     }
