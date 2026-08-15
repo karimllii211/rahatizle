@@ -7,33 +7,26 @@
     }
     
     /* Adjust container paddings */
-    .px-8, .px-16, .p-10 {
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
+    .px-8, .px-16, .p-10, .px-4, .p-4 {
+        padding-left: 20px !important;
+        padding-right: 20px !important;
     }
     
     /* Navbar */
     nav {
-        padding: 1rem !important;
-        border-radius: 1rem !important;
-        flex-wrap: wrap;
-    }
-    
-    /* Navbar actions */
-    #nav-guest-view button {
-        padding: 0.5rem 1rem !important;
-        font-size: 0.8rem !important;
+        padding: 15px 20px !important;
+        border-radius: 20px !important;
     }
     
     /* Hero Section typography */
     h1 {
-        font-size: 2.5rem !important;
+        font-size: 2rem !important; /* Decreased as requested */
         line-height: 1.2 !important;
         word-wrap: break-word;
     }
     
     h2 {
-        font-size: 1.75rem !important;
+        font-size: 1.5rem !important;
     }
     
     p {
@@ -51,7 +44,6 @@
     }
 
     button#joinRoomBtn, button#createRoomBtn, a.bg-gradient-to-r {
-        width: 100% !important;
         height: 3.5rem !important;
         display: flex !important;
         align-items: center !important;
@@ -68,7 +60,7 @@
     footer {
         flex-direction: column !important;
         gap: 1.5rem !important;
-        padding: 2rem 1rem !important;
+        padding: 2rem 20px !important;
     }
     
     footer .flex {
