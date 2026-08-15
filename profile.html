@@ -9,8 +9,10 @@
     <!-- EmailJS CDN -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            animation: pageFadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+ font-family: 'Inter', sans-serif; overflow-x: hidden; }
         
         .avatar-overlay {
             background: rgba(0,0,0,0.5);
@@ -19,6 +21,10 @@
         }
         .avatar-container:hover .avatar-overlay {
             opacity: 1;
+        }
+            @keyframes pageFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
     </style>
 </head>
@@ -34,7 +40,7 @@
                 </a>
             </div>
             <div class="flex items-center gap-2">
-                <span class="font-['Montserrat'] font-black text-2xl tracking-wider text-white">RAHAT İZLE<span class="text-[#FF014C]">.</span></span>
+                <span class="font-['Manrope'] font-extrabold text-2xl tracking-wider text-white">RAHAT İZLE<span class="text-[#FF014C]">.</span></span>
             </div>
         </div>
     </nav>

@@ -9,8 +9,10 @@
     <!-- EmailJS CDN -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
         body {
+            animation: pageFadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+
             font-family: 'Inter', sans-serif;
             background-color: #030712; /* gray-950/black mix */
             color: #ffffff;
@@ -35,6 +37,10 @@
         .animate-fade-in-up {
             animation: fadeInUp 0.6s ease-out forwards;
         }
+            @keyframes pageFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col items-center p-4 selection:bg-red-600 selection:text-white bg-black overflow-x-hidden font-sans">
@@ -55,7 +61,7 @@
                 <!-- Logo -->
                 <div class="flex items-center gap-2">
                     <svg class="w-8 h-8 text-[#FF014C]" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm0 2v12h16V6H4zm2 2h2v8H6V8zm4 0h2v8h-2V8zm4 0h2v8h-2V8z"/></svg>
-                    <span class="font-['Montserrat'] font-black text-3xl tracking-wider text-white">RAHAT İZLE<span class="text-[#FF014C]">.</span></span>
+                    <span class="font-['Manrope'] font-extrabold text-3xl tracking-wider text-white">RAHAT İZLE<span class="text-[#FF014C]">.</span></span>
                 </div>
                 
                 <!-- Center Links -->
@@ -68,6 +74,11 @@
                 <!-- Right Actions -->
                 <div class="flex items-center gap-4">
                     <!-- Guest View -->
+                    <!-- Create Room Btn -->
+                    <a href="create-room.html" class="hidden sm:flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-[#FF014C] to-[#800020] text-white text-sm font-bold rounded-full shadow-[0_0_15px_rgba(255,1,76,0.3)] hover:shadow-[0_0_25px_rgba(255,1,76,0.6)] hover:scale-105 transition-all duration-300 mr-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        OTAQ YARAT
+                    </a>
                     <div id="nav-guest-view" class="flex items-center gap-3">
                         <button class="open-login-modal px-5 py-2 text-[#C8C8C8] hover:text-white text-sm font-bold transition-all duration-300">Giriş</button>
                         <button class="open-register-modal px-5 py-2 bg-[#FF014C]/20 text-[#FF014C] hover:bg-[#FF014C] hover:text-white border border-[#FF014C]/50 text-sm font-bold rounded-full transition-all duration-300">Qeydiyyat</button>
@@ -93,39 +104,32 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center animate-fade-in-up" style="animation-delay: 0.1s; opacity: 0;">
                     <!-- Left: Text & Actions -->
                     <div class="flex flex-col gap-6 z-10 p-6 md:p-10">
-                        <h1 class="font-['Montserrat'] font-black text-7xl md:text-9xl lg:text-[120px] leading-[0.9] tracking-normal text-white">
-                            FIND MOVIES <br>
-                            TV SHOWS <br>
-                            <span class="text-[#FF014C]">AND MORE</span>
+                        <h1 class="font-['Manrope'] font-extrabold text-5xl md:text-6xl lg:text-7xl leading-tight tracking-tight text-white drop-shadow-lg">
+                            Məsafələri <span class="text-[#FF014C]">Unudun.</span><br>
+                            Anları Birlikdə <br>
+                            Kəşf Edin.
                         </h1>
-                        <p class="text-[#C8C8C8] text-lg lg:text-xl max-w-lg leading-relaxed">
-                            Rahat İzle ilə məsafələri aradan qaldırın. Dostlarınızla eyni anda film izləyin, söhbət edin və əylənin. Yeni bir otaq yaradın və ya mövcud otağa qoşulun.
+                        <p class="text-neutral-300 text-base lg:text-lg max-w-md leading-relaxed font-medium">
+                            Dostlarınız harada olursa olsun, eyni ekranda film izləyin, söhbət edin və əyləncənin dadını çıxarın.
                         </p>
                         
-                        <!-- Actions (Room Logic) -->
+                        <!-- Actions -->
                         <div class="flex flex-col sm:flex-row gap-4 mt-6 w-full max-w-xl">
-                            <button id="createRoomBtn" class="flex items-center justify-center gap-3 px-8 py-4 lg:py-5 bg-transparent border border-neutral-50 hover:border-[#FF014C] hover:bg-[#FF014C]/10 rounded-full text-white font-bold transition-all duration-300 group whitespace-nowrap lg:text-lg w-full sm:w-auto">
-                                <svg class="w-6 h-6 lg:w-7 lg:h-7 text-white group-hover:text-[#FF014C] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                OTAQ YARAT
-                            </button>
-                            
-                            <div class="flex flex-col sm:flex-row items-stretch sm:items-center flex-1 bg-white/5 border border-white/20 rounded-2xl sm:rounded-full overflow-hidden focus-within:border-[#FF014C] transition-colors duration-300 w-full h-auto">
-                                <input type="text" id="roomCodeInput" placeholder="KODU YAZIN" class="w-full h-14 sm:h-auto bg-transparent text-white px-6 focus:outline-none uppercase tracking-widest placeholder-white/30 text-sm lg:text-base font-bold text-center sm:text-left border-b sm:border-b-0 border-white/10 sm:flex-1">
-                                <button id="joinRoomBtn" class="h-14 sm:h-auto px-6 lg:px-8 bg-white text-black hover:bg-gray-200 font-bold transition-colors duration-300 uppercase tracking-widest text-sm lg:text-base sm:h-full">
-                                    QOŞUL
-                                </button>
-                            </div>
+                            <a href="create-room.html" class="flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-[#FF014C] to-[#b30035] hover:scale-105 shadow-[0_10px_30px_rgba(255,1,76,0.4)] rounded-full text-white font-bold transition-all duration-300 whitespace-nowrap text-base lg:text-lg w-full sm:w-auto">
+                                HƏMƏN BAŞLA
+                                <svg class="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                            </a>
                         </div>
                     </div>
                     
                     <!-- Right: Overlapping Posters -->
-                    <div class="relative w-full h-[400px] md:h-[500px] lg:h-[600px] flex items-center justify-center pointer-events-none hidden sm:flex">
+                    <div class="relative w-full h-[300px] md:h-[400px] lg:h-[500px] flex items-center justify-center pointer-events-none hidden sm:flex">
                         <!-- Back Poster -->
-                        <div class="absolute right-[30%] top-[10%] w-[220px] h-[330px] md:w-[280px] md:h-[420px] lg:w-[320px] lg:h-[480px] rounded-2xl overflow-hidden shadow-2xl opacity-60 transform -rotate-6 scale-90 blur-[2px]">
+                        <div class="absolute right-[25%] top-[10%] w-[180px] h-[270px] md:w-[220px] md:h-[330px] rounded-2xl overflow-hidden shadow-2xl opacity-50 transform -rotate-6 scale-90 blur-[1px] hover:blur-none transition-all duration-500">
                             <img src="https://image.tmdb.org/t/p/w500/r2J02Z2OpNTctfOSN1Ydvli65rQ.jpg" class="w-full h-full object-cover">
                         </div>
                         <!-- Front Poster -->
-                        <div class="absolute right-[5%] top-[15%] w-[250px] h-[375px] md:w-[300px] md:h-[450px] lg:w-[360px] lg:h-[540px] rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-white/10 transform rotate-2 z-10">
+                        <div class="absolute right-[10%] top-[20%] w-[200px] h-[300px] md:w-[250px] md:h-[375px] rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.6)] border border-white/10 transform rotate-3 z-10 hover:scale-105 transition-all duration-500">
                             <img src="https://image.tmdb.org/t/p/w500/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg" class="w-full h-full object-cover">
                         </div>
                     </div>
@@ -133,34 +137,34 @@
 
                 <!-- Platforms Section -->
                 <div class="flex flex-col gap-6 mt-10 lg:mt-20 animate-fade-in-up" style="animation-delay: 0.2s; opacity: 0;">
-                    <div class="flex items-center justify-center">
-                        <h2 class="font-['Montserrat'] font-black text-3xl lg:text-4xl tracking-widest text-white text-center">İSTƏNİLƏN YERDƏN İZLƏ</h2>
+                    <div class="flex items-center justify-center mb-4">
+                        <h2 class="font-['Manrope'] font-extrabold text-2xl lg:text-3xl tracking-wide text-white text-center">Dəstəklənən Platformalar</h2>
                     </div>
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 lg:gap-8 mt-6">
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-6 mt-2">
                         <!-- Netflix -->
-                        <div class="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-[#E50914]/10 hover:border-[#E50914] transition-all duration-300 flex flex-col items-center justify-center gap-4 group cursor-pointer">
-                            <h3 class="font-bold text-xl text-white group-hover:text-[#E50914] transition-colors">Netflix</h3>
-                            <p class="text-xs text-[#C8C8C8] text-center">Birlikdə izlə</p>
+                        <div class="bg-[#0a0a0a] border border-white/10 rounded-3xl p-6 hover:bg-[#E50914]/10 hover:border-[#E50914]/50 hover:-translate-y-2 hover:shadow-[0_10px_30px_rgba(229,9,20,0.15)] transition-all duration-300 flex flex-col items-center justify-center gap-3 group cursor-default">
+                            <svg class="w-10 h-10 text-white/50 group-hover:text-[#E50914] transition-colors" viewBox="0 0 24 24" fill="currentColor"><path d="M6.12 19.34l.02-14.73 3.96 11.83 5.46-13.63.02 16.53H11.6V8.12l-4.14 11.22H6.12z"/></svg>
+                            <h3 class="font-bold text-lg text-white/80 group-hover:text-white transition-colors">Netflix</h3>
                         </div>
                         <!-- YouTube -->
-                        <div class="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-[#FF0000]/10 hover:border-[#FF0000] transition-all duration-300 flex flex-col items-center justify-center gap-4 group cursor-pointer">
-                            <h3 class="font-bold text-xl text-white group-hover:text-[#FF0000] transition-colors">YouTube</h3>
-                            <p class="text-xs text-[#C8C8C8] text-center">Ortaq izlə</p>
+                        <div class="bg-[#0a0a0a] border border-white/10 rounded-3xl p-6 hover:bg-[#FF0000]/10 hover:border-[#FF0000]/50 hover:-translate-y-2 hover:shadow-[0_10px_30px_rgba(255,0,0,0.15)] transition-all duration-300 flex flex-col items-center justify-center gap-3 group cursor-default">
+                            <svg class="w-10 h-10 text-white/50 group-hover:text-[#FF0000] transition-colors" viewBox="0 0 24 24" fill="currentColor"><path d="M21.582 6.186a2.636 2.636 0 00-1.85-1.874C18.093 3.87 12 3.87 12 3.87s-6.092 0-7.731.442a2.636 2.636 0 00-1.85 1.874C2 7.854 2 12 2 12s0 4.146.419 5.814a2.636 2.636 0 001.85 1.874C5.908 20.13 12 20.13 12 20.13s6.093 0 7.732-.442a2.636 2.636 0 001.85-1.874C22 16.146 22 12 22 12s0-4.146-.418-5.814zM9.99 15.112V8.888L15.424 12l-5.434 3.112z"/></svg>
+                            <h3 class="font-bold text-lg text-white/80 group-hover:text-white transition-colors">YouTube</h3>
                         </div>
                         <!-- Disney+ -->
-                        <div class="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-[#0063E5]/10 hover:border-[#0063E5] transition-all duration-300 flex flex-col items-center justify-center gap-4 group cursor-pointer">
-                            <h3 class="font-bold text-xl text-white group-hover:text-[#0063E5] transition-colors">Disney+</h3>
-                            <p class="text-xs text-[#C8C8C8] text-center">Cizgi aləmi</p>
+                        <div class="bg-[#0a0a0a] border border-white/10 rounded-3xl p-6 hover:bg-[#0063E5]/10 hover:border-[#0063E5]/50 hover:-translate-y-2 hover:shadow-[0_10px_30px_rgba(0,99,229,0.15)] transition-all duration-300 flex flex-col items-center justify-center gap-3 group cursor-default">
+                            <svg class="w-10 h-10 text-white/50 group-hover:text-[#0063E5] transition-colors" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-2-12.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm4 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm-2 5.5c-2 0-3.5 1.5-3.5 1.5l1 1s1-1 2.5-1 2.5 1 2.5 1l1-1s-1.5-1.5-3.5-1.5z"/></svg>
+                            <h3 class="font-bold text-lg text-white/80 group-hover:text-white transition-colors">Disney+</h3>
                         </div>
                         <!-- Prime Video -->
-                        <div class="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-[#00A8E1]/10 hover:border-[#00A8E1] transition-all duration-300 flex flex-col items-center justify-center gap-4 group cursor-pointer">
-                            <h3 class="font-bold text-xl text-white group-hover:text-[#00A8E1] transition-colors">Prime</h3>
-                            <p class="text-xs text-[#C8C8C8] text-center">Maraqlı filmlər</p>
+                        <div class="bg-[#0a0a0a] border border-white/10 rounded-3xl p-6 hover:bg-[#00A8E1]/10 hover:border-[#00A8E1]/50 hover:-translate-y-2 hover:shadow-[0_10px_30px_rgba(0,168,225,0.15)] transition-all duration-300 flex flex-col items-center justify-center gap-3 group cursor-default">
+                            <svg class="w-10 h-10 text-white/50 group-hover:text-[#00A8E1] transition-colors" viewBox="0 0 24 24" fill="currentColor"><path d="M11.996 0A12 12 0 1024 12 12 12 0 0011.996 0zm5.6 15.2c-1.6 1.6-4 2.4-6.4 2.4-2.4 0-4.8-.8-6.4-2.4-.8-.8-1.2-2-1.2-3.2 0-1.2.4-2.4 1.2-3.2 1.6-1.6 4-2.4 6.4-2.4s4.8.8 6.4 2.4c.8.8 1.2 2 1.2 3.2 0 1.2-.4 2.4-1.2 3.2z"/></svg>
+                            <h3 class="font-bold text-lg text-white/80 group-hover:text-white transition-colors">Prime</h3>
                         </div>
                         <!-- Local -->
-                        <div class="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/20 hover:border-white/50 transition-all duration-300 flex flex-col items-center justify-center gap-4 group cursor-pointer">
-                            <h3 class="font-bold text-xl text-white group-hover:text-white transition-colors">Cihazdan</h3>
-                            <p class="text-xs text-[#C8C8C8] text-center">Öz videonu yüklə</p>
+                        <div class="bg-[#0a0a0a] border border-white/10 rounded-3xl p-6 hover:bg-white/10 hover:border-white/50 hover:-translate-y-2 hover:shadow-[0_10px_30px_rgba(255,255,255,0.1)] transition-all duration-300 flex flex-col items-center justify-center gap-3 group cursor-default">
+                            <svg class="w-10 h-10 text-white/50 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                            <h3 class="font-bold text-lg text-white/80 group-hover:text-white transition-colors">Cihazdan</h3>
                         </div>
                     </div>
                 </div>
@@ -169,7 +173,7 @@
                 <footer class="w-full mt-10 pt-8 pb-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 animate-fade-in-up" style="animation-delay: 0.4s; opacity: 0;">
                     <div class="flex items-center gap-2 opacity-50 hover:opacity-100 transition-opacity cursor-pointer">
                         <svg class="w-6 h-6 text-[#FF014C]" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm0 2v12h16V6H4zm2 2h2v8H6V8zm4 0h2v8h-2V8zm4 0h2v8h-2V8z"/></svg>
-                        <span class="font-['Montserrat'] font-black text-xl tracking-wider text-white">RAHAT İZLE<span class="text-[#FF014C]">.</span></span>
+                        <span class="font-['Manrope'] font-extrabold text-xl tracking-wider text-white">RAHAT İZLE<span class="text-[#FF014C]">.</span></span>
                     </div>
                     <div class="flex items-center gap-6">
                         <a href="#" class="text-[#C8C8C8] hover:text-white transition-colors duration-300 text-sm">Ana Səhifə</a>
@@ -389,4 +393,20 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
     <script src="app.js"></script>
 </body>
-</html>
+</html><script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationPlayState = 'running';
+                    entry.target.style.opacity = '1';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.animate-fade-in-up, .animate-fade-in').forEach(el => {
+            el.style.animationPlayState = 'paused'; // pause initially until scrolled
+            observer.observe(el);
+        });
+    });
+</script>
