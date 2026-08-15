@@ -344,7 +344,15 @@ function initRoom() {
                     
                     const stream = mainVideo.captureStream ? mainVideo.captureStream() : (mainVideo.webkitCaptureStream ? mainVideo.webkitCaptureStream() : (mainVideo.mozCaptureStream ? mainVideo.mozCaptureStream() : null));
                     if (stream) {
-                        stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+                        stream.getTracks().forEach(track => {
+                            const sender = peerConnection.addTrack(track, stream);
+                            if (track.kind === 'video') {
+                                const parameters = sender.getParameters();
+                                if (!parameters.encodings) parameters.encodings = [{}];
+                                parameters.encodings[0].maxBitrate = 10000000; // 10 Mbps
+                                sender.setParameters(parameters).catch(e => console.error("Bitrate xətası:", e));
+                            }
+                        });
                     }
                     
                     const offer = await peerConnection.createOffer();
@@ -438,7 +446,15 @@ function initRoom() {
         setupPeerConnection();
         
         if (localStream) {
-            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+            localStream.getTracks().forEach(track => {
+                const sender = peerConnection.addTrack(track, localStream);
+                if (track.kind === 'video') {
+                    const parameters = sender.getParameters();
+                    if (!parameters.encodings) parameters.encodings = [{}];
+                    parameters.encodings[0].maxBitrate = 10000000; // 10 Mbps
+                    sender.setParameters(parameters).catch(e => console.error("Bitrate xətası:", e));
+                }
+            });
         }
 
         const offer = await peerConnection.createOffer();
