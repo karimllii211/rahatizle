@@ -280,15 +280,23 @@ function initRoom() {
     let peerConnection = null;
     let isHost = false;
 
-    const servers = {
+    const getEnv = (key, fallback) => {
+        try { return process.env[key] || fallback; } 
+        catch (e) { return fallback; }
+    };
+
+    const configuration = {
+        sdpSemantics: 'unified-plan',
         iceServers: [
-            { urls: "stun:stun.relay.metered.ca:80" },
-            { urls: "turn:global.relay.metered.ca:80", username: "8efca8d1dc36b4cb57912d97", credential: "InngPFUIWmzTLEKP" },
-            { urls: "turn:global.relay.metered.ca:80?transport=tcp", username: "8efca8d1dc36b4cb57912d97", credential: "InngPFUIWmzTLEKP" },
-            { urls: "turn:global.relay.metered.ca:443", username: "8efca8d1dc36b4cb57912d97", credential: "InngPFUIWmzTLEKP" },
-            { urls: "turns:global.relay.metered.ca:443?transport=tcp", username: "8efca8d1dc36b4cb57912d97", credential: "InngPFUIWmzTLEKP" }
-        ],
-        iceTransportPolicy: 'all'
+            {
+                urls: "stun:stun.l.google.com:19302" // Standart STUN
+            },
+            {
+                urls: getEnv('NEXT_PUBLIC_TURN_URL', 'turn:141.144.238.167:3478'),
+                username: getEnv('NEXT_PUBLIC_TURN_USERNAME', 'rahatizle'),
+                credential: getEnv('NEXT_PUBLIC_TURN_PASSWORD', 'Video2026!')
+            }
+        ]
     };
 
     const signalingRef = database.ref(`rooms/${currentRoomId}/signaling`);
@@ -296,17 +304,20 @@ function initRoom() {
     const videoActiveRef = database.ref(`rooms/${currentRoomId}/videoActive`);
 
     // Host və Guest Rollarının Ayrılması
-    roomRef.child('creator').once('value').then(snapshot => {
+    roomRef.child('creator').get().then(snapshot => {
         const creatorData = snapshot.val();
         if (creatorData && creatorData.uid === currentUser.uid) {
             isHost = true;
             mainVideo.controls = true;
             mainVideo.style.pointerEvents = 'auto';
             if (localVideoBtn) localVideoBtn.parentElement.classList.remove('hidden');
+            
+            // Otaq performansı: Host qopduqda lazımsız siqnal qalıqlarını təmizlə
+            signalingRef.onDisconnect().remove();
         } else {
             isHost = false;
-            mainVideo.controls = false;
-            mainVideo.style.pointerEvents = 'none';
+            mainVideo.controls = true;
+            mainVideo.style.pointerEvents = 'auto';
             if (localVideoBtn) localVideoBtn.parentElement.classList.add('hidden');
             
             // Qonaq girən kimi offer-i dinləyir (Dəqiq Axın B)
@@ -352,7 +363,7 @@ function initRoom() {
     const setupPeerConnection = () => {
         if (peerConnection) return;
         
-        peerConnection = new RTCPeerConnection(servers);
+        peerConnection = new RTCPeerConnection(configuration);
 
         peerConnection.onicecandidate = event => {
             if (event.candidate) {
@@ -397,7 +408,8 @@ function initRoom() {
                                         playBtn.innerText = 'Videonu Başlatmaq üçün Toxunun';
                                         mainVideo.parentElement.appendChild(playBtn);
                                         
-                                        playBtn.addEventListener('click', () => {
+                                        const playVideoHandler = (e) => {
+                                            e.preventDefault();
                                             const userPlayPromise = mainVideo.play();
                                             if (userPlayPromise !== undefined) {
                                                 userPlayPromise.then(() => {
@@ -406,7 +418,9 @@ function initRoom() {
                                             } else {
                                                 playBtn.style.display = 'none';
                                             }
-                                        });
+                                        };
+                                        playBtn.addEventListener('click', playVideoHandler);
+                                        playBtn.addEventListener('touchstart', playVideoHandler, { passive: false });
                                     }
                                     playBtn.style.display = 'block';
                                 }
@@ -588,11 +602,16 @@ function initRoom() {
         });
     }
 
-    // --- 5. Təmizlənmiş Sinxronizasiya (Host to Guest) ---
+    // --- 5. İkitərəfli Sinxronizasiya (Two-Way Sync) ---
     if (mainVideo) {
         const syncState = (state) => {
-            if (isHost && !window.isWebRTCSetupPhase) {
-                playerStateRef.set({ state, time: mainVideo.currentTime, timestamp: Date.now() });
+            if (!window.isWebRTCSetupPhase) {
+                playerStateRef.set({ 
+                    state, 
+                    time: mainVideo.currentTime, 
+                    timestamp: Date.now(),
+                    updatedBy: currentUser.uid 
+                });
             }
         };
 
@@ -600,13 +619,17 @@ function initRoom() {
         mainVideo.addEventListener('pause', () => syncState('pause'));
         mainVideo.addEventListener('seeked', () => syncState('seeked'));
 
-        // Yalnız Guest oxuyur
+        // Hər iki tərəf oxuyur
         playerStateRef.on('value', snapshot => {
-            if (isHost) return; // Dövrün qarşısını alırıq
-            if (!mainVideo.srcObject || mainVideo.readyState === 0) return; // Video hazır deyilsə dayan
+            // Əgər video yüklənməyibsə və ya sıfır vəziyyətindədirsə toxunma
+            if (!mainVideo.srcObject && !mainVideo.src) return;
+            if (mainVideo.readyState === 0) return;
 
             const data = snapshot.val();
             if (!data) return;
+
+            // Özümüz göndərdiyimiz update-i ignor edirik (sonsuz döngü olmasın)
+            if (data.updatedBy === currentUser.uid) return;
 
             if (Math.abs(mainVideo.currentTime - data.time) > 1) {
                 mainVideo.currentTime = data.time;
@@ -620,7 +643,7 @@ function initRoom() {
                     }).catch(error => {
                         if (error.name === 'AbortError') {
                             console.log("Sinxronizasiya: Play əmri pause() tərəfindən dayandırıldı.");
-                        } else {
+                        } else if (error.name !== 'NotAllowedError') {
                             console.error("Sinxronizasiya: Play xətası:", error);
                         }
                     });

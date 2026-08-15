@@ -801,7 +801,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             // Profil form məlumatlarını doldur
-            database.ref('users/' + user.uid).once('value').then(snapshot => {
+            database.ref('users/' + user.uid).get().then(snapshot => {
                 const data = snapshot.val();
                 const pageName = document.getElementById('profilePageName');
                 const pageLoading = document.getElementById('profilePageLoading');
@@ -822,7 +822,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (lnameInput) lnameInput.value = parts.slice(1).join(' ');
                     }
                     const uEmail = document.getElementById('profEmail');
-                    if (uEmail) uEmail.value = data.email || '';
+                    if (uEmail) uEmail.value = user.email || data.email || '';
                     const uPhone = document.getElementById('profPhone');
                     if (uPhone) uPhone.value = data.phone || '';
                     const uGender = document.getElementById('profGender');
