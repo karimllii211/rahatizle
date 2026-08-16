@@ -329,7 +329,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('EmailJS ERROR:', error);
             showToast("Kod göndərilə bilmədi. Zəhmət olmasa yenidən cəhd edin.");
         });
-    }
     };
 
     // E-poçt dəyişmə axını: kod serverdə yaradılır və yeni ünvana göndərilir,
