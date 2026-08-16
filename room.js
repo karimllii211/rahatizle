@@ -239,7 +239,7 @@ function initRoom() {
         const data = snapshot.val();
         const count = data ? Object.keys(data).length : 0;
         if (activeViewerCount) {
-            activeViewerCount.textContent = `Aktiv İzləyici: ${count}`;
+            activeViewerCount.textContent = `${t("active_viewers")}: ${count}`;
         }
     });
 
@@ -614,7 +614,7 @@ function initRoom() {
 
             // TODO: Gələcəkdə premium funksiya üçün limitin qaldırılması.
             if (file.size > 500 * 1024 * 1024) {
-                showToast(i18n.getFileSizeLimit ? i18n.getFileSizeLimit() : "Faylın həcmi 500MB-dan böyük ola bilməz!");
+                showToast(t("file_size_limit"));
                 e.target.value = '';
                 return;
             }
@@ -660,7 +660,7 @@ function initRoom() {
                     window.isWebRTCSetupPhase = false; // Sinxronizasiyanı bərpa et
                 } catch (error) {
                     console.error("❌ Stream yaxalama xətası:", error);
-                    alert("Videonun axına çevrilməsi uğursuz oldu. Fərqli format yoxlayın.");
+                    alert(t("alert_video_format"));
                     if (closeVideoBtn) closeVideoBtn.click(); // Uğursuz olduqda təmizlə
                     window.isWebRTCSetupPhase = false;
                 } finally {
@@ -744,12 +744,12 @@ function initYouTubeFeature(mainVideo, videoPlaceholder) {
             ytSearchBtn.textContent = '...';
 
             try {
-                const response = await fetch(`/api/youtube-search?q=${encodeURIComponent(query)}`);
+                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=20&q=${encodeURIComponent(query)}&key=AIzaSyCr51yPNOwDSdNkOdI0Xj1XOw6oS5FPm-s`);
                 const data = await response.json();
                 const container = document.getElementById('yt-search-results-container');
 
                 if (!response.ok || data.error) {
-                    showToast(data.error || "Axtarış zamanı xəta baş verdi.");
+                    showToast(data.error || t("yt_search_error"));
                     container.classList.add('hidden');
                     return;
                 }
@@ -806,7 +806,7 @@ function initYouTubeFeature(mainVideo, videoPlaceholder) {
                 });
             } catch (error) {
                 console.error('YouTube Axtarış Xətası:', error);
-                showToast("Axtarış zamanı xəta baş verdi.");
+                showToast(t("yt_search_error"));
             } finally {
                 ytSearchBtn.disabled = false;
                 ytSearchBtn.textContent = 'Axtar';
@@ -933,3 +933,15 @@ function initYouTubeFeature(mainVideo, videoPlaceholder) {
         }
     });
 }
+
+
+window.addEventListener('langChanged', () => {
+    const activeViewerCount = document.getElementById('activeViewerCount');
+    if (activeViewerCount) {
+        const countMatch = activeViewerCount.textContent.match(/\d+/);
+        const count = countMatch ? countMatch[0] : 0;
+        activeViewerCount.textContent = `${t("active_viewers")}: ${count}`;
+    }
+});
+    }
+});

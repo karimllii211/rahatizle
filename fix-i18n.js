@@ -1,4 +1,6 @@
+const fs = require('fs');
 
+const i18nContent = `
 const dict = {
     AZ: {
         "yt_search_btn": "Axtar",
@@ -152,3 +154,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+`;
+
+fs.writeFileSync('i18n.js', i18nContent);
