@@ -1,3 +1,7 @@
+// EmailJS Initialization
+if (typeof emailjs !== 'undefined') {
+    emailjs.init("-joV9uOaw310_PJCg");
+}
 // Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCdbOsVymHIPfjbw3oByjb4pS-sEB8jv8c",
@@ -297,35 +301,28 @@ document.addEventListener('DOMContentLoaded', () => {
         startResendTimer();
     };
 
-    // Şifrə bərpası: kodu server yaradır və göndərir.
+    // --- EMAILJS ŞİFRƏ BƏRPASI (FRONTEND) ---
     const requestPasswordResetCode = async (userEmail) => {
         currentOTPRecoveryEmail = userEmail;
-        resetToken = null;
         enteredResetCode = null;
+        
+        // 6 rəqəmli kod generasiya edirik
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        resetToken = otpCode; // Kodu yadda saxlayırıq (frontend yoxlanışı üçün)
+        
+        showToast("E-poçt göndərilir, zəhmət olmasa gözləyin...");
+        
         try {
-            const response = await fetch('/api/reset-password', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'request', email: userEmail })
-            });
-            const data = await response.json().catch(() => ({}));
-
-            if (response.ok && data.token) {
-                resetToken = data.token;
-                showToast("Əgər bu e-poçt qeydiyyatdadırsa, 6 rəqəmli kod göndərildi!");
-                openOTPModal();
-                return;
-            }
-
-            if (response.status === 503) {
-                showToast(data.error || "Kod göndərilə bilmədi. Zəhmət olmasa bir az sonra yenidən cəhd edin.");
-                return;
-            }
-
-            showToast(data.error || "Xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.");
+            await emailjs.send("service_9umksl7", "template_0aiimmq", {
+                security_code: otpCode,
+                email: userEmail
+            }, "-joV9uOaw310_PJCg");
+            
+            showToast("6 rəqəmli kod e-poçtunuza göndərildi!");
+            openOTPModal();
         } catch (error) {
-            console.error("Şifrə bərpası xətası:", error);
-            showToast("Şəbəkə xətası baş verdi. Zəhmət olmasa yenidən cəhd edin.");
+            console.error("EmailJS Xətası:", error);
+            showToast("Kod göndərilə bilmədi. Zəhmət olmasa yenidən cəhd edin.");
         }
     };
 
@@ -445,8 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (otpMode === 'password') {
                 if (!/^\d{6}$/.test(entered)) return showToast("6 rəqəmli kodu daxil edin.");
                 if (!resetToken) return showToast("Sessiyanın vaxtı bitib. Yeni kod tələb edin.");
-                // Kodun doğruluğunu yalnız server yoxlaya bilər; kod şifrə ilə
-                // birlikdə növbəti addımda göndərilir.
+                if (entered !== resetToken) return showToast("Kod yanlışdır.");
                 enteredResetCode = entered;
                 const otpStep = document.getElementById('otpStepContainer');
                 const newPwdStep = document.getElementById('newPasswordStepContainer');
@@ -499,9 +495,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        action: 'reset',
-                        token: resetToken,
-                        code: enteredResetCode,
+                        action: 'direct-reset',
+                        email: currentOTPRecoveryEmail,
                         newPassword: newPwd
                     })
                 });
@@ -516,7 +511,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (loginModal) showModal(loginModal);
                 } else {
                     showToast(data.error || "Şifrə yenilənə bilmədi.");
-                    // Kod yanlış idisə istifadəçini kod addımına qaytarırıq.
                     if (response.status === 400) {
                         const otpStep = document.getElementById('otpStepContainer');
                         const newPwdStep = document.getElementById('newPasswordStepContainer');
