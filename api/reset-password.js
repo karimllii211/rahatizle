@@ -5,28 +5,27 @@ module.exports = async (req, res) => {
   try {
     const admin = require('firebase-admin');
 
-    function getServiceAccount() {
-      const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        return {
-          projectId: parsed.project_id || parsed.projectId,
-          clientEmail: parsed.client_email || parsed.clientEmail,
-          privateKey: (parsed.private_key || parsed.privateKey) ? (parsed.private_key || parsed.privateKey).replace(/\\n/g, '\n') : undefined
-        };
-      }
-      return {
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : undefined
-      };
-    }
-
     function initAdmin() {
       if (admin.apps.length) return true;
-      const sa = getServiceAccount();
-      if (!sa.projectId || !sa.clientEmail || !sa.privateKey) return false;
-      admin.initializeApp({ credential: admin.credential.cert(sa) });
+      
+      let formattedPrivateKey = process.env.FIREBASE_PRIVATE_KEY;
+      if (formattedPrivateKey) {
+        // Həm \n simvollarını əsl yeni sətirə çevirir, həm də yanlışlıqla düşmüş dırnaq işarələrini silir
+        formattedPrivateKey = formattedPrivateKey.replace(/\\n/g, '\n').replace(/"/g, '');
+      }
+
+      if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !formattedPrivateKey) {
+        return false;
+      }
+
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: formattedPrivateKey
+        }),
+        databaseURL: process.env.FIREBASE_DATABASE_URL // Əgər istifadə olunursa
+      });
       return true;
     }
 
