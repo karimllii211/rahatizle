@@ -1085,7 +1085,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Event delegation for "Create Room" buttons
     document.addEventListener('click', (e) => {
-        const createBtn = e.target.closest('.create-room-btn');
+        const createBtn = e.target.closest('#create-room-btn, .create-room-btn');
         if (createBtn) {
             e.preventDefault();
             if (!currentUser) {
