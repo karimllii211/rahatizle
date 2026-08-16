@@ -6,7 +6,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';"
+          "value": "default-src 'self' * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src 'self' * wss: https:; img-src 'self' * data: blob:; frame-src 'self' *; style-src 'self' * 'unsafe-inline'; font-src 'self' * data:;"
         },
         {
           "key": "X-Content-Type-Options",

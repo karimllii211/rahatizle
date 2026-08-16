@@ -131,7 +131,10 @@ function initRoom() {
         if (chatToggle) {
             e.preventDefault();
             const chatContainer = document.getElementById('chatPanel');
-            if (chatContainer) chatContainer.classList.toggle('translate-x-full');
+            if (chatContainer) {
+                chatContainer.classList.toggle('translate-x-full');
+                console.log('Chat açıldı');
+            }
         }
         
         const closeChatBtn = e.target.closest('#closeChatBtn');
@@ -202,6 +205,15 @@ function initRoom() {
             }
         }
         
+                // Platformanın dəyişməsini vizual olaraq göstərmək
+        const currentPlatform = data.creator ? data.creator.platform : null;
+        if (currentPlatform && !window.initialPlatformLoaded) {
+            window.initialPlatformLoaded = true;
+            const targetBtn = document.querySelector(`.platform-btn[data-platform="${currentPlatform}"]`);
+            if (targetBtn) {
+                targetBtn.click(); // Bu həm vizualı edəcək, həm də YouTube DOM-unu yaradacaq
+            }
+        }
         // Platformanın dəyişməsini vizual olaraq göstərmək
         const currentPlatform = data.creator ? data.creator.platform : null;
         if (currentPlatform) {
