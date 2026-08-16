@@ -246,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sendOTPBtn) {
         sendOTPBtn.addEventListener('click', () => {
             const email = document.getElementById('forgotEmail').value.trim();
-            if (!email) return showToast("E-poçt daxil edin!");
+            if (!email) return showToast(t('toast_enter_email'));
             otpMode = 'password';
             requestPasswordResetCode(email);
         });
@@ -310,7 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
         resetToken = otpCode; // Kodu yadda saxlayırıq (frontend yoxlanışı üçün)
         
-        showToast("E-poçt göndərilir, zəhmət olmasa gözləyin...");
+        showToast(t('toast_email_sending'));
         
         // EmailJS göndərmə prosesi
         const sendEmail = () => {
@@ -323,11 +323,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }, "-joV9uOaw310_PJCg")
             .then(function(response) {
                 console.log('SUCCESS!', response.status, response.text);
-                showToast("6 rəqəmli kod e-poçtunuza göndərildi!");
+                showToast(t('toast_code_sent'));
                 openOTPModal();
             }, function(error) {
                 console.error('EmailJS ERROR:', error);
-                showToast("Kod göndərilə bilmədi. Zəhmət olmasa yenidən cəhd edin.");
+                showToast(t('toast_code_failed'));
             });
         };
 
@@ -341,7 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             script.onerror = () => {
                 console.error("Failed to load EmailJS from CDN.");
-                showToast("Xəta: EmailJS yüklənə bilmədi. İnternet bağlantınızı və ya brauzer icazələrini (CSP/AdBlock) yoxlayın.");
+                showToast(t('toast_emailjs_error'));
             };
             document.head.appendChild(script);
         } else {
@@ -365,15 +365,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.ok && data.token) {
                 emailChangeToken = data.token;
-                showToast("6 rəqəmli kod e-poçtunuza göndərildi!");
+                showToast(t('toast_code_sent'));
                 openOTPModal();
                 return;
             }
 
-            showToast(data.error || "Kod göndərilə bilmədi. Zəhmət olmasa yenidən cəhd edin.");
+            showToast(data.error || t('toast_code_failed'));
         } catch (error) {
             console.error("Email OTP xətası:", error);
-            showToast("Şəbəkə xətası baş verdi.");
+            showToast(t('toast_network_error'));
         }
     };
 
@@ -394,7 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (changeEmailBtn && reauthModal) {
         changeEmailBtn.addEventListener('click', () => {
             if (currentUser && currentUser.providerData && currentUser.providerData[0] && currentUser.providerData[0].providerId === 'google.com') {
-                return showToast("Google hesablarının e-poçtu dəyişdirilə bilməz.");
+                return showToast(t('toast_google_email_fixed'));
             }
             document.getElementById('currentPasswordInput').value = '';
             showModal(reauthModal);
@@ -405,16 +405,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (verifyReAuthBtn) {
         verifyReAuthBtn.addEventListener('click', async () => {
             const pwd = document.getElementById('currentPasswordInput').value;
-            if (!pwd) return showToast("Şifrəni daxil edin.");
+            if (!pwd) return showToast(t('toast_enter_password'));
             
             try {
                 const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, pwd);
                 await currentUser.reauthenticateWithCredential(credential);
-                showToast("Təhlükəsizlik təsdiqləndi. İndi yeni e-poçtu yaza bilərsiniz.");
+                showToast(t('toast_security_passed'));
                 closeAllModals();
                 if (changeEmailModal) showModal(changeEmailModal);
             } catch (error) {
-                showToast("Şifrə yanlışdır və ya xəta baş verdi.");
+                showToast(t('toast_wrong_password'));
                 console.error(error);
             }
         });
@@ -424,7 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sendEmailOTPBtn) {
         sendEmailOTPBtn.addEventListener('click', () => {
             const newEmail = document.getElementById('newEmailInput').value.trim();
-            if (!newEmail) return showToast("Yeni e-poçt daxil edin!");
+            if (!newEmail) return showToast(t('toast_enter_new_email'));
             
             otpMode = 'email';
             newEmailPending = newEmail;
@@ -438,7 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await database.ref('users/' + currentUser.uid).update({ email: newEmail });
             const profEmail = document.getElementById('profEmail');
             if (profEmail) profEmail.value = newEmail;
-            showToast("E-poçtunuz uğurla yeniləndi!");
+            showToast(t('toast_email_updated'));
         } catch (error) {
             console.error("Email yeniləmə xətası:", error);
             showToast(getErrorMessage(error.code));
@@ -463,21 +463,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const entered = document.getElementById('otpInput').value.trim();
 
             if (otpMode === 'password') {
-                if (!/^\d{6}$/.test(entered)) return showToast("6 rəqəmli kodu daxil edin.");
-                if (!resetToken) return showToast("Sessiyanın vaxtı bitib. Yeni kod tələb edin.");
-                if (entered !== resetToken) return showToast("Kod yanlışdır.");
+                if (!/^\d{6}$/.test(entered)) return showToast(t('toast_enter_6_digit'));
+                if (!resetToken) return showToast(t('toast_session_expired'));
+                if (entered !== resetToken) return showToast(t('toast_wrong_code'));
                 enteredResetCode = entered;
                 const otpStep = document.getElementById('otpStepContainer');
                 const newPwdStep = document.getElementById('newPasswordStepContainer');
                 if (otpStep) otpStep.classList.add('hidden');
                 if (newPwdStep) newPwdStep.classList.remove('hidden');
-                showToast("Yeni şifrənizi təyin edin.");
+                showToast(t('toast_set_new_password'));
                 return;
             }
 
             // otpMode === 'email'
-            if (!/^\d{6}$/.test(entered)) return showToast("6 rəqəmli kodu daxil edin.");
-            if (!emailChangeToken) return showToast("Sessiyanın vaxtı bitib. Yeni kod tələb edin.");
+            if (!/^\d{6}$/.test(entered)) return showToast(t('toast_enter_6_digit'));
+            if (!emailChangeToken) return showToast(t('toast_session_expired'));
 
             verifyOTPBtn.disabled = true;
             try {
@@ -492,10 +492,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     closeAllModals();
                     executeEmailUpdate(newEmailPending);
                 } else {
-                    showToast(data.error || "Kod yanlışdır.");
+                    showToast(data.error || t('toast_wrong_code'));
                 }
             } catch (error) {
-                showToast("Şəbəkə xətası baş verdi.");
+                showToast(t('toast_network_error'));
             } finally {
                 verifyOTPBtn.disabled = false;
             }
@@ -506,10 +506,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (setNewPasswordBtn) {
         setNewPasswordBtn.addEventListener('click', async () => {
             const newPwd = document.getElementById('newPasswordInput').value;
-            if (newPwd.length < 8) return showToast("Şifrə ən azı 8 simvol olmalıdır.");
+            if (newPwd.length < 8) return showToast(t('toast_pwd_length'));
 
             if (!resetToken || !enteredResetCode) {
-                return showToast("Sessiyanın vaxtı bitib. Yeni kod tələb edin.");
+                return showToast(t('toast_session_expired'));
             }
 
             setNewPasswordBtn.disabled = true;
@@ -529,11 +529,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (response.ok) {
                     resetToken = null;
                     enteredResetCode = null;
-                    showToast("Şifrəniz uğurla yeniləndi! İndi giriş edə bilərsiniz.");
+                    showToast(t('toast_pwd_updated'));
                     closeAllModals();
                     if (loginModal) showModal(loginModal);
                 } else {
-                    showToast(data.error || "Şifrə yenilənə bilmədi.");
+                    showToast(data.error || t('toast_pwd_update_failed'));
                     if (data.details) console.error("Backend Xətası:", data.details);
                     if (response.status === 400) {
                         const otpStep = document.getElementById('otpStepContainer');
@@ -544,7 +544,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (err) {
                 console.error("Şifrə yeniləmə xətası:", err);
-                showToast("Şəbəkə xətası baş verdi.");
+                showToast(t('toast_network_error'));
             } finally {
                 setNewPasswordBtn.disabled = false;
             }
@@ -561,7 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loginBtn.addEventListener('click', () => {
             const email = loginEmail.value.trim();
             const password = loginPassword.value.trim();
-            if (!email || !password) return showToast("E-poçt və şifrəni daxil edin.");
+            if (!email || !password) return showToast(t('toast_enter_email_pwd'));
             
             auth.signInWithEmailAndPassword(email, password)
                 .catch(err => {
@@ -581,7 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (isNewUser) {
                         user.delete().then(() => {
                             showModal(registerModal);
-                            showToast("Zəhmət olmasa əvvəlcə qeydiyyatdan keçin.");
+                            showToast(t('toast_register_first'));
                         }).catch(err => console.error(err));
                     } else {
                         database.ref('users/' + user.uid).update({
@@ -591,7 +591,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             photoURL: user.photoURL || '',
                             lastLogin: firebase.database.ServerValue.TIMESTAMP
                         }).then(() => {
-                            showToast("Uğurla daxil oldunuz!");
+                            showToast(t('toast_login_success'));
                             closeAllModals();
                         }).catch(error => console.error("Baza yazılma xətası:", error));
                     }
@@ -615,7 +615,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         photoURL: user.photoURL || '',
                         lastLogin: firebase.database.ServerValue.TIMESTAMP
                     }).then(() => {
-                        showToast("Uğurla qeydiyyatdan keçdiniz!");
+                        showToast(t('toast_register_success'));
                         closeAllModals();
                     }).catch(error => console.error("Baza yazılma xətası:", error));
                 })
@@ -648,15 +648,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const photoURL = photoURLInput ? photoURLInput.value.trim() : '';
 
             if (!fname || !lname || !email || !pwd || !pwdConf || !gender) {
-                return showToast("Zəhmət olmasa bütün xanaları doldurun!");
+                return showToast(t('toast_fill_all'));
             }
 
             if (pwd !== pwdConf) {
-                return showToast("Şifrələr eyni deyil! Zəhmət olmasa düzgün daxil edin.");
+                return showToast(t('toast_pwds_not_match'));
             }
 
             if (pwd.length < 8) {
-                return showToast("Şifrə ən azı 8 simvol olmalıdır!");
+                return showToast(t('toast_pwd_length'));
             }
 
             auth.createUserWithEmailAndPassword(email, pwd)
@@ -746,10 +746,10 @@ document.addEventListener('DOMContentLoaded', () => {
             await database.ref('users/' + currentUser.uid).update({ photoURL: dataUrl });
             // Auth profili yalnız qısa URL-ləri qəbul edir; base64 buraya yazılmır.
             applyAvatarToUI(dataUrl);
-            showToast("Profil şəkli uğurla yeniləndi!");
+            showToast(t('toast_avatar_updated'));
         } catch (err) {
             console.error("Şəkil yükləmə xətası:", err);
-            showToast(err.message || "Şəkil yüklənərkən xəta baş verdi.");
+            showToast(err.message || t('toast_avatar_failed'));
         } finally {
             input.value = '';
         }
@@ -770,7 +770,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const phone = cleanText(document.getElementById('profPhone').value, 20);
             const gender = document.getElementById('profGender').value;
             
-            if (!fname) return showToast("Ad mütləqdir!");
+            if (!fname) return showToast(t('toast_name_required'));
             
             const fullName = fname + (lname ? " " + lname : "");
             
@@ -784,7 +784,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     gender: gender
                 });
             }).then(() => {
-                showToast("Məlumatlar yadda saxlanıldı!");
+                showToast(t('toast_data_saved'));
             }).catch(err => showToast(getErrorMessage(err.code)));
         });
     }
@@ -793,7 +793,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const confirmDelete = await showConfirmModal("Otağı silmək istədiyinizə əminsiniz?");
         if (confirmDelete) {
             database.ref('rooms/' + roomId).remove()
-                .then(() => showToast("Otaq silindi."))
+                .then(() => showToast(t('toast_room_deleted')))
                 .catch(err => showToast(getErrorMessage(err.code)));
         }
     };
@@ -1102,7 +1102,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }).then(() => {
                 window.location.href = `room.html?id=${roomCode}&platform=${defaultPlatform}`;
             }).catch(error => {
-                showToast("Otaq yaradılarkən xəta baş verdi.");
+                showToast(t('toast_room_create_failed'));
                 console.error(error);
             });
         });
@@ -1111,7 +1111,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (joinRoomBtn) {
         joinRoomBtn.addEventListener('click', () => {
             const code = roomCodeInput ? roomCodeInput.value.trim().toUpperCase() : '';
-            if (!code) return showToast("Otaq kodunu daxil edin.");
+            if (!code) return showToast(t('toast_enter_room_code'));
             window.location.href = `room.html?id=${code}`;
         });
     }

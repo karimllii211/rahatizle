@@ -53,8 +53,8 @@
 
                     <!-- Qonaq -->
                     <div id="nav-guest-view" class="flex items-center gap-2">
-                        <button type="button" class="open-login-modal btn-press rounded-lg px-3 py-2 text-sm font-bold text-[#C8C8C8] hover:text-white">Giriş</button>
-                        <button type="button" class="open-register-modal btn-press hidden rounded-full border border-[#FF014C]/50 bg-[#FF014C]/20 px-4 py-2 text-sm font-bold text-[#FF014C] hover:bg-[#FF014C] hover:text-white md:block">Qeydiyyat</button>
+                        <button type="button" class="open-login-modal btn-press rounded-lg px-3 py-2 text-sm font-bold text-[#C8C8C8] hover:text-white" data-i18n="login">Giriş</button>
+                        <button type="button" class="open-register-modal btn-press hidden rounded-full border border-[#FF014C]/50 bg-[#FF014C]/20 px-4 py-2 text-sm font-bold text-[#FF014C] hover:bg-[#FF014C] hover:text-white md:block" data-i18n="register">Qeydiyyat</button>
                     </div>
 
                     <!-- Daxil olmuş istifadəçi -->
@@ -89,7 +89,7 @@
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                         OTAQ YARAT
                     </a>
-                    <button type="button" class="open-register-modal auth-guest-only btn-press mt-2 rounded-xl border border-[#FF014C]/50 bg-[#FF014C]/10 px-4 py-3.5 text-sm font-bold text-[#FF014C]">Qeydiyyat</button>
+                    <button type="button" class="open-register-modal auth-guest-only btn-press mt-2 rounded-xl border border-[#FF014C]/50 bg-[#FF014C]/10 px-4 py-3.5 text-sm font-bold text-[#FF014C]" data-i18n="register">Qeydiyyat</button>
                     <a href="profile.html" class="auth-user-only btn-press mt-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3.5 text-center text-sm font-bold text-white" hidden>Profilim</a>
                 </div>
             </div>
@@ -164,8 +164,8 @@
                 <a href="create-room.html" class="text-sm text-[#C8C8C8] transition-colors hover:text-white">Otaqlar</a>
                 <a href="contact.html" class="text-sm text-[#C8C8C8] transition-colors hover:text-white">Əlaqə</a>
                 <div id="footer-guest-links" class="flex items-center gap-6">
-                    <button type="button" class="open-login-modal text-sm font-bold text-[#C8C8C8] transition-colors hover:text-[#FF014C]">Giriş</button>
-                    <button type="button" class="open-register-modal hidden text-sm font-bold text-[#C8C8C8] transition-colors hover:text-[#FF014C] sm:block">Qeydiyyat</button>
+                    <button type="button" class="open-login-modal text-sm font-bold text-[#C8C8C8] transition-colors hover:text-[#FF014C]" data-i18n="login">Giriş</button>
+                    <button type="button" class="open-register-modal hidden text-sm font-bold text-[#C8C8C8] transition-colors hover:text-[#FF014C] sm:block" data-i18n="register">Qeydiyyat</button>
                 </div>
             </div>
         </footer>
@@ -175,18 +175,18 @@
     <div id="login-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
         <div class="animate-modal relative mx-auto w-full max-w-md rounded-2xl border border-red-600 bg-[#030303] p-6 shadow-[0_0_15px_rgba(220,38,38,0.2)] sm:p-8">
             <button type="button" class="close-auth-modal btn-press absolute right-5 top-5 text-gray-500 hover:text-white" aria-label="Bağla"><svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-            <h2 class="mb-8 text-center text-2xl font-bold uppercase tracking-wider text-white sm:text-3xl">Giriş</h2>
+            <h2 class="mb-8 text-center text-2xl font-bold uppercase tracking-wider text-white sm:text-3xl" data-i18n="login">Giriş</h2>
 
             <form id="loginForm" class="space-y-5" data-no-submit>
-                <input type="email" id="loginEmail" autocomplete="email" placeholder="E-poçt" class="w-full rounded-xl border border-red-600 bg-black px-5 py-4 text-white placeholder-gray-500 transition-all focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+                <input type="email" id="loginEmail" autocomplete="email" placeholder="E-poçt" data-i18n-placeholder="email_placeholder" class="w-full rounded-xl border border-red-600 bg-black px-5 py-4 text-white placeholder-gray-500 transition-all focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
                 <div class="relative">
                     <input type="password" id="loginPassword" autocomplete="current-password" placeholder="Şifrə" class="w-full rounded-xl border border-red-600 bg-black px-5 py-4 pr-12 text-white placeholder-gray-500 transition-all focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
                     <button type="button" class="toggle-password absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none" aria-label="Şifrəni göstər">
                         <svg class="eye-icon h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                     </button>
                 </div>
-                <button type="button" id="forgotPasswordBtn" class="text-sm text-gray-400 transition-colors hover:text-red-500">Şifrəni unutdum?</button>
-                <button type="button" id="loginBtn" class="btn-press w-full rounded-xl border border-red-600 bg-transparent py-4 font-bold uppercase tracking-wider text-white shadow-[0_0_10px_rgba(220,38,38,0.4)] hover:bg-red-600 hover:shadow-[0_0_20px_rgba(220,38,38,0.6)]">Daxil ol</button>
+                <button type="button" id="forgotPasswordBtn" class="text-sm text-gray-400 transition-colors hover:text-red-500" data-i18n="forgot_password">Şifrəni unutdum?</button>
+                <button type="button" id="loginBtn" class="btn-press w-full rounded-xl border border-red-600 bg-transparent py-4 font-bold uppercase tracking-wider text-white shadow-[0_0_10px_rgba(220,38,38,0.4)] hover:bg-red-600 hover:shadow-[0_0_20px_rgba(220,38,38,0.6)]" data-i18n="login_btn">Daxil ol</button>
             </form>
 
             <div class="mt-6 flex flex-col gap-4">
@@ -208,7 +208,7 @@
     <div id="register-modal" class="hidden fixed inset-0 z-50 items-center justify-center overflow-y-auto bg-black/80 p-4 backdrop-blur-sm">
         <div class="animate-modal relative mx-auto my-auto w-full max-w-md rounded-2xl border border-red-600 bg-[#030303] p-6 shadow-[0_0_15px_rgba(220,38,38,0.2)] sm:p-8">
             <button type="button" class="close-auth-modal btn-press absolute right-5 top-5 text-gray-500 hover:text-white" aria-label="Bağla"><svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-            <h2 class="mb-8 text-center text-2xl font-bold uppercase tracking-wider text-white sm:text-3xl">Qeydiyyat</h2>
+            <h2 class="mb-8 text-center text-2xl font-bold uppercase tracking-wider text-white sm:text-3xl" data-i18n="register">Qeydiyyat</h2>
 
             <form id="registerForm" class="space-y-4" data-no-submit>
                 <div class="flex flex-col gap-4 sm:flex-row">
@@ -253,7 +253,7 @@
                     Google ilə Qeydiyyat
                 </button>
                 <div class="mt-2 text-center">
-                    <button type="button" id="switchToLoginBtn" class="text-sm text-gray-400 underline underline-offset-4 transition-colors hover:text-red-500">Geri qayıdıb giriş et</button>
+                    <button type="button" id="switchToLoginBtn" class="text-sm text-gray-400 underline underline-offset-4 transition-colors hover:text-red-500" data-i18n="back_to_login">Geri qayıdıb giriş et</button>
                 </div>
             </div>
         </div>
@@ -263,11 +263,11 @@
     <div id="forgot-password-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
         <div class="animate-modal relative mx-auto w-full max-w-sm rounded-2xl border border-red-600 bg-[#030303] p-6 shadow-[0_0_15px_rgba(220,38,38,0.2)] sm:p-8">
             <button type="button" class="close-auth-modal btn-press absolute right-5 top-5 text-gray-500 hover:text-white" aria-label="Bağla"><svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-            <h2 class="mb-4 text-center text-2xl font-bold uppercase tracking-wider text-white sm:text-3xl">Şifrənin Bərpası</h2>
-            <p class="mb-6 text-center text-sm text-gray-400">Qeydiyyatdan keçdiyiniz e-poçt ünvanını daxil edin. Sizə bərpa kodu göndəriləcək.</p>
+            <h2 class="mb-4 text-center text-2xl font-bold uppercase tracking-wider text-white sm:text-3xl" data-i18n="password_recovery">Şifrənin Bərpası</h2>
+            <p class="mb-6 text-center text-sm text-gray-400" data-i18n="recovery_desc">Qeydiyyatdan keçdiyiniz e-poçt ünvanını daxil edin. Sizə bərpa kodu göndəriləcək.</p>
             <form id="forgotPasswordForm" class="space-y-5" data-no-submit>
-                <input type="email" id="forgotEmail" autocomplete="email" placeholder="E-poçt" class="w-full rounded-xl border border-red-600 bg-black px-5 py-4 text-white placeholder-gray-500 transition-all focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
-                <button type="button" id="sendOTPBtn" class="btn-press w-full rounded-xl border border-red-600 bg-transparent py-4 font-bold uppercase tracking-wider text-white shadow-[0_0_10px_rgba(220,38,38,0.4)] hover:bg-red-600 hover:shadow-[0_0_20px_rgba(220,38,38,0.6)]">Göndər</button>
+                <input type="email" id="forgotEmail" autocomplete="email" placeholder="E-poçt" data-i18n-placeholder="email_placeholder" class="w-full rounded-xl border border-red-600 bg-black px-5 py-4 text-white placeholder-gray-500 transition-all focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+                <button type="button" id="sendOTPBtn" class="btn-press w-full rounded-xl border border-red-600 bg-transparent py-4 font-bold uppercase tracking-wider text-white shadow-[0_0_10px_rgba(220,38,38,0.4)] hover:bg-red-600 hover:shadow-[0_0_20px_rgba(220,38,38,0.6)]" data-i18n="send">Göndər</button>
             </form>
         </div>
     </div>
@@ -276,26 +276,26 @@
     <div id="otp-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
         <div class="animate-modal relative mx-auto w-full max-w-sm rounded-2xl border border-red-600 bg-[#030303] p-6 shadow-[0_0_20px_rgba(220,38,38,0.2)] sm:p-8">
             <button type="button" class="close-otp-modal btn-press absolute right-5 top-5 text-gray-500 hover:text-white" aria-label="Bağla"><svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-            <h2 class="mb-4 text-center text-2xl font-bold uppercase tracking-wider text-white">ŞİFRƏNİ SIFIRLAMA</h2>
-            <p class="mb-6 text-center text-sm text-gray-400">E-poçtunuza 6 rəqəmli kod göndərildi.</p>
+            <h2 class="mb-4 text-center text-2xl font-bold uppercase tracking-wider text-white" data-i18n="password_reset">ŞİFRƏNİ SIFIRLAMA</h2>
+            <p class="mb-6 text-center text-sm text-gray-400" data-i18n="otp_sent">E-poçtunuza 6 rəqəmli kod göndərildi.</p>
 
             <div id="otpStepContainer" class="space-y-4">
-                <input type="text" id="otpInput" inputmode="numeric" autocomplete="one-time-code" pattern="\d{6}" placeholder="Kodu daxil edin" maxlength="6" class="w-full rounded-xl border border-red-600 bg-black px-5 py-4 text-center text-lg tracking-widest text-white transition-all focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
-                <button type="button" id="verifyOTPBtn" class="btn-press w-full rounded-xl bg-red-600 py-3 font-bold uppercase tracking-wider text-white hover:bg-red-700">Kodu Təsdiqlə</button>
+                <input type="text" id="otpInput" inputmode="numeric" autocomplete="one-time-code" pattern="\d{6}" placeholder="Kodu daxil edin" data-i18n-placeholder="otp_placeholder" maxlength="6" class="w-full rounded-xl border border-red-600 bg-black px-5 py-4 text-center text-lg tracking-widest text-white transition-all focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500">
+                <button type="button" id="verifyOTPBtn" class="btn-press w-full rounded-xl bg-red-600 py-3 font-bold uppercase tracking-wider text-white hover:bg-red-700" data-i18n="verify_code">Kodu Təsdiqlə</button>
                 <div class="mt-4 flex flex-col items-center gap-2">
-                    <button type="button" id="resendOTPBtn" class="text-sm text-gray-400 transition-colors hover:text-white">Kodu yenidən göndər</button>
+                    <button type="button" id="resendOTPBtn" class="text-sm text-gray-400 transition-colors hover:text-white" data-i18n="resend_code">Kodu yenidən göndər</button>
                     <span id="resendTimer" class="hidden text-xs text-red-500">60s</span>
                 </div>
             </div>
 
             <div id="newPasswordStepContainer" class="hidden space-y-4">
                 <div class="relative">
-                    <input type="password" id="newPasswordInput" autocomplete="new-password" placeholder="Yeni şifrə (ən azı 8 simvol)" class="w-full rounded-xl border border-red-600 bg-black px-5 py-3 pr-12 text-white transition-all focus:border-red-500 focus:outline-none">
+                    <input type="password" id="newPasswordInput" autocomplete="new-password" placeholder="Yeni şifrə (ən azı 8 simvol)" data-i18n-placeholder="new_password_placeholder" class="w-full rounded-xl border border-red-600 bg-black px-5 py-3 pr-12 text-white transition-all focus:border-red-500 focus:outline-none">
                     <button type="button" class="toggle-password absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none" aria-label="Şifrəni göstər">
                         <svg class="eye-icon h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                     </button>
                 </div>
-                <button type="button" id="setNewPasswordBtn" class="btn-press w-full rounded-xl bg-red-600 py-3 font-bold uppercase tracking-wider text-white hover:bg-red-700 disabled:opacity-50">Şifrəni Yenilə</button>
+                <button type="button" id="setNewPasswordBtn" class="btn-press w-full rounded-xl bg-red-600 py-3 font-bold uppercase tracking-wider text-white hover:bg-red-700 disabled:opacity-50" data-i18n="update_password">Şifrəni Yenilə</button>
             </div>
         </div>
     </div>
@@ -311,11 +311,11 @@
     <!-- CONFIRM -->
     <div id="custom-confirm" class="hidden fixed inset-0 z-[60] items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
         <div class="animate-modal w-full max-w-md rounded-2xl border border-red-600 bg-black p-6 text-center shadow-[0_0_25px_rgba(220,38,38,0.3)] sm:p-8">
-            <h3 class="mb-4 text-2xl font-bold uppercase tracking-wider text-white">Diqqət</h3>
-            <p id="confirm-message" class="mb-8 text-base text-gray-300 sm:text-lg">Bu əməliyyatı etmək istədiyinizə əminsiniz?</p>
+            <h3 class="mb-4 text-2xl font-bold uppercase tracking-wider text-white" data-i18n="attention">Diqqət</h3>
+            <p id="confirm-message" class="mb-8 text-base text-gray-300 sm:text-lg" data-i18n="confirm_action">Bu əməliyyatı etmək istədiyinizə əminsiniz?</p>
             <div class="flex items-center justify-center gap-4">
-                <button type="button" id="confirm-no-btn" class="btn-press w-1/2 rounded-xl border border-gray-600 bg-transparent px-6 py-3 font-bold text-white hover:bg-gray-800">Xeyr</button>
-                <button type="button" id="confirm-yes-btn" class="btn-press w-1/2 rounded-xl bg-red-700 px-6 py-3 font-bold text-white shadow-[0_0_10px_rgba(220,38,38,0.4)] hover:bg-red-800">Bəli</button>
+                <button type="button" id="confirm-no-btn" class="btn-press w-1/2 rounded-xl border border-gray-600 bg-transparent px-6 py-3 font-bold text-white hover:bg-gray-800" data-i18n="no">Xeyr</button>
+                <button type="button" id="confirm-yes-btn" class="btn-press w-1/2 rounded-xl bg-red-700 px-6 py-3 font-bold text-white shadow-[0_0_10px_rgba(220,38,38,0.4)] hover:bg-red-800" data-i18n="yes">Bəli</button>
             </div>
         </div>
     </div>
