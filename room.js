@@ -239,7 +239,7 @@ function initRoom() {
         const data = snapshot.val();
         const count = data ? Object.keys(data).length : 0;
         if (activeViewerCount) {
-            activeViewerCount.textContent = `${t("active_viewers")}: ${count}`;
+            activeViewerCount.textContent = `Aktiv İzləyici: ${count}`;
         }
     });
 
@@ -614,7 +614,7 @@ function initRoom() {
 
             // TODO: Gələcəkdə premium funksiya üçün limitin qaldırılması.
             if (file.size > 500 * 1024 * 1024) {
-                showToast(t("file_size_limit"));
+                showToast("Faylın həcmi 500MB-dan böyük ola bilməz!");
                 e.target.value = '';
                 return;
             }
@@ -660,7 +660,7 @@ function initRoom() {
                     window.isWebRTCSetupPhase = false; // Sinxronizasiyanı bərpa et
                 } catch (error) {
                     console.error("❌ Stream yaxalama xətası:", error);
-                    alert(t("alert_video_format"));
+                    alert("Videonun axına çevrilməsi uğursuz oldu. Fərqli format yoxlayın.");
                     if (closeVideoBtn) closeVideoBtn.click(); // Uğursuz olduqda təmizlə
                     window.isWebRTCSetupPhase = false;
                 } finally {
@@ -749,7 +749,7 @@ function initYouTubeFeature(mainVideo, videoPlaceholder) {
                 const container = document.getElementById('yt-search-results-container');
 
                 if (!response.ok || data.error) {
-                    showToast(data.error || t("yt_search_error"));
+                    showToast(data.error || "Axtarış zamanı xəta baş verdi.");
                     container.classList.add('hidden');
                     return;
                 }
@@ -764,11 +764,18 @@ function initYouTubeFeature(mainVideo, videoPlaceholder) {
 
                 container.classList.remove('hidden');
                 data.items.forEach(item => {
-                    const { videoId, title, channelTitle, thumbnail } = item;
+                    const videoId = item.id ? item.id.videoId : null;
+                    const snippet = item.snippet || {};
+                    const title = snippet.title || 'Adsız Video';
+                    const channelTitle = snippet.channelTitle || 'Bilinməyən Kanal';
+                    const thumbnail = snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url || '';
+
                     if (!videoId) return;
 
                     const card = document.createElement('div');
                     card.className = 'cursor-pointer group flex items-center gap-3 rounded-lg border border-transparent p-2 transition-colors hover:bg-white/10 hover:border-white/10';
+                    card.setAttribute('role', 'button');
+                    card.setAttribute('tabindex', '0');
 
                     const thumbWrap = document.createElement('div');
                     thumbWrap.className = 'relative h-16 w-28 shrink-0 overflow-hidden rounded-md bg-black';
@@ -806,7 +813,7 @@ function initYouTubeFeature(mainVideo, videoPlaceholder) {
                 });
             } catch (error) {
                 console.error('YouTube Axtarış Xətası:', error);
-                showToast(t("yt_search_error"));
+                showToast("Axtarış zamanı xəta baş verdi.");
             } finally {
                 ytSearchBtn.disabled = false;
                 ytSearchBtn.textContent = 'Axtar';
@@ -922,7 +929,7 @@ function initYouTubeFeature(mainVideo, videoPlaceholder) {
     }
 
     // Kənara kliklədikdə axtarış nəticələrini bağla
-    document.addEventListener('click', (e) => {
+    const closeYtSearch = (e) => {
         const container = document.getElementById('yt-search-results-container');
         const searchInput = document.getElementById('yt-search-input');
         const searchBtn = document.getElementById('yt-search-btn');
@@ -931,17 +938,13 @@ function initYouTubeFeature(mainVideo, videoPlaceholder) {
                 container.classList.add('hidden');
             }
         }
-    });
+    };
+    document.addEventListener('click', closeYtSearch);
+    document.addEventListener('touchstart', closeYtSearch, { passive: true });
+    // Also, we replaced document.addEventListener('click', (e) => { with this
+
 }
 
 
-window.addEventListener('langChanged', () => {
-    const activeViewerCount = document.getElementById('activeViewerCount');
-    if (activeViewerCount) {
-        const countMatch = activeViewerCount.textContent.match(/\d+/);
-        const count = countMatch ? countMatch[0] : 0;
-        activeViewerCount.textContent = `${t("active_viewers")}: ${count}`;
-    }
-});
     }
 });
