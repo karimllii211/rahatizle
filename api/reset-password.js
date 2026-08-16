@@ -6,26 +6,20 @@ module.exports = async (req, res) => {
     const admin = require('firebase-admin');
 
     function initAdmin() {
-      if (admin.apps.length) return true;
-      
-      let formattedPrivateKey = process.env.FIREBASE_PRIVATE_KEY;
-      if (formattedPrivateKey) {
-        // Həm \n simvollarını əsl yeni sətirə çevirir, həm də yanlışlıqla düşmüş dırnaq işarələrini silir
-        formattedPrivateKey = formattedPrivateKey.replace(/\\n/g, '\n').replace(/"/g, '');
+      if (!admin.apps.length) {
+        try {
+          // Vercel-dəki bütöv JSON faylını oxuyuruq, bu format xətasını sıfıra endirir
+          const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+          
+          admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
+            databaseURL: process.env.FIREBASE_DATABASE_URL // Ehtiyac varsa saxla
+          });
+        } catch (error) {
+          console.error("Firebase Admin Inisializasiya Xetasi (JSON Parse Error):", error);
+          return false;
+        }
       }
-
-      if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !formattedPrivateKey) {
-        return false;
-      }
-
-      admin.initializeApp({
-        credential: admin.credential.cert({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: formattedPrivateKey
-        }),
-        databaseURL: process.env.FIREBASE_DATABASE_URL // Əgər istifadə olunursa
-      });
       return true;
     }
 
