@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="az">
 <head>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdn.tailwindcss.com https://www.gstatic.com https://www.youtube.com https://s.ytimg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.vercel.app https://*.firebaseapp.com wss://*.firebaseio.com https://*.googleapis.com https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://api.emailjs.com https://*.firebaseio.com https://*.firebasedatabase.app wss://*.firebasedatabase.app; img-src 'self' data: https: blob:; media-src 'self' blob:; frame-src https://rahatizle-yeni.firebaseapp.com https://accounts.google.com https://www.youtube.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://cdn.jsdelivr.net https://cdn.tailwindcss.com https://www.youtube.com https://s.ytimg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob:; connect-src 'self' https://*.vercel.app https://*.firebaseapp.com https://api.emailjs.com https://*.googleapis.com https://www.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app wss://*.firebaseio.com wss://*.firebasedatabase.app https://securetoken.googleapis.com https://identitytoolkit.googleapis.com; frame-src 'self' https://rahatizle-yeni.firebaseapp.com https://accounts.google.com https://www.youtube.com;">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#030303">
@@ -36,7 +36,9 @@
         }
         .neon-logo { filter: drop-shadow(0 0 15px currentColor); max-width: 200px; }
         #chatPanel { z-index: 9999 !important; }
-    </style>
+    
+        .sidebar-mini-icon { width: 24px !important; height: 24px !important; max-width: 24px !important; min-width: 24px !important; object-fit: contain !important; display: inline-block !important; margin-right: 10px !important; }
+</style>
 </head>
 <body class="page-enter flex h-[100dvh] overflow-hidden bg-[#030303] font-sans text-white">
 
@@ -57,19 +59,19 @@
 
         <div class="flex flex-col gap-2.5 overflow-y-auto">
             <button type="button" class="room-platform-btn btn-press flex w-full items-center gap-3 rounded-xl border border-transparent bg-white/5 px-4 py-3 text-left hover:border-[#E50914]/50 hover:bg-[#E50914]/10" data-platform="netflix">
-        <img src="NetflixLogo.webp" class="sidebar-logo" style="width: 24px !important; height: 24px !important; min-width: 24px !important; object-fit: contain; margin-right: 12px;">
+        <img src="NetflixLogo.webp" class="sidebar-mini-icon">
         <span class="text-sm font-semibold text-white">Netflix</span>
     </button>
             <button type="button" class="room-platform-btn btn-press flex w-full items-center gap-3 rounded-xl border border-transparent bg-white/5 px-4 py-3 text-left hover:border-[#FF0000]/50 hover:bg-[#FF0000]/10" data-platform="youtube">
-        <img src="YouTubeLogo.webp" class="sidebar-logo" style="width: 24px !important; height: 24px !important; min-width: 24px !important; object-fit: contain; margin-right: 12px;">
+        <img src="YouTubeLogo.webp" class="sidebar-mini-icon">
         <span class="text-sm font-semibold text-white">YouTube</span>
     </button>
             <button type="button" class="room-platform-btn btn-press flex w-full items-center gap-3 rounded-xl border border-transparent bg-white/5 px-4 py-3 text-left hover:border-[#0063E5]/50 hover:bg-[#0063E5]/10" data-platform="disney">
-        <img src="DisneyPlusLogo.webp" class="sidebar-logo" style="width: 24px !important; height: 24px !important; min-width: 24px !important; object-fit: contain; margin-right: 12px;">
+        <img src="DisneyPlusLogo.webp" class="sidebar-mini-icon">
         <span class="text-sm font-semibold text-white">Disney+</span>
     </button>
             <button type="button" class="room-platform-btn btn-press flex w-full items-center gap-3 rounded-xl border border-transparent bg-white/5 px-4 py-3 text-left hover:border-[#00A8E1]/50 hover:bg-[#00A8E1]/10" data-platform="prime">
-        <img src="PrimeVideologo.svg.webp" class="sidebar-logo" style="width: 24px !important; height: 24px !important; min-width: 24px !important; object-fit: contain; margin-right: 12px;">
+        <img src="PrimeVideologo.svg.webp" class="sidebar-mini-icon">
         <span class="text-sm font-semibold text-white">Prime Video</span>
     </button>
         </div>
