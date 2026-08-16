@@ -1083,35 +1083,37 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
+    
     // Event delegation for "Create Room" buttons
-    document.addEventListener('click', (e) => {
-        const createBtn = e.target.closest('#create-room-btn, .create-room-btn');
+    document.body.addEventListener('click', (e) => {
+        const createBtn = e.target.closest('#create-room-btn, .create-room-btn'); 
         if (createBtn) {
             e.preventDefault();
-            if (!currentUser) {
-                showModal(loginModal);
-                return;
+            
+            // Qeydiyyatlıdırsa Firebase-ə yazır, deyilsə sadəcə id yaradıb yönləndirir
+            const roomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+            
+            if (currentUser) {
+                const defaultPlatform = "netflix";
+                database.ref('rooms/' + roomId + '/creator').set({
+                    uid: currentUser.uid,
+                    name: currentUser.displayName || currentUser.email.split('@')[0],
+                    photoURL: currentUser.photoURL || `https://ui-avatars.com/api/?name=${currentUser.displayName || currentUser.email.split('@')[0]}&background=dc2626&color=fff`,
+                    platform: defaultPlatform,
+                    createdAt: firebase.database.ServerValue.TIMESTAMP
+                }).then(() => {
+                    window.location.href = `/room.html?id=${roomId}`;
+                }).catch(err => {
+                    console.error(err);
+                    window.location.href = `/room.html?id=${roomId}`;
+                });
+            } else {
+                window.location.href = `/room.html?id=${roomId}`;
             }
-            
-            const roomCode = generateRoomCode();
-            const defaultPlatform = "netflix"; // Default
-            
-            database.ref('rooms/' + roomCode + '/creator').set({
-                uid: currentUser.uid,
-                name: currentUser.displayName || currentUser.email.split('@')[0],
-                photoURL: currentUser.photoURL || `https://ui-avatars.com/api/?name=${currentUser.displayName || currentUser.email.split('@')[0]}&background=dc2626&color=fff`,
-                platform: defaultPlatform,
-                createdAt: firebase.database.ServerValue.TIMESTAMP
-            }).then(() => {
-                window.location.href = `room.html?id=${roomCode}&platform=${defaultPlatform}`;
-            }).catch(error => {
-                showToast("Otaq yaradılarkən xəta baş verdi.");
-                console.error(error);
-            });
         }
     });
 
-        if (joinRoomBtn) {
+    if (joinRoomBtn) {
         joinRoomBtn.addEventListener('click', () => {
             const code = roomCodeInput ? roomCodeInput.value.trim().toUpperCase() : '';
             if (!code) return showToast("Otaq kodunu daxil edin.");

@@ -126,21 +126,28 @@ function initRoom() {
     const closeChatBtn = document.getElementById('closeChatBtn');
     const chatPanel = document.getElementById('chatPanel');
     
-    // Chat açma-bağlama üçün Event Delegation
-    document.addEventListener('click', (e) => {
-        const chatPanelEl = document.getElementById('chatPanel');
-        if (!chatPanelEl) return;
-        
-        // toggleChatBtn kliklənəndə
-        if (e.target.closest('#toggleChatBtn')) {
-            chatPanelEl.classList.toggle('translate-x-full');
+    
+    // Chat Pəncərəsinin Açılma Həlli (Event Delegation ilə)
+    document.body.addEventListener('click', (e) => {
+        const chatToggle = e.target.closest('#toggleChatBtn');
+        if (chatToggle) {
+            e.preventDefault();
+            const chatContainer = document.getElementById('chatPanel');
+            if (chatContainer) {
+                chatContainer.classList.toggle('translate-x-full');
+            }
         }
         
-        // closeChatBtn kliklənəndə
-        if (e.target.closest('#closeChatBtn')) {
-            chatPanelEl.classList.add('translate-x-full');
+        const closeChatToggle = e.target.closest('#closeChatBtn');
+        if (closeChatToggle) {
+            e.preventDefault();
+            const chatContainer = document.getElementById('chatPanel');
+            if (chatContainer) {
+                chatContainer.classList.add('translate-x-full');
+            }
         }
     });
+
 
     // Mobil: sol panel (platformalar + fayl yükləmə) sürüşən çekmece kimi açılır.
     // Əvvəllər bu panel kiçik ekranlarda tamamilə gizli idi və otağı yaradan
