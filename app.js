@@ -313,22 +313,40 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast("E-poçt göndərilir, zəhmət olmasa gözləyin...");
         
         // EmailJS göndərmə prosesi
-        emailjs.send("service_9umksl7", "template_0aiimmq", {
-            security_code: otpCode,
-            email: userEmail,
-            // Ehtiyat kimi digər dəyişənləri də göndəririk ki, template ilə uyğunsuzluq olmasın
-            to_email: userEmail,
-            message: otpCode,
-            otp_code: otpCode
-        }, "-joV9uOaw310_PJCg")
-        .then(function(response) {
-            console.log('SUCCESS!', response.status, response.text);
-            showToast("6 rəqəmli kod e-poçtunuza göndərildi!");
-            openOTPModal();
-        }, function(error) {
-            console.error('EmailJS ERROR:', error);
-            showToast("Kod göndərilə bilmədi. Zəhmət olmasa yenidən cəhd edin.");
-        });
+        const sendEmail = () => {
+            window.emailjs.send("service_9umksl7", "template_0aiimmq", {
+                security_code: otpCode,
+                email: userEmail,
+                to_email: userEmail,
+                message: otpCode,
+                otp_code: otpCode
+            }, "-joV9uOaw310_PJCg")
+            .then(function(response) {
+                console.log('SUCCESS!', response.status, response.text);
+                showToast("6 rəqəmli kod e-poçtunuza göndərildi!");
+                openOTPModal();
+            }, function(error) {
+                console.error('EmailJS ERROR:', error);
+                showToast("Kod göndərilə bilmədi. Zəhmət olmasa yenidən cəhd edin.");
+            });
+        };
+
+        if (typeof window.emailjs === 'undefined') {
+            console.warn("EmailJS is undefined. Dynamically loading the script...");
+            const script = document.createElement('script');
+            script.src = "https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js";
+            script.onload = () => {
+                window.emailjs.init("-joV9uOaw310_PJCg");
+                sendEmail();
+            };
+            script.onerror = () => {
+                console.error("Failed to load EmailJS from CDN.");
+                showToast("Xəta: EmailJS yüklənə bilmədi. İnternet bağlantınızı və ya brauzer icazələrini (CSP/AdBlock) yoxlayın.");
+            };
+            document.head.appendChild(script);
+        } else {
+            sendEmail();
+        }
     };
 
     // E-poçt dəyişmə axını: kod serverdə yaradılır və yeni ünvana göndərilir,
