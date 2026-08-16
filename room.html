@@ -18,7 +18,12 @@
     <link rel="stylesheet" href="styles.css">
     <script src="animations.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
-    </head>
+    
+    <style>
+        .sidebar-logo { width: 24px; height: 24px; object-fit: contain; margin-right: 10px; }
+        .neon-logo { filter: drop-shadow(0 0 15px currentColor); max-width: 200px; }
+    </style>
+</head>
 <body class="page-enter flex h-[100dvh] overflow-hidden bg-[#030303] font-sans text-white">
 
     <!-- SOL PANEL — masaüstündə sabit, mobildə sürüşən çekmece -->
@@ -38,17 +43,21 @@
 
         <div class="flex flex-col gap-2.5 overflow-y-auto">
             <button type="button" class="room-platform-btn btn-press flex w-full items-center gap-3 rounded-xl border border-transparent bg-white/5 px-4 py-3 text-left hover:border-[#E50914]/50 hover:bg-[#E50914]/10" data-platform="netflix">
-                <span class="text-sm font-semibold text-white">Netflix</span>
-            </button>
+        <img src="NetflixLogo.webp" class="sidebar-logo">
+        <span class="text-sm font-semibold text-white">Netflix</span>
+    </button>
             <button type="button" class="room-platform-btn btn-press flex w-full items-center gap-3 rounded-xl border border-transparent bg-white/5 px-4 py-3 text-left hover:border-[#FF0000]/50 hover:bg-[#FF0000]/10" data-platform="youtube">
-                <span class="text-sm font-semibold text-white">YouTube</span>
-            </button>
+        <img src="YouTubeLogo.webp" class="sidebar-logo">
+        <span class="text-sm font-semibold text-white">YouTube</span>
+    </button>
             <button type="button" class="room-platform-btn btn-press flex w-full items-center gap-3 rounded-xl border border-transparent bg-white/5 px-4 py-3 text-left hover:border-[#0063E5]/50 hover:bg-[#0063E5]/10" data-platform="disney">
-                <span class="text-sm font-semibold text-white">Disney+</span>
-            </button>
+        <img src="DisneyPlusLogo.webp" class="sidebar-logo">
+        <span class="text-sm font-semibold text-white">Disney+</span>
+    </button>
             <button type="button" class="room-platform-btn btn-press flex w-full items-center gap-3 rounded-xl border border-transparent bg-white/5 px-4 py-3 text-left hover:border-[#00A8E1]/50 hover:bg-[#00A8E1]/10" data-platform="prime">
-                <span class="text-sm font-semibold text-white">Prime Video</span>
-            </button>
+        <img src="PrimeVideologo.svg.webp" class="sidebar-logo">
+        <span class="text-sm font-semibold text-white">Prime Video</span>
+    </button>
         </div>
 
         <div class="mt-auto border-t border-white/5 pt-5">
@@ -102,40 +111,8 @@
         <div class="flex h-full w-full flex-1 flex-col items-center overflow-y-auto p-3 pt-24 pb-20 sm:p-6 sm:pt-28 sm:pb-24">
             <div class="group relative flex aspect-video w-full max-w-5xl shrink-0 items-center justify-center overflow-visible rounded-2xl border border-white/10 bg-[#050505] shadow-[0_0_50px_rgba(0,0,0,0.5)] sm:rounded-3xl">
                 <video id="main-video" controls muted autoplay playsinline class="relative z-20 hidden h-full w-full object-contain rounded-2xl sm:rounded-3xl"></video>
-                <div id="youtube-player-container" class="absolute inset-0 z-20 hidden h-full w-full bg-black rounded-2xl sm:rounded-3xl overflow-hidden"><div id="player" class="h-full w-full"></div></div>
-                
-                <div id="video-placeholder" class="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black transition-opacity duration-500 rounded-2xl sm:rounded-3xl">
-                    <div class="pointer-events-none absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent"></div>
-                    
-                    <!-- Default Screen -->
-                    <div id="default-screen" class="flex flex-col items-center">
-                        <svg class="z-10 mb-4 h-12 w-12 text-gray-500 sm:h-16 sm:w-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span class="z-10 text-center font-display text-base font-extrabold tracking-widest text-gray-500 sm:text-xl">VİDEO EKRANI</span>
-                    </div>
-
-                    <!-- Platform Logo -->
-                    <img id="platform-logo" src="" class="z-10 hidden max-h-24 max-w-[80%] object-contain mb-8 transition-all duration-300" alt="Platform Logo">
-
-                    <!-- Local Upload Status -->
-                    <div id="local-upload-status" class="z-10 hidden flex-col items-center">
-                        <svg class="h-20 w-20 text-white mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path></svg>
-                        <span class="text-xl font-bold tracking-wider text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]">500MB LİMİT</span>
-                    </div>
-
-                    <!-- YouTube Search UI -->
-                    <div id="yt-search-wrapper" class="z-20 hidden w-full max-w-2xl px-4">
-                        <div class="flex items-center rounded-xl border border-white/10 bg-white/5 transition-colors focus-within:border-[#FF014C] relative">
-                            <input type="text" id="yt-search-input" placeholder="YouTube-da video və ya mahnı axtarın..." class="flex-1 bg-transparent px-4 py-4 text-sm text-white placeholder-gray-500 focus:outline-none">
-                            <button type="button" id="yt-search-btn" class="btn-press shrink-0 rounded-r-xl bg-[#FF014C] px-6 py-4 font-bold text-white hover:bg-[#FF014C]/80 h-full">Axtar</button>
-                            
-                            <!-- Search Results Dropdown -->
-                            <div id="yt-search-results-container" class="absolute top-full left-0 right-0 mt-2 hidden rounded-xl border border-white/10 bg-[#0f0f0f] shadow-[0_10px_40px_rgba(0,0,0,0.8)] z-50 max-h-[300px] overflow-y-auto custom-scrollbar">
-                                <div id="yt-search-results" class="flex flex-col p-2">
-                                    <!-- Results will be injected here -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div id="video-placeholder" class="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black transition-opacity duration-500 rounded-2xl sm:rounded-3xl overflow-y-auto">
+                    <!-- Dinamik məzmun buraya yüklənəcək -->
                 </div>
             </div>
 
