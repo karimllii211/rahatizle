@@ -126,16 +126,21 @@ function initRoom() {
     const closeChatBtn = document.getElementById('closeChatBtn');
     const chatPanel = document.getElementById('chatPanel');
     
-    if (toggleChatBtn && chatPanel) {
-        toggleChatBtn.addEventListener('click', () => {
-            chatPanel.classList.toggle('translate-x-full');
-        });
-    }
-    if (closeChatBtn && chatPanel) {
-        closeChatBtn.addEventListener('click', () => {
-            chatPanel.classList.add('translate-x-full');
-        });
-    }
+    // Chat açma-bağlama üçün Event Delegation
+    document.addEventListener('click', (e) => {
+        const chatPanelEl = document.getElementById('chatPanel');
+        if (!chatPanelEl) return;
+        
+        // toggleChatBtn kliklənəndə
+        if (e.target.closest('#toggleChatBtn')) {
+            chatPanelEl.classList.toggle('translate-x-full');
+        }
+        
+        // closeChatBtn kliklənəndə
+        if (e.target.closest('#closeChatBtn')) {
+            chatPanelEl.classList.add('translate-x-full');
+        }
+    });
 
     // Mobil: sol panel (platformalar + fayl yükləmə) sürüşən çekmece kimi açılır.
     // Əvvəllər bu panel kiçik ekranlarda tamamilə gizli idi və otağı yaradan
@@ -998,74 +1003,87 @@ platformBtns.forEach(btn => {
                 </div>
             `;
 
-            // Bind YouTube Search Event
+            // Bind YouTube Search Event DƏRHAL SONRA
             const ytSearchInput = document.getElementById('yt-search-input');
             const ytSearchResults = document.getElementById('yt-search-results');
             
-            ytSearchInput.addEventListener('keypress', async (e) => {
-                if (e.key === 'Enter') {
-                    const query = ytSearchInput.value.trim();
-                    if (!query) return;
-                    
+            if (ytSearchInput && ytSearchResults) {
+                ytSearchInput.addEventListener('keypress', async (e) => {
                     try {
-                        const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=20&q=${encodeURIComponent(query)}&key=AIzaSyCr51yPNOwDSdNkOdI0Xj1XOw6oS5FPm-s`);
-                        const data = await response.json();
-                        
-                        ytSearchResults.innerHTML = '';
-                        ytSearchResults.style.display = 'block';
-                        
-                        if (data.items && data.items.length > 0) {
-                            data.items.forEach(item => {
-                                const videoId = item.id ? item.id.videoId : null;
-                                const snippet = item.snippet || {};
-                                if (!videoId) return;
+                        if (e.key === 'Enter') {
+                            const query = ytSearchInput.value.trim();
+                            if (!query) return;
+                            
+                            const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=20&q=${encodeURIComponent(query)}&key=AIzaSyCr51yPNOwDSdNkOdI0Xj1XOw6oS5FPm-s`);
+                            const data = await response.json();
+                            
+                            ytSearchResults.innerHTML = '';
+                            ytSearchResults.style.display = 'block'; // Make sure it's visible!
+                            
+                            if (data.items && data.items.length > 0) {
+                                data.items.forEach(item => {
+                                    const videoId = item.id ? item.id.videoId : null;
+                                    const snippet = item.snippet || {};
+                                    if (!videoId) return;
 
-                                const card = document.createElement('div');
-                                card.style.cssText = 'display: flex; gap: 10px; padding: 10px; cursor: pointer; border-bottom: 1px solid #333; align-items: center;';
-                                card.innerHTML = `
-                                    <img src="${snippet.thumbnails?.default?.url}" style="width: 100px; height: 60px; object-fit: cover; border-radius: 4px;">
-                                    <div style="color: white; overflow: hidden;">
-                                        <div style="font-size: 14px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${snippet.title}</div>
-                                        <div style="font-size: 12px; color: #aaa;">${snippet.channelTitle}</div>
-                                    </div>
-                                `;
+                                    const card = document.createElement('div');
+                                    card.style.cssText = 'display: flex; gap: 10px; padding: 10px; cursor: pointer; border-bottom: 1px solid #333; align-items: center;';
+                                    card.innerHTML = `
+                                        <img src="${snippet.thumbnails?.default?.url}" style="width: 100px; height: 60px; object-fit: cover; border-radius: 4px;">
+                                        <div style="color: white; overflow: hidden;">
+                                            <div style="font-size: 14px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${snippet.title}</div>
+                                            <div style="font-size: 12px; color: #aaa;">${snippet.channelTitle}</div>
+                                        </div>
+                                    `;
 
-                                card.addEventListener('click', () => {
-                                    // Siyahını gizlət və qutunu gizlət
-                                    ytSearchResults.style.display = 'none';
-                                    ytSearchInput.parentElement.style.display = 'none';
-                                    
-                                    // Loqonu gizlət
-                                    const ytLogo = document.querySelector('#youtube-ui-wrapper .neon-logo');
-                                    if (ytLogo) ytLogo.style.display = 'none';
-                                    
-                                    // Wrapperi yuxarı çək ki video tam görünsün
-                                    const wrapper = document.getElementById('youtube-ui-wrapper');
-                                    if(wrapper) wrapper.style.justifyContent = 'flex-start';
+                                    card.addEventListener('click', () => {
+                                        try {
+                                            console.log("YouTube kartına klikləndi!");
+                                            // Siyahını gizlət və qutunu gizlət
+                                            ytSearchResults.style.display = 'none';
+                                            ytSearchInput.parentElement.style.display = 'none';
+                                            
+                                            // Loqonu gizlət
+                                            const ytLogo = document.querySelector('#youtube-ui-wrapper .neon-logo');
+                                            if (ytLogo) ytLogo.style.display = 'none';
+                                            
+                                            // Wrapperi yuxarı çək ki video tam görünsün
+                                            const wrapper = document.getElementById('youtube-ui-wrapper');
+                                            if(wrapper) wrapper.style.justifyContent = 'flex-start';
 
-                                    const playerDiv = document.getElementById('player');
-                                    if (playerDiv) playerDiv.style.display = 'block';
-                                    
-                                    // Firebase-ə yaz (bu avtomatik initOrLoadYouTubePlayer-i çağıracaq)
-                                    if (database && currentRoomId) {
-                                        database.ref(`rooms/${currentRoomId}/youtubeId`).set({
-                                            videoId: videoId,
-                                            timestamp: Date.now()
-                                        });
-                                    }
+                                            const playerDiv = document.getElementById('player');
+                                            if (playerDiv) playerDiv.style.display = 'block';
+                                            
+                                            // Firebase-ə yaz (bu avtomatik initOrLoadYouTubePlayer-i çağıracaq)
+                                            if (typeof database !== 'undefined' && typeof currentRoomId !== 'undefined') {
+                                                database.ref(`rooms/${currentRoomId}/youtubeId`).set({
+                                                    videoId: videoId,
+                                                    timestamp: Date.now()
+                                                }).catch(err => console.error("Firebase yazma xətası:", err));
+                                            } else {
+                                                console.error("Firebase database və ya currentRoomId mövcud deyil!");
+                                            }
+                                        } catch (err) {
+                                            console.error("Card click xətası:", err);
+                                        }
+                                    });
+                                    ytSearchResults.appendChild(card);
                                 });
-                                ytSearchResults.appendChild(card);
-                            });
-                        } else {
-                            ytSearchResults.innerHTML = '<div style="padding: 10px; color: white;">Nəticə tapılmadı.</div>';
+                            } else {
+                                ytSearchResults.innerHTML = '<div style="padding: 10px; color: white;">Nəticə tapılmadı.</div>';
+                            }
                         }
                     } catch (err) {
                         console.error('YouTube Fetch Xətası:', err);
-                        ytSearchResults.innerHTML = '<div style="padding: 10px; color: red;">Xəta baş verdi.</div>';
-                        ytSearchResults.style.display = 'block';
+                        if (ytSearchResults) {
+                            ytSearchResults.innerHTML = '<div style="padding: 10px; color: red;">Xəta baş verdi.</div>';
+                            ytSearchResults.style.display = 'block';
+                        }
                     }
-                }
-            });
+                });
+            } else {
+                console.error("YouTube DOM elementləri tapılmadı!");
+            }
         }
         
         // Close left panel on mobile
