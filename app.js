@@ -1085,19 +1085,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     
     
-    // Orijinal "Otaq Yarat" Məntiqinin Bərpası
-    document.body.addEventListener('click', (e) => {
-        const createBtn = e.target.closest('#create-room-btn, .create-room-btn');
-        if (createBtn) {
-            e.preventDefault();
-            
+    
+
+
+        }
+    });
+
+            } else {
+                window.location.href = `/room.html?id=${roomId}`;
+            }
+        }
+    });
+
+    if (createRoomBtn) {
+        createRoomBtn.addEventListener('click', () => {
             if (!currentUser) {
                 showModal(loginModal);
                 return;
             }
             
+            // Otaq yaratmaq üçün birbaşa yaradın, platforma seçimi room.html-də olacaq
             const roomCode = generateRoomCode();
-            const defaultPlatform = "netflix"; // Default
+            const defaultPlatform = "netflix"; // Default olaraq birini təyin edək
             
             database.ref('rooms/' + roomCode + '/creator').set({
                 uid: currentUser.uid,
@@ -1111,14 +1120,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast("Otaq yaradılarkən xəta baş verdi.");
                 console.error(error);
             });
-        }
-    });
-
-            } else {
-                window.location.href = `/room.html?id=${roomId}`;
-            }
-        }
-    });
+        });
+    }
 
     if (joinRoomBtn) {
         joinRoomBtn.addEventListener('click', () => {
