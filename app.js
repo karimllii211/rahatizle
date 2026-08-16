@@ -488,43 +488,289 @@ document.addEventListener('DOMContentLoaded', () => {
     const setNewPasswordBtn = document.getElementById('setNewPasswordBtn');
     if (setNewPasswordBtn) {
         setNewPasswordBtn.addEventListener('click', async () => {
-            const newPwd = document.getElementById('newPasswordInput').value.trim();
-            if (newPwd.length < 6) return showToast("Şifrə ən azı 6 simvol olmalıdır.");
+            const newPwd = document.getElementById('newPasswordInput').value;
+            if (newPwd.length < 8) return showToast("Şifrə ən azı 8 simvol olmalıdır.");
 
-            const activeUser = auth.currentUser;
-            if (!activeUser) {
-                return showToast("XƏTA: Sistemə daxil olmadığınız üçün şifrəni yeniləmək mümkün deyil.");
+            if (!resetToken || !enteredResetCode) {
+                return showToast("Sessiyanın vaxtı bitib. Yeni kod tələb edin.");
             }
 
             setNewPasswordBtn.disabled = true;
-            activeUser.updatePassword(newPwd).then(() => {
-                showToast("Şifrəniz uğurla yeniləndi!");
-                closeAllModals();
-            }).catch(async err => {
-                if (err.code === 'auth/requires-recent-login') {
-                    const oldPwdPrompt = prompt("Təhlükəsizlik üçün zəhmət olmasa cari (köhnə) şifrənizi daxil edin:");
-                    if (oldPwdPrompt) {
-                        try {
-                            const credential = firebase.auth.EmailAuthProvider.credential(activeUser.email, oldPwdPrompt);
-                            await activeUser.reauthenticateWithCredential(credential);
-                            await activeUser.updatePassword(newPwd);
-                            showToast("Sessiya yeniləndi və şifrə uğurla dəyişdirildi!");
-                            closeAllModals();
-                        } catch (reauthErr) {
-                            showToast("Köhnə şifrə yanlışdır. Təkrar cəhd edin.");
-                        }
-                    } else {
-                        showToast("Şifrəni yeniləmək üçün sessiya təsdiqlənməlidir.");
-                    }
+            try {
+                const response = await fetch('/api/reset-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'direct-reset',
+                        email: currentOTPRecoveryEmail,
+                        newPassword: newPwd
+                    })
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (response.ok) {
+                    resetToken = null;
+                    enteredResetCode = null;
+                    showToast("Şifrəniz uğurla yeniləndi! İndi giriş edə bilərsiniz.");
+                    closeAllModals();
+                    if (loginModal) showModal(loginModal);
                 } else {
-                    showToast(getErrorMessage(err.code));
+                    showToast(data.error || "Şifrə yenilənə bilmədi.");
+                    if (response.status === 400) {
+                        const otpStep = document.getElementById('otpStepContainer');
+                        const newPwdStep = document.getElementById('newPasswordStepContainer');
+                        if (otpStep) otpStep.classList.remove('hidden');
+                        if (newPwdStep) newPwdStep.classList.add('hidden');
+                    }
                 }
-            }).finally(() => {
+            } catch (err) {
+                console.error("Şifrə yeniləmə xətası:", err);
+                showToast("Şəbəkə xətası baş verdi.");
+            } finally {
                 setNewPasswordBtn.disabled = false;
-            });
+            }
         });
     }
 
+    // --- GİRİŞ (LOGIN) ---
+    const loginEmail = document.getElementById('loginEmail');
+    const loginPassword = document.getElementById('loginPassword');
+    const loginBtn = document.getElementById('loginBtn');
+    const googleLoginBtn = document.getElementById('googleLoginBtn');
+
+    if (loginBtn) {
+        loginBtn.addEventListener('click', () => {
+            const email = loginEmail.value.trim();
+            const password = loginPassword.value.trim();
+            if (!email || !password) return showToast("E-poçt və şifrəni daxil edin.");
+            
+            auth.signInWithEmailAndPassword(email, password)
+                .catch(err => {
+                    console.error("Giriş xətası:", err.code);
+                    showToast(getErrorMessage(err.code));
+                });
+        });
+    }
+
+    if (googleLoginBtn) {
+        googleLoginBtn.addEventListener('click', () => {
+            auth.signInWithPopup(provider)
+                .then(result => {
+                    const user = result.user;
+                    const isNewUser = result.additionalUserInfo?.isNewUser;
+                    
+                    if (isNewUser) {
+                        user.delete().then(() => {
+                            showModal(registerModal);
+                            showToast("Zəhmət olmasa əvvəlcə qeydiyyatdan keçin.");
+                        }).catch(err => console.error(err));
+                    } else {
+                        database.ref('users/' + user.uid).update({
+                            uid: user.uid,
+                            email: user.email,
+                            displayName: user.displayName || '',
+                            photoURL: user.photoURL || '',
+                            lastLogin: firebase.database.ServerValue.TIMESTAMP
+                        }).then(() => {
+                            showToast("Uğurla daxil oldunuz!");
+                            closeAllModals();
+                        }).catch(error => console.error("Baza yazılma xətası:", error));
+                    }
+                })
+                .catch(err => {
+                    showToast(getErrorMessage(err.code));
+                });
+        });
+    }
+
+    const googleRegisterBtn = document.getElementById('googleRegisterBtn');
+    if (googleRegisterBtn) {
+        googleRegisterBtn.addEventListener('click', () => {
+            auth.signInWithPopup(provider)
+                .then(result => {
+                    const user = result.user;
+                    database.ref('users/' + user.uid).update({
+                        uid: user.uid,
+                        email: user.email,
+                        displayName: user.displayName || '',
+                        photoURL: user.photoURL || '',
+                        lastLogin: firebase.database.ServerValue.TIMESTAMP
+                    }).then(() => {
+                        showToast("Uğurla qeydiyyatdan keçdiniz!");
+                        closeAllModals();
+                    }).catch(error => console.error("Baza yazılma xətası:", error));
+                })
+                .catch(err => {
+                    showToast(getErrorMessage(err.code));
+                });
+        });
+    }
+
+    // --- QEYDİYYAT (REGISTER) ---
+    const regFirstName = document.getElementById('regFirstName');
+    const regLastName = document.getElementById('regLastName');
+    const regEmail = document.getElementById('regEmail');
+    const regPassword = document.getElementById('regPassword');
+    const regPasswordConfirm = document.getElementById('regPasswordConfirm');
+    const completeRegisterBtn = document.getElementById('completeRegisterBtn');
+
+    if (completeRegisterBtn) {
+        completeRegisterBtn.addEventListener('click', () => {
+            const fname = cleanText(regFirstName.value);
+            const lname = cleanText(regLastName.value);
+            const email = regEmail.value.trim();
+            const pwd = regPassword.value.trim();
+            const pwdConf = regPasswordConfirm.value.trim();
+            
+            const genderSelect = document.getElementById('regGender');
+            const gender = genderSelect ? genderSelect.value : '';
+            
+            const photoURLInput = document.getElementById('regPhotoURL');
+            const photoURL = photoURLInput ? photoURLInput.value.trim() : '';
+
+            if (!fname || !lname || !email || !pwd || !pwdConf || !gender) {
+                return showToast("Zəhmət olmasa bütün xanaları doldurun!");
+            }
+
+            if (pwd !== pwdConf) {
+                return showToast("Şifrələr eyni deyil! Zəhmət olmasa düzgün daxil edin.");
+            }
+
+            if (pwd.length < 8) {
+                return showToast("Şifrə ən azı 8 simvol olmalıdır!");
+            }
+
+            auth.createUserWithEmailAndPassword(email, pwd)
+                .then(userCredential => {
+                    const fullName = fname + " " + lname;
+                    const user = userCredential.user;
+                    return user.updateProfile({
+                        displayName: fullName,
+                        photoURL: photoURL
+                    }).then(() => {
+                        const dashboardUserName = document.getElementById('dashboardUserName');
+                        if (dashboardUserName) {
+                            dashboardUserName.textContent = fullName;
+                        }
+                        
+                        return database.ref('users/' + user.uid).update({
+                            uid: user.uid,
+                            email: user.email,
+                            displayName: fullName,
+                            gender: gender,
+                            photoURL: photoURL,
+                            createdAt: firebase.database.ServerValue.TIMESTAMP
+                        });
+                    });
+                })
+                .catch(err => showToast(getErrorMessage(err.code)));
+        });
+    }
+
+    // --- PROFİL ŞƏKLİ ---
+    const AVATAR_MAX_BYTES = 5 * 1024 * 1024;   // qəbul edilən fayl həddi
+    const AVATAR_MAX_PX = 256;                  // saxlanılan ölçü
+    const ALLOWED_AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+    // Şəkli brauzerdə kiçildirik: əks halda böyük base64 sətri Firebase-in
+    // photoURL limitini aşır və yükləmə tamamilə uğursuz olur.
+    const processAvatarFile = (file) => new Promise((resolve, reject) => {
+        if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
+            return reject(new Error("Yalnız JPG, PNG, WEBP və ya GIF şəkil yükləyə bilərsiniz."));
+        }
+        if (file.size > AVATAR_MAX_BYTES) {
+            return reject(new Error("Şəklin ölçüsü 5 MB-dan çox olmamalıdır."));
+        }
+
+        const objectUrl = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+            URL.revokeObjectURL(objectUrl);
+            const scale = Math.min(1, AVATAR_MAX_PX / Math.max(img.width, img.height));
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.max(1, Math.round(img.width * scale));
+            canvas.height = Math.max(1, Math.round(img.height * scale));
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', 0.82));
+        };
+        img.onerror = () => {
+            URL.revokeObjectURL(objectUrl);
+            reject(new Error("Şəkil oxuna bilmədi."));
+        };
+        img.src = objectUrl;
+    });
+
+    const applyAvatarToUI = (dataUrl) => {
+        const pairs = [
+            ['profilePageAvatar', 'profilePageAvatarText'],
+            ['navAvatar', 'navbar-avatar-text']
+        ];
+        pairs.forEach(([imgId, textId]) => {
+            const img = document.getElementById(imgId);
+            const text = document.getElementById(textId);
+            if (img) {
+                img.src = dataUrl;
+                img.classList.remove('hidden');
+            }
+            if (text) text.classList.add('hidden');
+        });
+    };
+
+    const handleAvatarSelection = async (input) => {
+        if (!currentUser) return;
+        const file = input.files && input.files[0];
+        if (!file) return;
+
+        try {
+            const dataUrl = await processAvatarFile(file);
+            await database.ref('users/' + currentUser.uid).update({ photoURL: dataUrl });
+            // Auth profili yalnız qısa URL-ləri qəbul edir; base64 buraya yazılmır.
+            applyAvatarToUI(dataUrl);
+            showToast("Profil şəkli uğurla yeniləndi!");
+        } catch (err) {
+            console.error("Şəkil yükləmə xətası:", err);
+            showToast(err.message || "Şəkil yüklənərkən xəta baş verdi.");
+        } finally {
+            input.value = '';
+        }
+    };
+
+    ['avatarUpload', 'profile-image-upload'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) input.addEventListener('change', () => handleAvatarSelection(input));
+    });
+
+    const saveProfileBtn = document.getElementById('saveProfileBtn');
+    if (saveProfileBtn) {
+        saveProfileBtn.addEventListener('click', () => {
+            if (!currentUser) return;
+            
+            const fname = cleanText(document.getElementById('profFirstName').value);
+            const lname = cleanText(document.getElementById('profLastName').value);
+            const phone = cleanText(document.getElementById('profPhone').value, 20);
+            const gender = document.getElementById('profGender').value;
+            
+            if (!fname) return showToast("Ad mütləqdir!");
+            
+            const fullName = fname + (lname ? " " + lname : "");
+            
+            currentUser.updateProfile({ displayName: fullName }).then(() => {
+                const profilePageName = document.getElementById('profilePageName');
+                if (profilePageName) profilePageName.textContent = fullName;
+                
+                return database.ref('users/' + currentUser.uid).update({
+                    displayName: fullName,
+                    phone: phone,
+                    gender: gender
+                });
+            }).then(() => {
+                showToast("Məlumatlar yadda saxlanıldı!");
+            }).catch(err => showToast(getErrorMessage(err.code)));
+        });
+    }
+    
     window.deleteRoom = async (roomId) => {
         const confirmDelete = await showConfirmModal("Otağı silmək istədiyinizə əminsiniz?");
         if (confirmDelete) {
