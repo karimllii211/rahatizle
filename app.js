@@ -1082,16 +1082,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return code;
     };
 
-    if (createRoomBtn) {
-        createRoomBtn.addEventListener('click', () => {
+
+    // Event delegation for "Create Room" buttons
+    document.addEventListener('click', (e) => {
+        const createBtn = e.target.closest('.create-room-btn');
+        if (createBtn) {
+            e.preventDefault();
             if (!currentUser) {
                 showModal(loginModal);
                 return;
             }
             
-            // Otaq yaratmaq üçün birbaşa yaradın, platforma seçimi room.html-də olacaq
             const roomCode = generateRoomCode();
-            const defaultPlatform = "netflix"; // Default olaraq birini təyin edək
+            const defaultPlatform = "netflix"; // Default
             
             database.ref('rooms/' + roomCode + '/creator').set({
                 uid: currentUser.uid,
@@ -1105,10 +1108,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast("Otaq yaradılarkən xəta baş verdi.");
                 console.error(error);
             });
-        });
-    }
+        }
+    });
 
-    if (joinRoomBtn) {
+        if (joinRoomBtn) {
         joinRoomBtn.addEventListener('click', () => {
             const code = roomCodeInput ? roomCodeInput.value.trim().toUpperCase() : '';
             if (!code) return showToast("Otaq kodunu daxil edin.");
