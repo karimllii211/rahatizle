@@ -26,9 +26,22 @@ Eyni şəkildə TURN serverinin parolu (`Video2026!`) da repodadır — dəyişd
 | `EMAILJS_TEMPLATE_ID` | EmailJS şablon ID (`template_...`) |
 | `EMAILJS_PUBLIC_KEY` | EmailJS Public Key |
 | `EMAILJS_PRIVATE_KEY` | EmailJS **Private Key** (Account → API Keys) |
+| `YOUTUBE_API_KEY` | YouTube Data API v3 açarı (Google Cloud Console) — otaqda YouTube axtarışı üçün |
 
 `FIREBASE_SERVICE_ACCOUNT` əvəzinə ayrı-ayrı `FIREBASE_PROJECT_ID`,
 `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` də istifadə edilə bilər.
+
+### ⚠️ YouTube açarı da sızmışdı
+
+`room.js`-də sərt-kodlanmış bir YouTube Data API v3 açarı var idi (Git
+tarixçəsinə düşüb). Artıq koddan silinib və `/api/youtube-search` serverless
+funksiyası vasitəsilə server tərəfdə istifadə olunur, amma **köhnə açarın özü
+hələ də etibarsızdır**. Google Cloud Console-da (APIs & Services → Credentials)
+həmin açarı ləğv edin, yenisini yaradın və yalnız `YOUTUBE_API_KEY` kimi
+təyin edin — koda yazmayın.
+
+`YOUTUBE_API_KEY` təyin edilməyibsə, otaqdakı YouTube axtarışı "Axtarış
+xidməti hazırda əlçatan deyil" xətası göstərir — heç bir fallback yoxdur.
 
 ### EmailJS üçün əlavə addım
 

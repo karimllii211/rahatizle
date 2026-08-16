@@ -717,10 +717,12 @@ function initRoom() {
             }
         });
     }
+
+    // --- 6. YOUTUBE AXTARIŞ VƏ OYNATMA ---
+    initYouTubeFeature(mainVideo, videoPlaceholder);
 }
 
-
-    // --- YOUTUBE API İNTEQRASİYASI ---
+function initYouTubeFeature(mainVideo, videoPlaceholder) {
     const ytSearchInput = document.getElementById('yt-search-input');
     const ytSearchBtn = document.getElementById('yt-search-btn');
     const ytSearchResults = document.getElementById('yt-search-results');
@@ -735,45 +737,66 @@ function initRoom() {
             ytSearchBtn.textContent = '...';
 
             try {
-                const API_KEY = 'AIzaSyCr51yPNOwDSdNkOdI0Xj1XOw6oS5FPm-s';
-                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=20&type=video&q=${encodeURIComponent(query)}&key=${API_KEY}`);
+                const response = await fetch(`/api/youtube-search?q=${encodeURIComponent(query)}`);
                 const data = await response.json();
+                const container = document.getElementById('yt-search-results-container');
 
-                if (data.items) {
-                    ytSearchResults.innerHTML = '';
-     document.getElementById('yt-search-results-container').classList.remove('hidden');
-                    data.items.forEach(item => {
-                        const videoId = item.id.videoId;
-                        const title = item.snippet.title;
-                        const thumbnail = item.snippet.thumbnails.medium.url;
-
-                        const card = document.createElement('div');
-                        card.className = 'cursor-pointer group flex flex-col gap-2 rounded-xl border border-white/5 bg-white/5 p-2 transition-colors hover:bg-white/10';
-                        card.className = 'cursor-pointer group flex items-center gap-3 rounded-lg border border-transparent p-2 transition-colors hover:bg-white/10 hover:border-white/10';
-     card.innerHTML = `
-        <div class="relative h-16 w-28 shrink-0 overflow-hidden rounded-md bg-black">
-            <img src="${thumbnail}" alt="Thumbnail" class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105">
-            <div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                <svg class="h-8 w-8 text-[#FF014C]" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
-            </div>
-        </div>
-        <div class="flex flex-col flex-1 min-w-0">
-            <h3 class="truncate text-sm font-semibold text-gray-100">${title}</h3>
-            <p class="truncate text-xs text-gray-400 mt-1">${item.snippet.channelTitle}</p>
-        </div>
-     `;
-                        
-                        card.addEventListener('click', () => {
-                            database.ref(`rooms/${currentRoomId}/youtubeId`).set({
-        videoId: videoId,
-        timestamp: Date.now()
-    });
-    document.getElementById('yt-search-results-container').classList.add('hidden');
-    ytSearchInput.value = '';
-                        });
-                        ytSearchResults.appendChild(card);
-                    });
+                if (!response.ok || data.error) {
+                    showToast(data.error || "Axtarış zamanı xəta baş verdi.");
+                    container.classList.add('hidden');
+                    return;
                 }
+
+                ytSearchResults.innerHTML = '';
+
+                if (!data.items || data.items.length === 0) {
+                    showToast("Nəticə tapılmadı.");
+                    container.classList.add('hidden');
+                    return;
+                }
+
+                container.classList.remove('hidden');
+                data.items.forEach(item => {
+                    const { videoId, title, channelTitle, thumbnail } = item;
+                    if (!videoId) return;
+
+                    const card = document.createElement('div');
+                    card.className = 'cursor-pointer group flex items-center gap-3 rounded-lg border border-transparent p-2 transition-colors hover:bg-white/10 hover:border-white/10';
+
+                    const thumbWrap = document.createElement('div');
+                    thumbWrap.className = 'relative h-16 w-28 shrink-0 overflow-hidden rounded-md bg-black';
+                    const img = document.createElement('img');
+                    img.src = thumbnail;
+                    img.alt = 'Thumbnail';
+                    img.className = 'h-full w-full object-cover transition-transform duration-300 group-hover:scale-105';
+                    const overlay = document.createElement('div');
+                    overlay.className = 'absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100';
+                    // Statik SVG, heç bir API məlumatı interpolyasiya olunmur — XSS riski yoxdur.
+                    overlay.innerHTML = '<svg class="h-8 w-8 text-[#FF014C]" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>';
+                    thumbWrap.append(img, overlay);
+
+                    const textWrap = document.createElement('div');
+                    textWrap.className = 'flex flex-col flex-1 min-w-0';
+                    const h3 = document.createElement('h3');
+                    h3.className = 'truncate text-sm font-semibold text-gray-100';
+                    h3.textContent = title;
+                    const p = document.createElement('p');
+                    p.className = 'truncate text-xs text-gray-400 mt-1';
+                    p.textContent = channelTitle;
+                    textWrap.append(h3, p);
+
+                    card.append(thumbWrap, textWrap);
+
+                    card.addEventListener('click', () => {
+                        database.ref(`rooms/${currentRoomId}/youtubeId`).set({
+                            videoId: videoId,
+                            timestamp: Date.now()
+                        });
+                        container.classList.add('hidden');
+                        ytSearchInput.value = '';
+                    });
+                    ytSearchResults.appendChild(card);
+                });
             } catch (error) {
                 console.error('YouTube Axtarış Xətası:', error);
                 showToast("Axtarış zamanı xəta baş verdi.");
@@ -788,21 +811,33 @@ function initRoom() {
         });
     }
 
-    
-    // Global callback for IFrame API
+    // IFrame API-nin öz qlobal kontraktı: skript yükləndikdə bu funksiyanı çağırır.
+    // Qeyd: `<script src="...iframe_api">` səhifənin <head>-ində, bu funksiyanın
+    // təyin edildiyi andan (Firebase auth həll olunduqdan sonra) xeyli əvvəl işə
+    // düşür — real şəraitdə API adətən bu callback-dən ÖNCƏ artıq hazır olur.
+    // Ona görə əsas hazırlıq siqnalı kimi `YT.Player`-in mövcudluğu yoxlanılır;
+    // callback yalnız API-nin hələ yüklənməkdə olduğu nadir hal üçün ehtiyat yoludur.
     window.onYouTubeIframeAPIReady = function() {
-        console.log("YouTube IFrame API Hazırdır");
+        if (window.pendingYouTubeVideoId) {
+            initOrLoadYouTubePlayer(window.pendingYouTubeVideoId);
+            window.pendingYouTubeVideoId = null;
+        }
     };
 
     function initOrLoadYouTubePlayer(videoId) {
-        const videoPlaceholder = document.getElementById('video-placeholder');
-        const mainVideo = document.getElementById('main-video');
+        // IFrame API skripti hələ yüklənməyibsə, videoId-ni gözləmə siyahısına qoy —
+        // ya onYouTubeIframeAPIReady, ya da növbəti Firebase yeniləməsi tətbiq edəcək.
+        if (typeof YT === 'undefined' || !YT.Player) {
+            window.pendingYouTubeVideoId = videoId;
+            return;
+        }
+
         const ytPlayerContainer = document.getElementById('youtube-player-container');
-        
+
         if (mainVideo) mainVideo.classList.add('hidden');
         if (videoPlaceholder) videoPlaceholder.classList.add('hidden');
         if (ytPlayerContainer) ytPlayerContainer.classList.remove('hidden');
-        
+
         if (mainVideo && mainVideo.srcObject) {
             mainVideo.srcObject = null;
         }
@@ -830,44 +865,35 @@ function initRoom() {
         }
     }
 
-    // Firebase Listener for youtubeId
-    document.addEventListener('DOMContentLoaded', () => {
-        // Sync Listener for Video ID
-        setTimeout(() => {
-            if (currentRoomId) {
-                database.ref(`rooms/${currentRoomId}/youtubeId`).on('value', snapshot => {
-                    const data = snapshot.val();
-                    if (data && data.videoId) {
-                        initOrLoadYouTubePlayer(data.videoId);
-                    }
-                });
+    if (currentRoomId) {
+        database.ref(`rooms/${currentRoomId}/youtubeId`).on('value', snapshot => {
+            const data = snapshot.val();
+            if (data && data.videoId) initOrLoadYouTubePlayer(data.videoId);
+        });
 
-                // Sync Listener for Player State
-                database.ref(`rooms/${currentRoomId}/youtubeState`).on('value', snapshot => {
-                    const data = snapshot.val();
-                    if (!data || !currentUser || data.updatedBy === currentUser.uid) return;
-                    if (!window.ytPlayer || typeof window.ytPlayer.seekTo !== 'function') return;
-                    
-                    ignoreNextYTEvent = true;
-                    
-                    const currentTime = window.ytPlayer.getCurrentTime() || 0;
-                    const timeDiff = Math.abs(currentTime - data.time);
-                    
-                    if (timeDiff > 1.5) {
-                        window.ytPlayer.seekTo(data.time, true);
-                    }
+        database.ref(`rooms/${currentRoomId}/youtubeState`).on('value', snapshot => {
+            const data = snapshot.val();
+            if (!data || !currentUser || data.updatedBy === currentUser.uid) return;
+            if (!window.ytPlayer || typeof window.ytPlayer.seekTo !== 'function') return;
 
-                    if (data.state === 'play') {
-                        window.ytPlayer.playVideo();
-                    } else if (data.state === 'pause') {
-                        window.ytPlayer.pauseVideo();
-                    }
-                    
-                    setTimeout(() => { ignoreNextYTEvent = false; }, 800);
-                });
+            ignoreNextYTEvent = true;
+
+            const currentTime = window.ytPlayer.getCurrentTime() || 0;
+            const timeDiff = Math.abs(currentTime - data.time);
+
+            if (timeDiff > 1.5) {
+                window.ytPlayer.seekTo(data.time, true);
             }
-        }, 1500);
-    });
+
+            if (data.state === 'play') {
+                window.ytPlayer.playVideo();
+            } else if (data.state === 'pause') {
+                window.ytPlayer.pauseVideo();
+            }
+
+            setTimeout(() => { ignoreNextYTEvent = false; }, 800);
+        });
+    }
 
     function onPlayerStateChange(event) {
         if (ignoreNextYTEvent || !currentUser || !currentRoomId) return;
@@ -877,7 +903,7 @@ function initRoom() {
             2: 'pause',
             3: 'seek'
         };
-        
+
         if (stateMap[event.data]) {
             database.ref(`rooms/${currentRoomId}/youtubeState`).set({
                 state: stateMap[event.data] === 'seek' ? 'play' : stateMap[event.data],
@@ -888,7 +914,7 @@ function initRoom() {
         }
     }
 
-    // Hide search results when clicking outside
+    // Kənara kliklədikdə axtarış nəticələrini bağla
     document.addEventListener('click', (e) => {
         const container = document.getElementById('yt-search-results-container');
         const searchInput = document.getElementById('yt-search-input');
@@ -899,4 +925,4 @@ function initRoom() {
             }
         }
     });
-
+}
