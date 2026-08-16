@@ -612,6 +612,13 @@ function initRoom() {
             const file = e.target.files[0];
             if (!file) return;
 
+            // TODO: Gələcəkdə premium funksiya üçün limitin qaldırılması.
+            if (file.size > 500 * 1024 * 1024) {
+                showToast(i18n.getFileSizeLimit ? i18n.getFileSizeLimit() : "Faylın həcmi 500MB-dan böyük ola bilməz!");
+                e.target.value = '';
+                return;
+            }
+
             console.log("📁 Fayl seçildi, video yüklənir...");
 
             const objectURL = URL.createObjectURL(file);
