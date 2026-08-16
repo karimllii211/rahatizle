@@ -534,6 +534,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (loginModal) showModal(loginModal);
                 } else {
                     showToast(data.error || "Şifrə yenilənə bilmədi.");
+                    if (data.details) console.error("Backend Xətası:", data.details);
                     if (response.status === 400) {
                         const otpStep = document.getElementById('otpStepContainer');
                         const newPwdStep = document.getElementById('newPasswordStepContainer');

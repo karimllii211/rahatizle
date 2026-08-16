@@ -1,4 +1,6 @@
+const fs = require('fs');
 
+const newContent = `
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
 
@@ -12,13 +14,13 @@ module.exports = async (req, res) => {
         return {
           projectId: parsed.project_id || parsed.projectId,
           clientEmail: parsed.client_email || parsed.clientEmail,
-          privateKey: (parsed.private_key || parsed.privateKey || '').replace(/\\n/g, '\n')
+          privateKey: (parsed.private_key || parsed.privateKey || '').replace(/\\\\n/g, '\\n')
         };
       }
       return {
         projectId: process.env.FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n')
+        privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\\\n/g, '\\n')
       };
     }
 
@@ -71,3 +73,6 @@ module.exports = async (req, res) => {
     });
   }
 };
+`;
+fs.writeFileSync('api/reset-password.js', newContent);
+console.log("Rewrote api/reset-password.js");
