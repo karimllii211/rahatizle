@@ -875,11 +875,11 @@ platformBtns.forEach(btn => {
                 window.ytPlayer = null;
             }
             videoPlaceholder.innerHTML = `
-                <div id="youtube-ui-wrapper" style="display: flex; flex-direction: column; align-items: center; width: 100%; height: 100%; justify-content: center; overflow-y: auto;">
+                <div id="youtube-ui-wrapper" style="display: flex; flex-direction: column; align-items: center; width: 100%; height: 100%; justify-content: flex-start; overflow-y: auto;">
                     <img src="YouTubeLogo.webp" class="neon-logo" style="margin-bottom: 20px;">
                     <div style="position: relative; width: 80%; max-width: 600px;">
                         <input type="text" id="yt-search-input" placeholder="YouTube-da axtar..." autocomplete="off" style="width: 100%; padding: 15px; border-radius: 8px; color: black;">
-                        <div id="yt-suggest-list" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:4px;background:#0A0A0A;border:1px solid rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;overflow-y:auto;max-height:220px;z-index:20;"></div>
+                        <div id="yt-suggest-list" style="display:none;position:fixed;background:#0A0A0A;border:1px solid rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;overflow-y:auto;max-height:220px;z-index:1000;"></div>
                         <div id="yt-search-status" style="color: #999; font-size: 12px; margin-top: 8px; min-height: 16px;"></div>
                         <div id="yt-search-results" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; width: 100%; max-height: 420px; overflow-y: auto; margin-top: 8px;"></div>
                         <div id="yt-loadmore-wrap" style="display:none; width:100%; text-align:center; margin-top:12px;">
@@ -906,6 +906,20 @@ platformBtns.forEach(btn => {
 // --- YOUTUBE AXTARIŞ UI (platform "youtube" seçildikdə yenidən qurulur) ---
 let ytSearchDebounceTimer = null;
 let ytSuggestDebounceTimer = null;
+let ytSuggestPositionHandlersAdded = false;
+
+// Dropdown-u ata-baba overflow konteynerlərindən asılı olmadan (position:fixed)
+// input-un altında saxlamaq üçün: mövqe hər dəfə göstəriləndə və səhifə/daxili
+// konteyner sürüşdürüləndə və ya pəncərə ölçüsü dəyişəndə yenilənir.
+function updateYtSuggestPosition() {
+    const suggestEl = document.getElementById('yt-suggest-list');
+    const inputEl = document.getElementById('yt-search-input');
+    if (!suggestEl || !inputEl || suggestEl.style.display === 'none') return;
+    const rect = inputEl.getBoundingClientRect();
+    suggestEl.style.left = rect.left + 'px';
+    suggestEl.style.top = (rect.bottom + 4) + 'px';
+    suggestEl.style.width = rect.width + 'px';
+}
 
 function setupYouTubeSearch() {
     const input = document.getElementById('yt-search-input');
@@ -915,6 +929,12 @@ function setupYouTubeSearch() {
     const loadMoreWrap = document.getElementById('yt-loadmore-wrap');
     const loadMoreBtn = document.getElementById('yt-loadmore-btn');
     if (!input || !resultsEl || !statusEl || !suggestEl || !loadMoreWrap || !loadMoreBtn) return;
+
+    if (!ytSuggestPositionHandlersAdded) {
+        ytSuggestPositionHandlersAdded = true;
+        document.addEventListener('scroll', updateYtSuggestPosition, true);
+        window.addEventListener('resize', updateYtSuggestPosition);
+    }
 
     let nextPageToken = null;
     let currentQuery = '';
@@ -1048,6 +1068,7 @@ function setupYouTubeSearch() {
             suggestEl.appendChild(item);
         });
         suggestEl.style.display = 'block';
+        updateYtSuggestPosition();
     };
 
     input.addEventListener('input', () => {
