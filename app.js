@@ -1082,21 +1082,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return code;
     };
 
-
-    
-    
-    
-
-
-        }
-    });
-
-            } else {
-                window.location.href = `/room.html?id=${roomId}`;
-            }
-        }
-    });
-
     if (createRoomBtn) {
         createRoomBtn.addEventListener('click', () => {
             if (!currentUser) {
