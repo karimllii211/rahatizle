@@ -125,26 +125,7 @@ function initRoom() {
     const toggleChatBtn = document.getElementById('toggleChatBtn');
     const closeChatBtn = document.getElementById('closeChatBtn');
     const chatPanel = document.getElementById('chatPanel');
-    // Chat Pəncərəsinin Açılma Həlli (Event Delegation ilə)
-    document.body.addEventListener('click', (e) => {
-        const chatToggle = e.target.closest('#toggleChatBtn');
-        if (chatToggle) {
-            e.preventDefault();
-            const chatContainer = document.getElementById('chatPanel');
-            if (chatContainer) {
-                chatContainer.classList.toggle('translate-x-full');
-                console.log('Chat açıldı');
-            }
-        }
-        
-        const closeChatBtn = e.target.closest('#closeChatBtn');
-        if (closeChatBtn) {
-            e.preventDefault();
-            const chatContainer = document.getElementById('chatPanel');
-            if (chatContainer) chatContainer.classList.add('translate-x-full');
-        }
-    });
-
+    
     
     
     // Chat is now handled by inline onclick in room.html
