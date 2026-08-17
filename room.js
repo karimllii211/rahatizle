@@ -878,9 +878,13 @@ platformBtns.forEach(btn => {
                 <div id="youtube-ui-wrapper" style="display: flex; flex-direction: column; align-items: center; width: 100%; height: 100%; justify-content: center; overflow-y: auto;">
                     <img src="YouTubeLogo.webp" class="neon-logo" style="margin-bottom: 20px;">
                     <div style="position: relative; width: 80%; max-width: 600px;">
-                        <input type="text" id="yt-search-input" placeholder="YouTube-da axtar..." style="width: 100%; padding: 15px; border-radius: 8px; color: black;">
+                        <input type="text" id="yt-search-input" placeholder="YouTube-da axtar..." autocomplete="off" style="width: 100%; padding: 15px; border-radius: 8px; color: black;">
+                        <div id="yt-suggest-list" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:4px;background:#0A0A0A;border:1px solid rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;overflow-y:auto;max-height:220px;z-index:20;"></div>
                         <div id="yt-search-status" style="color: #999; font-size: 12px; margin-top: 8px; min-height: 16px;"></div>
-                        <div id="yt-search-results" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; width: 100%; max-height: 320px; overflow-y: auto; margin-top: 8px;"></div>
+                        <div id="yt-search-results" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; width: 100%; max-height: 420px; overflow-y: auto; margin-top: 8px;"></div>
+                        <div id="yt-loadmore-wrap" style="display:none; width:100%; text-align:center; margin-top:12px;">
+                            <button type="button" id="yt-loadmore-btn" style="background:rgba(255,1,76,0.2); border:1px solid rgba(255,1,76,0.5); color:#FF014C; padding:10px 24px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">Daha çox göstər</button>
+                        </div>
                     </div>
                     <div id="player" style="width: 100%; height: 500px; margin-top: 20px; display: none;"></div>
                 </div>
@@ -901,16 +905,31 @@ platformBtns.forEach(btn => {
 
 // --- YOUTUBE AXTARIŞ UI (platform "youtube" seçildikdə yenidən qurulur) ---
 let ytSearchDebounceTimer = null;
+let ytSuggestDebounceTimer = null;
 
 function setupYouTubeSearch() {
     const input = document.getElementById('yt-search-input');
     const resultsEl = document.getElementById('yt-search-results');
     const statusEl = document.getElementById('yt-search-status');
-    if (!input || !resultsEl || !statusEl) return;
+    const suggestEl = document.getElementById('yt-suggest-list');
+    const loadMoreWrap = document.getElementById('yt-loadmore-wrap');
+    const loadMoreBtn = document.getElementById('yt-loadmore-btn');
+    if (!input || !resultsEl || !statusEl || !suggestEl || !loadMoreWrap || !loadMoreBtn) return;
 
-    const renderResults = (items) => {
-        resultsEl.innerHTML = '';
+    let nextPageToken = null;
+    let currentQuery = '';
+    let seenVideoIds = new Set();
+
+    const hideSuggestions = () => {
+        suggestEl.style.display = 'none';
+        suggestEl.innerHTML = '';
+    };
+
+    const appendResults = (items) => {
         items.forEach(item => {
+            if (seenVideoIds.has(item.videoId)) return;
+            seenVideoIds.add(item.videoId);
+
             const card = document.createElement('div');
             card.style.cssText = 'width:160px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;overflow:hidden;cursor:pointer;text-align:left;';
 
@@ -947,43 +966,120 @@ function setupYouTubeSearch() {
         });
     };
 
-    input.addEventListener('input', () => {
-        clearTimeout(ytSearchDebounceTimer);
-        const query = input.value.trim();
+    const performSearch = (query, pageToken) => {
+        const isLoadMore = !!pageToken;
 
-        if (!query) {
+        if (isLoadMore) {
+            loadMoreBtn.disabled = true;
+            loadMoreBtn.textContent = 'Yüklənir...';
+        } else {
+            statusEl.textContent = 'Axtarılır...';
             resultsEl.innerHTML = '';
-            statusEl.textContent = '';
-            return;
+            loadMoreWrap.style.display = 'none';
+            seenVideoIds = new Set();
+            nextPageToken = null;
+            currentQuery = query;
         }
 
-        statusEl.textContent = 'Axtarılır...';
+        const url = `/api/youtube-search?q=${encodeURIComponent(query)}` + (pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '');
 
-        ytSearchDebounceTimer = setTimeout(async () => {
-            try {
-                const res = await fetch(`/api/youtube-search?q=${encodeURIComponent(query)}`);
+        fetch(url)
+            .then(async (res) => {
                 const data = await res.json();
 
                 if (!res.ok) {
                     statusEl.textContent = data && data.error ? data.error : 'Axtarış zamanı xəta baş verdi.';
-                    resultsEl.innerHTML = '';
+                    if (!isLoadMore) resultsEl.innerHTML = '';
+                    loadMoreWrap.style.display = 'none';
                     return;
                 }
 
                 const items = data.results || [];
-                if (items.length === 0) {
+                if (!isLoadMore && items.length === 0) {
                     statusEl.textContent = 'Nəticə tapılmadı.';
-                    resultsEl.innerHTML = '';
+                    loadMoreWrap.style.display = 'none';
                     return;
                 }
 
                 statusEl.textContent = '';
-                renderResults(items);
-            } catch (err) {
+                appendResults(items);
+
+                nextPageToken = data.nextPageToken || null;
+                loadMoreWrap.style.display = nextPageToken ? 'block' : 'none';
+            })
+            .catch((err) => {
                 console.error('YouTube axtarış xətası:', err);
                 statusEl.textContent = 'İnternet bağlantınızı yoxlayın.';
-                resultsEl.innerHTML = '';
-            }
-        }, 400);
+                if (!isLoadMore) resultsEl.innerHTML = '';
+                loadMoreWrap.style.display = 'none';
+            })
+            .finally(() => {
+                if (isLoadMore) {
+                    loadMoreBtn.disabled = false;
+                    loadMoreBtn.textContent = 'Daha çox göstər';
+                }
+            });
+    };
+
+    loadMoreBtn.addEventListener('click', () => {
+        if (!nextPageToken || !currentQuery) return;
+        performSearch(currentQuery, nextPageToken);
+    });
+
+    const renderSuggestions = (suggestions) => {
+        if (!suggestions.length) {
+            hideSuggestions();
+            return;
+        }
+        suggestEl.innerHTML = '';
+        suggestions.forEach(text => {
+            const item = document.createElement('div');
+            item.textContent = text;
+            item.style.cssText = 'padding:10px 14px;color:#eee;font-size:13px;cursor:pointer;';
+            item.addEventListener('mouseenter', () => { item.style.background = 'rgba(255,255,255,0.08)'; });
+            item.addEventListener('mouseleave', () => { item.style.background = 'transparent'; });
+            item.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                input.value = text;
+                hideSuggestions();
+                clearTimeout(ytSearchDebounceTimer);
+                performSearch(text);
+            });
+            suggestEl.appendChild(item);
+        });
+        suggestEl.style.display = 'block';
+    };
+
+    input.addEventListener('input', () => {
+        const query = input.value.trim();
+
+        clearTimeout(ytSearchDebounceTimer);
+        clearTimeout(ytSuggestDebounceTimer);
+
+        if (!query) {
+            resultsEl.innerHTML = '';
+            statusEl.textContent = '';
+            loadMoreWrap.style.display = 'none';
+            hideSuggestions();
+            return;
+        }
+
+        statusEl.textContent = 'Axtarılır...';
+        ytSearchDebounceTimer = setTimeout(() => performSearch(query), 400);
+
+        ytSuggestDebounceTimer = setTimeout(() => {
+            fetch(`/api/youtube-suggest?q=${encodeURIComponent(query)}`)
+                .then(res => res.json())
+                .then(data => renderSuggestions((data && data.suggestions) || []))
+                .catch(() => hideSuggestions());
+        }, 300);
+    });
+
+    input.addEventListener('blur', () => {
+        setTimeout(hideSuggestions, 150);
+    });
+
+    input.addEventListener('focus', () => {
+        if (!input.value.trim()) hideSuggestions();
     });
 }

@@ -18,7 +18,9 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=10&q=${encodeURIComponent(q)}&key=${apiKey}`;
+    const pageToken = typeof req.query.pageToken === 'string' ? req.query.pageToken : '';
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=50&q=${encodeURIComponent(q)}&key=${apiKey}` +
+      (pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '');
     const ytRes = await fetch(url);
 
     if (!ytRes.ok) {
@@ -38,7 +40,7 @@ module.exports = async (req, res) => {
           : ''
       }));
 
-    return res.status(200).json({ results });
+    return res.status(200).json({ results, nextPageToken: data.nextPageToken || null });
   } catch (error) {
     console.error('SERVER ERROR IN /api/youtube-search:', error);
     return res.status(500).json({ error: 'Daxili server xətası baş verdi.' });
