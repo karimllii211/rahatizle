@@ -90,3 +90,32 @@
         right: 20px !important;
     }
 }
+
+/* === INDEX BUTTONS Z-INDEX & OVERLAYS FIX === */
+/* Görünməz qutuların klikləri əngəlləməsinin qarşısını alırıq */
+.bg-orb, 
+.poster-tilt, 
+[class*="bg-gradient-to-br"] {
+    pointer-events: none !important;
+}
+
+/* Ana səhifədəki Giriş və Otaq Yarat düymələri */
+.open-login-modal, 
+a[href="create-room.html"],
+header .btn-press,
+.mobile-menu .btn-press {
+    position: relative !important;
+    z-index: 99999 !important;
+    pointer-events: auto !important;
+}
+
+/* Mobile menunun özü də görünməz divlərin üstündə olmalıdır */
+#mobileMenu, header {
+    position: relative !important;
+    z-index: 99998 !important;
+}
+
+/* Modallar düymələrdən də üstə olmalıdır */
+#loginModal, #registerModal, #otpModal {
+    z-index: 100000 !important;
+}
