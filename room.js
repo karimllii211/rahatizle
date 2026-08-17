@@ -236,12 +236,31 @@ function initRoom() {
         });
     });
 
-    // Otaqdakı izləyicilərin sayını ekranda göstərmək
+    // Otaqdakı izləyicilərin sayını və dairəvi avatarlarını ekranda göstərmək
+    const viewerAvatarsEl = document.getElementById('viewerAvatars');
     viewersRef.on('value', snapshot => {
         const data = snapshot.val();
-        const count = data ? Object.keys(data).length : 0;
+        const viewers = data ? Object.values(data) : [];
         if (activeViewerCount) {
-            activeViewerCount.textContent = `Aktiv İzləyici: ${count}`;
+            activeViewerCount.textContent = `Aktiv İzləyici: ${viewers.length}`;
+        }
+
+        if (viewerAvatarsEl) {
+            viewerAvatarsEl.innerHTML = '';
+            const maxShown = 5;
+            viewers.slice(0, maxShown).forEach(viewer => {
+                const avatar = document.createElement('div');
+                avatar.className = 'w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold border bg-white/10 text-gray-300 border-white/20';
+                avatar.title = viewer.name || '';
+                avatar.textContent = viewer.name ? viewer.name.charAt(0).toUpperCase() : '?';
+                viewerAvatarsEl.appendChild(avatar);
+            });
+            if (viewers.length > maxShown) {
+                const extra = document.createElement('div');
+                extra.className = 'w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold border bg-white/10 text-gray-300 border-white/20';
+                extra.textContent = `+${viewers.length - maxShown}`;
+                viewerAvatarsEl.appendChild(extra);
+            }
         }
     });
 
@@ -847,6 +866,24 @@ const platformBtns = document.querySelectorAll('.room-platform-btn');
 const videoPlaceholder = document.getElementById('video-placeholder');
 const mainVideoEl = document.getElementById('main-video');
 
+// Platforma grid-ini ada görə süzgəcdən keçirən sadə, tamamilə client-side axtarış
+// (heç bir backend/Firebase əlaqəsi yoxdur, yalnız DOM-dakı kartları gizlədir/göstərir).
+const platformSearchInput = document.getElementById('platformSearchInput');
+const platformSearchEmpty = document.getElementById('platformSearchEmpty');
+if (platformSearchInput) {
+    platformSearchInput.addEventListener('input', () => {
+        const q = platformSearchInput.value.trim().toLowerCase();
+        let visibleCount = 0;
+        document.querySelectorAll('.room-platform-btn[data-platform-name]').forEach(btn => {
+            const name = (btn.getAttribute('data-platform-name') || '').toLowerCase();
+            const show = !q || name.includes(q);
+            btn.style.display = show ? '' : 'none';
+            if (show) visibleCount++;
+        });
+        if (platformSearchEmpty) platformSearchEmpty.classList.toggle('hidden', visibleCount !== 0);
+    });
+}
+
 const logos = {
     'netflix': 'NetflixLogo.webp',
     'disney': 'DisneyPlusLogo.webp',
@@ -885,7 +922,7 @@ platformBtns.forEach(btn => {
             }
             videoPlaceholder.innerHTML = `
                 <div id="youtube-ui-wrapper" style="display: flex; flex-direction: column; align-items: center; width: 100%; height: 100%; justify-content: flex-start; overflow-y: auto;">
-                    <img src="YouTubeLogo.webp" class="neon-logo" style="margin-bottom: 20px;">
+                    <img src="YouTubeLogo.webp" class="neon-logo" style="width: 64px; height: 64px; max-width: 64px; margin-bottom: 12px; flex-shrink: 0;">
                     <div style="position: relative; width: 80%; max-width: 600px;">
                         <input type="text" id="yt-search-input" placeholder="YouTube-da axtar..." autocomplete="off" style="width: 100%; padding: 15px; border-radius: 8px; color: black;">
                         <div id="yt-suggest-list" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:4px;background:#0A0A0A;border:1px solid rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;overflow-y:auto;max-height:220px;z-index:1000;"></div>

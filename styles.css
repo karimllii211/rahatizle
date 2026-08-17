@@ -43,12 +43,11 @@
         justify-content: center !important;
     }
 
-    /* Mobildə bəzi xüsusi düymələrin düzülüşü (məs: platforma düymələri soldan sağa davam etsin deyə) */
+    /* Platforma grid kartları mobildə də mərkəzləşmiş, şaquli düzülüşdə qalır */
     .room-platform-btn {
-        justify-content: flex-start !important;
-        padding-left: 15px !important;
+        justify-content: center !important;
     }
-    
+
     /* Chat qutusunun mobildə tam ekran olması */
     #chatPanel {
         width: 100% !important;
