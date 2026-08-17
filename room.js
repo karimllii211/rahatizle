@@ -190,7 +190,7 @@ function initRoom() {
         const currentPlatform = data.creator ? data.creator.platform : null;
         if (currentPlatform && !window.initialPlatformLoaded) {
             window.initialPlatformLoaded = true;
-            const targetBtn = document.querySelector(`.platform-btn[data-platform="${currentPlatform}"]`);
+            const targetBtn = document.querySelector(`.room-platform-btn[data-platform="${currentPlatform}"]`);
             if (targetBtn) {
                 targetBtn.click(); // Bu həm vizualı edəcək, həm də YouTube DOM-unu yaradacaq
             }
@@ -875,17 +875,18 @@ platformBtns.forEach(btn => {
                 window.ytPlayer = null;
             }
             videoPlaceholder.innerHTML = `
-                <div id="youtube-ui-wrapper" style="display: flex; flex-direction: column; align-items: center; width: 100%; height: 100%; justify-content: center;">
+                <div id="youtube-ui-wrapper" style="display: flex; flex-direction: column; align-items: center; width: 100%; height: 100%; justify-content: center; overflow-y: auto;">
                     <img src="YouTubeLogo.webp" class="neon-logo" style="margin-bottom: 20px;">
                     <div style="position: relative; width: 80%; max-width: 600px;">
                         <input type="text" id="yt-search-input" placeholder="YouTube-da axtar..." style="width: 100%; padding: 15px; border-radius: 8px; color: black;">
-                        
+                        <div id="yt-search-status" style="color: #999; font-size: 12px; margin-top: 8px; min-height: 16px;"></div>
+                        <div id="yt-search-results" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; width: 100%; max-height: 320px; overflow-y: auto; margin-top: 8px;"></div>
                     </div>
                     <div id="player" style="width: 100%; height: 500px; margin-top: 20px; display: none;"></div>
                 </div>
             `;
 
-
+            setupYouTubeSearch();
         }
         
         // Close left panel on mobile
@@ -897,3 +898,92 @@ platformBtns.forEach(btn => {
         }
     });
 });
+
+// --- YOUTUBE AXTARIŞ UI (platform "youtube" seçildikdə yenidən qurulur) ---
+let ytSearchDebounceTimer = null;
+
+function setupYouTubeSearch() {
+    const input = document.getElementById('yt-search-input');
+    const resultsEl = document.getElementById('yt-search-results');
+    const statusEl = document.getElementById('yt-search-status');
+    if (!input || !resultsEl || !statusEl) return;
+
+    const renderResults = (items) => {
+        resultsEl.innerHTML = '';
+        items.forEach(item => {
+            const card = document.createElement('div');
+            card.style.cssText = 'width:160px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;overflow:hidden;cursor:pointer;text-align:left;';
+
+            const img = document.createElement('img');
+            img.src = item.thumbnail || '';
+            img.style.cssText = 'width:100%;height:90px;object-fit:cover;display:block;background:#111;';
+
+            const info = document.createElement('div');
+            info.style.cssText = 'padding:8px;';
+
+            const titleEl = document.createElement('div');
+            titleEl.style.cssText = 'color:#fff;font-size:12px;font-weight:600;line-height:1.3;max-height:2.6em;overflow:hidden;';
+            titleEl.textContent = item.title || '';
+
+            const channelEl = document.createElement('div');
+            channelEl.style.cssText = 'color:#999;font-size:11px;margin-top:4px;';
+            channelEl.textContent = item.channelTitle || '';
+
+            info.appendChild(titleEl);
+            info.appendChild(channelEl);
+            card.appendChild(img);
+            card.appendChild(info);
+
+            card.addEventListener('click', () => {
+                if (!currentRoomId) return;
+                database.ref(`rooms/${currentRoomId}/youtubeId`).set({ videoId: item.videoId }).then(() => {
+                    showToast('Video seçildi!');
+                }).catch(() => {
+                    showToast('Video seçilə bilmədi. Yenidən cəhd edin.');
+                });
+            });
+
+            resultsEl.appendChild(card);
+        });
+    };
+
+    input.addEventListener('input', () => {
+        clearTimeout(ytSearchDebounceTimer);
+        const query = input.value.trim();
+
+        if (!query) {
+            resultsEl.innerHTML = '';
+            statusEl.textContent = '';
+            return;
+        }
+
+        statusEl.textContent = 'Axtarılır...';
+
+        ytSearchDebounceTimer = setTimeout(async () => {
+            try {
+                const res = await fetch(`/api/youtube-search?q=${encodeURIComponent(query)}`);
+                const data = await res.json();
+
+                if (!res.ok) {
+                    statusEl.textContent = data && data.error ? data.error : 'Axtarış zamanı xəta baş verdi.';
+                    resultsEl.innerHTML = '';
+                    return;
+                }
+
+                const items = data.results || [];
+                if (items.length === 0) {
+                    statusEl.textContent = 'Nəticə tapılmadı.';
+                    resultsEl.innerHTML = '';
+                    return;
+                }
+
+                statusEl.textContent = '';
+                renderResults(items);
+            } catch (err) {
+                console.error('YouTube axtarış xətası:', err);
+                statusEl.textContent = 'İnternet bağlantınızı yoxlayın.';
+                resultsEl.innerHTML = '';
+            }
+        }, 400);
+    });
+}
