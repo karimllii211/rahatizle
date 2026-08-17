@@ -13,7 +13,7 @@
     }
 
     /* Video pleyer və YouTube UI ekrandan daşmaması üçün */
-    #player, #youtube-ui-wrapper, #yt-search-input, .video-placeholder, #main-video {
+    #youtube-ui-wrapper, #yt-search-input, .video-placeholder, #main-video {
         width: 100% !important;
         max-width: 100% !important;
         box-sizing: border-box !important;
@@ -55,7 +55,7 @@
     }
 }
 @media (max-width: 768px) {
-    #player, #main-video {
+    #main-video {
         height: auto !important;
         aspect-ratio: 16 / 9 !important;
         min-height: 200px !important;
