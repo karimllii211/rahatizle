@@ -861,6 +861,22 @@ function initRoom() {
 
 
 
+// --- TAM EKRAN VİDEO REJİMİ ---
+function setRoomFullscreen(active) {
+    document.body.classList.toggle('room-fullscreen', !!active);
+    if (!active) {
+        const sp = document.getElementById('sidePanel');
+        const pb = document.getElementById('panelBackdrop');
+        if (sp) sp.classList.add('-translate-x-full');
+        if (pb) pb.classList.add('hidden');
+    }
+}
+
+const exitFullscreenBtn = document.getElementById('exitFullscreenBtn');
+if (exitFullscreenBtn) {
+    exitFullscreenBtn.addEventListener('click', () => setRoomFullscreen(false));
+}
+
 // --- PLATFORM MENU LOGIC ---
 const platformBtns = document.querySelectorAll('.room-platform-btn');
 const videoPlaceholder = document.getElementById('video-placeholder');
@@ -893,7 +909,8 @@ const logos = {
 platformBtns.forEach(btn => {
     btn.addEventListener('click', () => {
         const platform = btn.getAttribute('data-platform');
-        
+        setRoomFullscreen(true);
+
         // Show placeholder (hide video)
         if (videoPlaceholder) {
             videoPlaceholder.classList.remove('hidden');
