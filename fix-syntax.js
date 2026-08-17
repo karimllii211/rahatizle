@@ -1,16 +1,7 @@
 const fs = require('fs');
 let js = fs.readFileSync('room.js', 'utf8');
 
-// The end of the file looks like:
-//     // Also, we replaced document.addEventListener('click', (e) => { with this
-// 
-// }
-// 
-// 
-//     }
-// });
+js = js.replace(/const currentPlatform = data\.creator \? data\.creator\.platform : null;\n        if \(currentPlatform\) {/, "if (currentPlatform) {");
 
-// We just need to replace that whole tail with standard closure.
-const tailRegex = /\/\/ Also, we replaced document\.addEventListener\('click', \(e\) => \{ with this[\s\S]*$/;
-js = js.replace(tailRegex, '// Also, we replaced document.addEventListener("click", (e) => { with this\n}\n});\n');
 fs.writeFileSync('room.js', js);
+console.log("Syntax fixed");

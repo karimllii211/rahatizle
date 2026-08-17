@@ -215,6 +215,7 @@ function initRoom() {
             }
         }
         // Platformanın dəyişməsini vizual olaraq göstərmək
+        const currentPlatform = data.creator ? data.creator.platform : null;
         if (currentPlatform) {
             document.querySelectorAll('.room-platform-btn').forEach(btn => {
                 if (btn.getAttribute('data-platform') === currentPlatform) {
@@ -750,7 +751,109 @@ function initRoom() {
     
 }
 
-window.onYouTubeIframeAPIReady = function() {
+function initYouTubeFeature(mainVideo, videoPlaceholder) {
+    const ytSearchInput = document.getElementById('yt-search-input');
+    const ytSearchBtn = document.getElementById('yt-search-btn');
+    const ytSearchResults = document.getElementById('yt-search-results');
+    let ignoreNextYTEvent = false;
+
+    if (ytSearchBtn && ytSearchInput && ytSearchResults) {
+        ytSearchBtn.addEventListener('click', async () => {
+            const query = ytSearchInput.value.trim();
+            if (!query) return;
+
+            ytSearchBtn.disabled = true;
+            ytSearchBtn.textContent = '...';
+
+            try {
+                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=20&q=${encodeURIComponent(query)}&key=AIzaSyCr51yPNOwDSdNkOdI0Xj1XOw6oS5FPm-s`);
+                const data = await response.json();
+                const container = document.getElementById('yt-search-results-container');
+
+                if (!response.ok || data.error) {
+                    showToast(data.error || "Axtarış zamanı xəta baş verdi.");
+                    container.classList.add('hidden');
+                    return;
+                }
+
+                ytSearchResults.innerHTML = '';
+
+                if (!data.items || data.items.length === 0) {
+                    showToast("Nəticə tapılmadı.");
+                    container.classList.add('hidden');
+                    return;
+                }
+
+                container.classList.remove('hidden');
+                data.items.forEach(item => {
+                    const videoId = item.id ? item.id.videoId : null;
+                    const snippet = item.snippet || {};
+                    const title = snippet.title || 'Adsız Video';
+                    const channelTitle = snippet.channelTitle || 'Bilinməyən Kanal';
+                    const thumbnail = snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url || '';
+
+                    if (!videoId) return;
+
+                    const card = document.createElement('div');
+                    card.className = 'cursor-pointer group flex items-center gap-3 rounded-lg border border-transparent p-2 transition-colors hover:bg-white/10 hover:border-white/10';
+                    card.setAttribute('role', 'button');
+                    card.setAttribute('tabindex', '0');
+
+                    const thumbWrap = document.createElement('div');
+                    thumbWrap.className = 'relative h-16 w-28 shrink-0 overflow-hidden rounded-md bg-black';
+                    const img = document.createElement('img');
+                    img.src = thumbnail;
+                    img.alt = 'Thumbnail';
+                    img.className = 'h-full w-full object-cover transition-transform duration-300 group-hover:scale-105';
+                    const overlay = document.createElement('div');
+                    overlay.className = 'absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100';
+                    // Statik SVG, heç bir API məlumatı interpolyasiya olunmur — XSS riski yoxdur.
+                    overlay.innerHTML = '<svg class="h-8 w-8 text-[#FF014C]" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>';
+                    thumbWrap.append(img, overlay);
+
+                    const textWrap = document.createElement('div');
+                    textWrap.className = 'flex flex-col flex-1 min-w-0';
+                    const h3 = document.createElement('h3');
+                    h3.className = 'truncate text-sm font-semibold text-gray-100';
+                    h3.textContent = title;
+                    const p = document.createElement('p');
+                    p.className = 'truncate text-xs text-gray-400 mt-1';
+                    p.textContent = channelTitle;
+                    textWrap.append(h3, p);
+
+                    card.append(thumbWrap, textWrap);
+
+                    card.addEventListener('click', () => {
+                        database.ref(`rooms/${currentRoomId}/youtubeId`).set({
+                            videoId: videoId,
+                            timestamp: Date.now()
+                        });
+                        container.classList.add('hidden');
+                        ytSearchInput.value = '';
+                    });
+                    ytSearchResults.appendChild(card);
+                });
+            } catch (error) {
+                console.error('YouTube Axtarış Xətası:', error);
+                showToast("Axtarış zamanı xəta baş verdi.");
+            } finally {
+                ytSearchBtn.disabled = false;
+                ytSearchBtn.textContent = 'Axtar';
+            }
+        });
+
+        ytSearchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') ytSearchBtn.click();
+        });
+    }
+
+    // IFrame API-nin öz qlobal kontraktı: skript yükləndikdə bu funksiyanı çağırır.
+    // Qeyd: `<script src="...iframe_api">` səhifənin <head>-ində, bu funksiyanın
+    // təyin edildiyi andan (Firebase auth həll olunduqdan sonra) xeyli əvvəl işə
+    // düşür — real şəraitdə API adətən bu callback-dən ÖNCƏ artıq hazır olur.
+    // Ona görə əsas hazırlıq siqnalı kimi `YT.Player`-in mövcudluğu yoxlanılır;
+    // callback yalnız API-nin hələ yüklənməkdə olduğu nadir hal üçün ehtiyat yoludur.
+    window.onYouTubeIframeAPIReady = function() {
         if (window.pendingYouTubeVideoId) {
             initOrLoadYouTubePlayer(window.pendingYouTubeVideoId);
             window.pendingYouTubeVideoId = null;
@@ -847,8 +950,21 @@ window.onYouTubeIframeAPIReady = function() {
         }
     }
 
-
-
+    // Kənara kliklədikdə axtarış nəticələrini bağla
+    const closeYtSearch = (e) => {
+        const container = document.getElementById('yt-search-results-container');
+        const searchInput = document.getElementById('yt-search-input');
+        const searchBtn = document.getElementById('yt-search-btn');
+        if (container && !container.classList.contains('hidden')) {
+            if (!container.contains(e.target) && e.target !== searchInput && e.target !== searchBtn) {
+                container.classList.add('hidden');
+            }
+        }
+    };
+    document.addEventListener('click', closeYtSearch);
+    document.addEventListener('touchstart', closeYtSearch, { passive: true });
+    
+}
 
 
 
@@ -898,13 +1014,109 @@ platformBtns.forEach(btn => {
                     <img src="YouTubeLogo.webp" class="neon-logo" style="margin-bottom: 20px;">
                     <div style="position: relative; width: 80%; max-width: 600px;">
                         <input type="text" id="yt-search-input" placeholder="YouTube-da axtar..." style="width: 100%; padding: 15px; border-radius: 8px; color: black;">
-                        
+                        <div id="yt-search-results" style="position: absolute; top: 100%; left: 0; right: 0; background: #1a1a1a; max-height: 400px; overflow-y: auto; z-index: 100; box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: none;"></div>
                     </div>
                     <div id="player" style="width: 100%; height: 500px; margin-top: 20px; display: none;"></div>
                 </div>
             `;
 
+            // Bind YouTube Search Event DƏRHAL SONRA
+            const ytSearchInput = document.getElementById('yt-search-input');
+            const ytSearchResults = document.getElementById('yt-search-results');
+            
+            if (ytSearchInput && ytSearchResults) {
+                ytSearchInput.addEventListener('keypress', async (e) => {
+                    try {
+                        if (e.key === 'Enter') {
+                            const query = ytSearchInput.value.trim();
+                            if (!query) return;
+                            
+                            console.log("1. YouTube axtarisi basladi. Axtarilan soz:", query);
+                            const apiUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=20&q=${encodeURIComponent(query)}&key=AIzaSyCr51yPNOwDSdNkOdI0Xj1XOw6oS5FPm-s`;
+                            console.log("2. API URL formalaşdirildi:", apiUrl);
 
+                            fetch(apiUrl)
+                              .then(response => {
+                                  console.log("3. API-den xam cavab (response) geldi:", response);
+                                  return response.json();
+                              })
+                              .then(data => {
+                                  console.log("4. JSON formatinda data:", data);
+                                  if (data.error) {
+                                      console.error("YOUTUBE API XETASI:", data.error.message);
+                                  }
+                                  
+                                  ytSearchResults.innerHTML = '';
+                                  ytSearchResults.style.display = 'block'; // Make sure it's visible!
+                                  
+                                  if (data.items && data.items.length > 0) {
+                                      data.items.forEach(item => {
+                                          const videoId = item.id ? item.id.videoId : null;
+                                          const snippet = item.snippet || {};
+                                          if (!videoId) return;
+
+                                          const card = document.createElement('div');
+                                          card.style.cssText = 'display: flex; gap: 10px; padding: 10px; cursor: pointer; border-bottom: 1px solid #333; align-items: center;';
+                                          card.innerHTML = `
+                                              <img src="${snippet.thumbnails?.default?.url}" style="width: 100px; height: 60px; object-fit: cover; border-radius: 4px;">
+                                              <div style="color: white; overflow: hidden;">
+                                                  <div style="font-size: 14px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${snippet.title}</div>
+                                                  <div style="font-size: 12px; color: #aaa;">${snippet.channelTitle}</div>
+                                              </div>
+                                          `;
+
+                                          card.addEventListener('click', () => {
+                                              try {
+                                                  console.log("YouTube kartına klikləndi!");
+                                                  ytSearchResults.style.display = 'none';
+                                                  ytSearchInput.parentElement.style.display = 'none';
+                                                  
+                                                  const ytLogo = document.querySelector('#youtube-ui-wrapper .neon-logo');
+                                                  if (ytLogo) ytLogo.style.display = 'none';
+                                                  
+                                                  const wrapper = document.getElementById('youtube-ui-wrapper');
+                                                  if(wrapper) wrapper.style.justifyContent = 'flex-start';
+
+                                                  const playerDiv = document.getElementById('player');
+                                                  if (playerDiv) playerDiv.style.display = 'block';
+                                                  
+                                                  if (typeof database !== 'undefined' && typeof currentRoomId !== 'undefined') {
+                                                      database.ref(`rooms/${currentRoomId}/youtubeId`).set({
+                                                          videoId: videoId,
+                                                          timestamp: Date.now()
+                                                      }).catch(err => console.error("Firebase yazma xətası:", err));
+                                                  } else {
+                                                      console.error("Firebase database və ya currentRoomId mövcud deyil!");
+                                                  }
+                                              } catch (err) {
+                                                  console.error("Card click xətası:", err);
+                                              }
+                                          });
+                                          ytSearchResults.appendChild(card);
+                                      });
+                                  } else {
+                                      ytSearchResults.innerHTML = '<div style="padding: 10px; color: white;">Nəticə tapılmadı.</div>';
+                                  }
+                              })
+                              .catch(error => {
+                                  console.error("5. KOD XETASI (Fetch qirildi):", error);
+                                  if (ytSearchResults) {
+                                      ytSearchResults.innerHTML = '<div style="padding: 10px; color: red;">Xəta baş verdi.</div>';
+                                      ytSearchResults.style.display = 'block';
+                                  }
+                              });
+                        }
+                    } catch (err) {
+                        console.error('YouTube Fetch Xətası:', err);
+                        if (ytSearchResults) {
+                            ytSearchResults.innerHTML = '<div style="padding: 10px; color: red;">Xəta baş verdi.</div>';
+                            ytSearchResults.style.display = 'block';
+                        }
+                    }
+                });
+            } else {
+                console.error("YouTube DOM elementləri tapılmadı!");
+            }
         }
         
         // Close left panel on mobile
