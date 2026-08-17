@@ -728,10 +728,9 @@ function initRoom() {
     }
 
     // --- 6. YOUTUBE AXTARIŞ VƏ OYNATMA ---
-    
-}
+    let ignoreNextYTEvent = false;
 
-window.onYouTubeIframeAPIReady = function() {
+    window.onYouTubeIframeAPIReady = function() {
         if (window.pendingYouTubeVideoId) {
             initOrLoadYouTubePlayer(window.pendingYouTubeVideoId);
             window.pendingYouTubeVideoId = null;
@@ -746,11 +745,20 @@ window.onYouTubeIframeAPIReady = function() {
             return;
         }
 
+        const playerDiv = document.getElementById('player');
+        if (!playerDiv) {
+            // Platforma hələ "youtube"-a keçirilməyib (#player DOM-da yoxdur) —
+            // otağa yeni qoşulan istifadəçidə bu, host-un platformanı və videonu
+            // artıq seçdiyi vəziyyətdə baş verə bilər. Platforma düyməsinin click
+            // handler-i #player-i yaradandan sonra bunu yenidən çağıracaq.
+            window.pendingYouTubeVideoId = videoId;
+            return;
+        }
+
         if (mainVideo) mainVideo.classList.add('hidden');
         // Ensure videoPlaceholder is visible because #player is inside it
         if (videoPlaceholder) videoPlaceholder.classList.remove('hidden');
-        const playerDiv = document.getElementById('player');
-        if (playerDiv) playerDiv.style.display = 'block';
+        playerDiv.style.display = 'block';
 
         if (mainVideo && mainVideo.srcObject) {
             mainVideo.srcObject = null;
@@ -827,6 +835,7 @@ window.onYouTubeIframeAPIReady = function() {
             });
         }
     }
+}
 
 
 
@@ -879,7 +888,7 @@ platformBtns.forEach(btn => {
                     <img src="YouTubeLogo.webp" class="neon-logo" style="margin-bottom: 20px;">
                     <div style="position: relative; width: 80%; max-width: 600px;">
                         <input type="text" id="yt-search-input" placeholder="YouTube-da axtar..." autocomplete="off" style="width: 100%; padding: 15px; border-radius: 8px; color: black;">
-                        <div id="yt-suggest-list" style="display:none;position:fixed;background:#0A0A0A;border:1px solid rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;overflow-y:auto;max-height:220px;z-index:1000;"></div>
+                        <div id="yt-suggest-list" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:4px;background:#0A0A0A;border:1px solid rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;overflow-y:auto;max-height:220px;z-index:1000;"></div>
                         <div id="yt-search-status" style="color: #999; font-size: 12px; margin-top: 8px; min-height: 16px;"></div>
                         <div id="yt-search-results" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; width: 100%; max-height: 420px; overflow-y: auto; margin-top: 8px;"></div>
                         <div id="yt-loadmore-wrap" style="display:none; width:100%; text-align:center; margin-top:12px;">
@@ -891,8 +900,16 @@ platformBtns.forEach(btn => {
             `;
 
             setupYouTubeSearch();
+
+            // Otağa yeni qoşulan istifadəçidə (host artıq video seçmişdisə) youtubeId
+            // Firebase yeniləməsi #player DOM-da yaranmazdan əvvəl gələ bilər —
+            // o zaman videoId gözləmə siyahısına düşür. #player indi yarandığına görə,
+            // gözləyən video varsa indi onu yükləyirik.
+            if (typeof window.onYouTubeIframeAPIReady === 'function') {
+                window.onYouTubeIframeAPIReady();
+            }
         }
-        
+
         // Close left panel on mobile
         const panel = document.getElementById('sidePanel');
         if (panel && window.innerWidth < 768) {
@@ -906,20 +923,6 @@ platformBtns.forEach(btn => {
 // --- YOUTUBE AXTARIŞ UI (platform "youtube" seçildikdə yenidən qurulur) ---
 let ytSearchDebounceTimer = null;
 let ytSuggestDebounceTimer = null;
-let ytSuggestPositionHandlersAdded = false;
-
-// Dropdown-u ata-baba overflow konteynerlərindən asılı olmadan (position:fixed)
-// input-un altında saxlamaq üçün: mövqe hər dəfə göstəriləndə və səhifə/daxili
-// konteyner sürüşdürüləndə və ya pəncərə ölçüsü dəyişəndə yenilənir.
-function updateYtSuggestPosition() {
-    const suggestEl = document.getElementById('yt-suggest-list');
-    const inputEl = document.getElementById('yt-search-input');
-    if (!suggestEl || !inputEl || suggestEl.style.display === 'none') return;
-    const rect = inputEl.getBoundingClientRect();
-    suggestEl.style.left = rect.left + 'px';
-    suggestEl.style.top = (rect.bottom + 4) + 'px';
-    suggestEl.style.width = rect.width + 'px';
-}
 
 function setupYouTubeSearch() {
     const input = document.getElementById('yt-search-input');
@@ -929,12 +932,6 @@ function setupYouTubeSearch() {
     const loadMoreWrap = document.getElementById('yt-loadmore-wrap');
     const loadMoreBtn = document.getElementById('yt-loadmore-btn');
     if (!input || !resultsEl || !statusEl || !suggestEl || !loadMoreWrap || !loadMoreBtn) return;
-
-    if (!ytSuggestPositionHandlersAdded) {
-        ytSuggestPositionHandlersAdded = true;
-        document.addEventListener('scroll', updateYtSuggestPosition, true);
-        window.addEventListener('resize', updateYtSuggestPosition);
-    }
 
     let nextPageToken = null;
     let currentQuery = '';
@@ -1068,7 +1065,6 @@ function setupYouTubeSearch() {
             suggestEl.appendChild(item);
         });
         suggestEl.style.display = 'block';
-        updateYtSuggestPosition();
     };
 
     input.addEventListener('input', () => {
