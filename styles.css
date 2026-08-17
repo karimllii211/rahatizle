@@ -63,3 +63,30 @@
         max-height: 300px !important;
     }
 }
+
+/* === CHAT Z-INDEX & POSITION OVERRIDE === */
+#toggleChatBtn {
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    z-index: 99999 !important;
+    pointer-events: auto !important;
+}
+
+#chatPanel {
+    position: fixed !important;
+    z-index: 99998 !important;
+}
+
+/* Ensure chat panel is fully visible when active (toggled via translate or active class) */
+#chatPanel.active, 
+#chatPanel:not(.translate-x-full) {
+    display: flex !important;
+}
+
+@media (max-width: 768px) {
+    #toggleChatBtn {
+        bottom: 20px !important;
+        right: 20px !important;
+    }
+}
