@@ -752,7 +752,40 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    const deleteAvatarBtn = document.getElementById('deleteAvatarBtn');
+    const avatarContainer = document.getElementById('avatarContainer');
+    const avatarMenu = document.getElementById('avatarMenu');
+    const avatarMenuChange = document.getElementById('avatarMenuChange');
+    const avatarMenuDelete = document.getElementById('avatarMenuDelete');
+
+    const closeAvatarMenu = () => {
+        if (avatarMenu) avatarMenu.classList.add('hidden');
+    };
+
+    if (avatarContainer && avatarMenu) {
+        avatarContainer.addEventListener('click', (e) => {
+            e.stopPropagation();
+            avatarMenu.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (avatarMenu.classList.contains('hidden')) return;
+            if (avatarMenu.contains(e.target) || avatarContainer.contains(e.target)) return;
+            closeAvatarMenu();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeAvatarMenu();
+        });
+    }
+
+    if (avatarMenuChange) {
+        avatarMenuChange.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeAvatarMenu();
+            const input = document.getElementById('profile-image-upload');
+            if (input) input.click();
+        });
+    }
 
     const handleAvatarSelection = async (input) => {
         if (!currentUser) return;
@@ -764,7 +797,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await database.ref('users/' + currentUser.uid).update({ photoURL: dataUrl });
             // Auth profili yalnız qısa URL-ləri qəbul edir; base64 buraya yazılmır.
             applyAvatarToUI(dataUrl);
-            if (deleteAvatarBtn) deleteAvatarBtn.classList.remove('hidden');
+            if (avatarMenuDelete) avatarMenuDelete.classList.remove('hidden');
             showToast("Profil şəkli uğurla yeniləndi!");
         } catch (err) {
             console.error("Şəkil yükləmə xətası:", err);
@@ -784,7 +817,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             await database.ref('users/' + currentUser.uid).update({ photoURL: '' });
             removeAvatarFromUI();
-            if (deleteAvatarBtn) deleteAvatarBtn.classList.add('hidden');
+            if (avatarMenuDelete) avatarMenuDelete.classList.add('hidden');
             showToast("Profil şəkli silindi!");
         } catch (err) {
             console.error("Şəkil silmə xətası:", err);
@@ -792,8 +825,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    if (deleteAvatarBtn) {
-        deleteAvatarBtn.addEventListener('click', handleAvatarDelete);
+    if (avatarMenuDelete) {
+        avatarMenuDelete.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeAvatarMenu();
+            handleAvatarDelete();
+        });
     }
 
     const saveProfileBtn = document.getElementById('saveProfileBtn');
@@ -891,12 +928,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     profilePageAvatar.src = user.photoURL;
                     profilePageAvatar.classList.remove('hidden');
                     profilePageAvatarText.classList.add('hidden');
-                    if (deleteAvatarBtn) deleteAvatarBtn.classList.remove('hidden');
+                    if (avatarMenuDelete) avatarMenuDelete.classList.remove('hidden');
                 } else {
                     profilePageAvatar.classList.add('hidden');
                     profilePageAvatarText.classList.remove('hidden');
                     profilePageAvatarText.innerText = initials;
-                    if (deleteAvatarBtn) deleteAvatarBtn.classList.add('hidden');
+                    if (avatarMenuDelete) avatarMenuDelete.classList.add('hidden');
                 }
             }
 
@@ -1005,9 +1042,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Avatar bazada saxlanılır (Auth photoURL uzunluq limiti səbəbindən).
                     if (data.photoURL) {
                         applyAvatarToUI(data.photoURL);
-                        if (deleteAvatarBtn) deleteAvatarBtn.classList.remove('hidden');
+                        if (avatarMenuDelete) avatarMenuDelete.classList.remove('hidden');
                     } else {
-                        if (deleteAvatarBtn) deleteAvatarBtn.classList.add('hidden');
+                        if (avatarMenuDelete) avatarMenuDelete.classList.add('hidden');
                     }
 
                     const fnameInput = document.getElementById('profFirstName');
