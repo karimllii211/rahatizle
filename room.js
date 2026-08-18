@@ -103,7 +103,7 @@ auth.onAuthStateChanged(user => {
 function initRoom() {
     const urlParams = new URLSearchParams(window.location.search);
     currentRoomId = urlParams.get('id');
-    
+
     if (!currentRoomId) {
         window.location.replace('index.html');
         return;
@@ -160,9 +160,19 @@ function initRoom() {
 
     if (roomCodeDisplay) roomCodeDisplay.textContent = `KOD: ${currentRoomId}`;
 
+    const changePlatformLink = document.getElementById('changePlatformLink');
+    if (changePlatformLink) {
+        changePlatformLink.href = 'select-platform.html?id=' + encodeURIComponent(currentRoomId);
+        changePlatformLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = 'select-platform.html?id=' + encodeURIComponent(currentRoomId);
+        });
+    }
+
     const roomRef = database.ref(`rooms/${currentRoomId}`);
     const viewersRef = database.ref(`rooms/${currentRoomId}/viewers`);
     const messagesRef = database.ref(`rooms/${currentRoomId}/messages`);
+    let appliedPlatform = null;
 
     // 1. Otaq Məlumatını və Silinməni İzləmək
     roomRef.on('value', snapshot => {
@@ -186,42 +196,12 @@ function initRoom() {
             }
         }
         
-                // Platformanın dəyişməsini vizual olaraq göstərmək
+                // Platformanın dəyişməsini Firebase-dən idarə et (bax: renderPlatformView, aşağıda)
         const currentPlatform = data.creator ? data.creator.platform : null;
-        if (currentPlatform && !window.initialPlatformLoaded) {
-            window.initialPlatformLoaded = true;
-            const targetBtn = document.querySelector(`.room-platform-btn[data-platform="${currentPlatform}"]`);
-            if (targetBtn) {
-                targetBtn.click(); // Bu həm vizualı edəcək, həm də YouTube DOM-unu yaradacaq
-            }
+        if (currentPlatform && currentPlatform !== appliedPlatform) {
+            appliedPlatform = currentPlatform;
+            renderPlatformView(currentPlatform);
         }
-        // Platformanın dəyişməsini vizual olaraq göstərmək
-        if (currentPlatform) {
-            document.querySelectorAll('.room-platform-btn').forEach(btn => {
-                if (btn.getAttribute('data-platform') === currentPlatform) {
-                    btn.classList.add('border-white/50', 'bg-white/10');
-                } else {
-                    btn.classList.remove('border-white/50', 'bg-white/10');
-                }
-            });
-        }
-    });
-
-    // 1.5. Otaq Yaradanın Platformanı Dəyişməsi
-    document.querySelectorAll('.room-platform-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            roomRef.child('creator').once('value').then(snapshot => {
-                const creatorData = snapshot.val();
-                if (creatorData && creatorData.uid === currentUser.uid) {
-                    const selectedPlatform = btn.getAttribute('data-platform');
-                    roomRef.child('creator/platform').set(selectedPlatform).then(() => {
-                        showToast("Platforma dəyişdirildi!");
-                    });
-                } else {
-                    showToast("Yalnız otaq yaradanı platformanı dəyişə bilər.");
-                }
-            });
-        });
     });
 
     // 2. Presence (İzləyici Sayı) Məntiqi
@@ -366,6 +346,17 @@ function initRoom() {
     if (localVideoBtn && localVideoUpload) {
         localVideoBtn.addEventListener('click', () => {
             if (!isHost) return showToast("Yalnız otağı yaradan video yükləyə bilər.");
+            if (videoPlaceholder) {
+                videoPlaceholder.classList.remove('hidden');
+                videoPlaceholder.style.display = 'flex';
+                videoPlaceholder.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                        <svg class="h-20 w-20 text-white mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path></svg>
+                        <span class="text-xl font-bold tracking-wider text-white" style="filter: drop-shadow(0 0 10px rgba(255,255,255,0.8));">500MB LİMİT</span>
+                    </div>
+                `;
+            }
+            if (mainVideo) mainVideo.classList.add('hidden');
             localVideoUpload.click();
         });
     }
@@ -691,6 +682,57 @@ function initRoom() {
         });
     }
 
+    // --- 4.5. PLATFORMA GÖRÜNÜŞÜNÜN RENDER EDİLMƏSİ ---
+    // Əvvəllər bu, .room-platform-btn elementlərinə click() simulyasiyası ilə
+    // işə düşürdü (seçim indi ayrı select-platform.html səhifəsindədir).
+    // İndi birbaşa Firebase-dəki creator.platform dəyərindən idarə olunur.
+    const logos = {
+        'netflix': 'Netflix.png',
+        'disney': 'DisneyPlus.png',
+        'prime': 'PrimeVideo.svg.webp'
+    };
+
+    function renderPlatformView(platform) {
+        if (videoPlaceholder) {
+            videoPlaceholder.classList.remove('hidden');
+            videoPlaceholder.style.display = 'flex';
+        }
+        if (mainVideo) mainVideo.classList.add('hidden');
+
+        if (logos[platform]) {
+            videoPlaceholder.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%;">
+                    <img src="${logos[platform]}" class="neon-logo">
+                </div>
+            `;
+        } else if (platform === 'youtube') {
+            if (window.ytPlayer && typeof window.ytPlayer.destroy === 'function') {
+                window.ytPlayer.destroy();
+                window.ytPlayer = null;
+            }
+            videoPlaceholder.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%;">
+                    <div id="player" style="width: 100%; height: 500px; display: none;"></div>
+                </div>
+            `;
+            // #player DOM-u indi yarandı — gözləyən youtubeId varsa dərhal yüklə
+            // (bax: initOrLoadYouTubePlayer-in pending-queue fallback-i, Section 6).
+            if (typeof window.onYouTubeIframeAPIReady === 'function') {
+                window.onYouTubeIframeAPIReady();
+            }
+        }
+        // NOT: 'local' burada qəsdən emal olunmur — bax localVideoBtn handler-i, Section 4.
+    }
+
+    // Otaq yaradılarkən/select-platform.html-dən yönləndirildikdə URL-ə əlavə
+    // olunan ?platform= ipucu ilə ilk görünüşü Firebase cavabını gözləmədən
+    // dərhal çək; canlı listener həqiqi dəyərlə üst-üstə düşməyəndə düzəldəcək.
+    const platformHint = new URLSearchParams(window.location.search).get('platform');
+    if (platformHint && (logos[platformHint] || platformHint === 'youtube')) {
+        appliedPlatform = platformHint;
+        renderPlatformView(platformHint);
+    }
+
     // --- 5. İkitərəfli Sinxronizasiya (Two-Way Sync) ---
     if (mainVideo) {
         const syncState = (state) => {
@@ -778,13 +820,6 @@ function initRoom() {
         // Ensure videoPlaceholder is visible because #player is inside it
         if (videoPlaceholder) videoPlaceholder.classList.remove('hidden');
         playerDiv.style.display = 'block';
-
-        // Axtarış interfeysi və pleyer eyni blokda üst-üstə yığılmasın —
-        // video yükləndikdə axtarışı gizlət, pleyer bloku əsas sahədə görünsün.
-        const ytSearchBlock = document.getElementById('yt-search-block');
-        const ytPlayerBlock = document.getElementById('yt-player-block');
-        if (ytSearchBlock) ytSearchBlock.style.display = 'none';
-        if (ytPlayerBlock) ytPlayerBlock.style.display = 'flex';
 
         if (mainVideo && mainVideo.srcObject) {
             mainVideo.srcObject = null;
@@ -904,299 +939,3 @@ function initRoom() {
     }
 }
 
-
-
-
-
-
-// --- PLATFORM MENU LOGIC ---
-const platformBtns = document.querySelectorAll('.room-platform-btn');
-const videoPlaceholder = document.getElementById('video-placeholder');
-const mainVideoEl = document.getElementById('main-video');
-
-// Platforma grid-ini ada görə süzgəcdən keçirən sadə, tamamilə client-side axtarış
-// (heç bir backend/Firebase əlaqəsi yoxdur, yalnız DOM-dakı kartları gizlədir/göstərir).
-const platformSearchInput = document.getElementById('platformSearchInput');
-const platformSearchEmpty = document.getElementById('platformSearchEmpty');
-if (platformSearchInput) {
-    platformSearchInput.addEventListener('input', () => {
-        const q = platformSearchInput.value.trim().toLowerCase();
-        let visibleCount = 0;
-        document.querySelectorAll('.room-platform-btn[data-platform-name]').forEach(btn => {
-            const name = (btn.getAttribute('data-platform-name') || '').toLowerCase();
-            const show = !q || name.includes(q);
-            btn.style.display = show ? '' : 'none';
-            if (show) visibleCount++;
-        });
-        if (platformSearchEmpty) platformSearchEmpty.classList.toggle('hidden', visibleCount !== 0);
-    });
-}
-
-const logos = {
-    'netflix': 'NetflixLogo.webp',
-    'disney': 'DisneyPlusLogo.webp',
-    'prime': 'PrimeVideologo.svg.webp'
-};
-
-platformBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        const platform = btn.getAttribute('data-platform');
-
-        // Show placeholder (hide video)
-        if (videoPlaceholder) {
-            videoPlaceholder.classList.remove('hidden');
-            videoPlaceholder.style.display = 'flex'; // Ensure flex
-        }
-        if (mainVideoEl) mainVideoEl.classList.add('hidden');
-        
-        if (platform === 'local') {
-            videoPlaceholder.innerHTML = `
-                <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
-                    <svg class="h-20 w-20 text-white mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path></svg>
-                    <span class="text-xl font-bold tracking-wider text-white" style="filter: drop-shadow(0 0 10px rgba(255,255,255,0.8));">500MB LİMİT</span>
-                </div>
-            `;
-            document.getElementById('local-video-upload').click();
-        } else if (logos[platform]) {
-            videoPlaceholder.innerHTML = `
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%;">
-                    <img src="${logos[platform]}" class="neon-logo">
-                </div>
-            `;
-        } else if (platform === 'youtube') {
-            if (window.ytPlayer && typeof window.ytPlayer.destroy === 'function') {
-                window.ytPlayer.destroy();
-                window.ytPlayer = null;
-            }
-            videoPlaceholder.innerHTML = `
-                <div id="youtube-ui-wrapper" style="display: flex; flex-direction: column; align-items: center; width: 100%; height: 100%; justify-content: flex-start; overflow-y: auto;">
-                    <div id="yt-search-block" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
-                        <img src="YouTubeLogo.webp" class="neon-logo" style="width: 64px; height: 64px; max-width: 64px; margin-bottom: 12px; flex-shrink: 0;">
-                        <div style="position: relative; width: 80%; max-width: 600px;">
-                            <input type="text" id="yt-search-input" placeholder="YouTube-da axtar..." autocomplete="off" style="width: 100%; padding: 15px; border-radius: 8px; color: black;">
-                            <div id="yt-suggest-list" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:4px;background:#0A0A0A;border:1px solid rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;overflow-y:auto;max-height:220px;z-index:1000;"></div>
-                            <div id="yt-search-status" style="color: #999; font-size: 12px; margin-top: 8px; min-height: 16px;"></div>
-                            <div id="yt-search-results" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; width: 100%; max-height: 420px; overflow-y: auto; margin-top: 8px;"></div>
-                            <div id="yt-loadmore-wrap" style="display:none; width:100%; text-align:center; margin-top:12px;">
-                                <button type="button" id="yt-loadmore-btn" style="background:rgba(255,1,76,0.2); border:1px solid rgba(255,1,76,0.5); color:#FF014C; padding:10px 24px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">Daha çox göstər</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="yt-player-block" style="display: none; flex-direction: column; align-items: center; width: 100%;">
-                        <button type="button" id="yt-search-again-btn" style="align-self: flex-start; margin: 0 0 10px 0; background:rgba(255,1,76,0.2); border:1px solid rgba(255,1,76,0.5); color:#FF014C; padding:8px 16px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">← Yenidən axtar</button>
-                        <div id="player" style="width: 100%; height: 500px; display: none;"></div>
-                    </div>
-                </div>
-            `;
-
-            setupYouTubeSearch();
-
-            const searchAgainBtn = document.getElementById('yt-search-again-btn');
-            if (searchAgainBtn) {
-                searchAgainBtn.addEventListener('click', () => {
-                    const sb = document.getElementById('yt-search-block');
-                    const pb = document.getElementById('yt-player-block');
-                    if (sb) sb.style.display = 'flex';
-                    if (pb) pb.style.display = 'none';
-                });
-            }
-
-            // Otağa yeni qoşulan istifadəçidə (host artıq video seçmişdisə) youtubeId
-            // Firebase yeniləməsi #player DOM-da yaranmazdan əvvəl gələ bilər —
-            // o zaman videoId gözləmə siyahısına düşür. #player indi yarandığına görə,
-            // gözləyən video varsa indi onu yükləyirik.
-            if (typeof window.onYouTubeIframeAPIReady === 'function') {
-                window.onYouTubeIframeAPIReady();
-            }
-        }
-
-        // Close left panel on mobile
-        const panel = document.getElementById('sidePanel');
-        if (panel && window.innerWidth < 768) {
-            panel.classList.add('-translate-x-full');
-            const panelBackdrop = document.getElementById('panelBackdrop');
-            if (panelBackdrop) panelBackdrop.classList.add('hidden');
-        }
-    });
-});
-
-// --- YOUTUBE AXTARIŞ UI (platform "youtube" seçildikdə yenidən qurulur) ---
-let ytSearchDebounceTimer = null;
-let ytSuggestDebounceTimer = null;
-
-function setupYouTubeSearch() {
-    const input = document.getElementById('yt-search-input');
-    const resultsEl = document.getElementById('yt-search-results');
-    const statusEl = document.getElementById('yt-search-status');
-    const suggestEl = document.getElementById('yt-suggest-list');
-    const loadMoreWrap = document.getElementById('yt-loadmore-wrap');
-    const loadMoreBtn = document.getElementById('yt-loadmore-btn');
-    if (!input || !resultsEl || !statusEl || !suggestEl || !loadMoreWrap || !loadMoreBtn) return;
-
-    let nextPageToken = null;
-    let currentQuery = '';
-    let seenVideoIds = new Set();
-
-    const hideSuggestions = () => {
-        suggestEl.style.display = 'none';
-        suggestEl.innerHTML = '';
-    };
-
-    const appendResults = (items) => {
-        items.forEach(item => {
-            if (seenVideoIds.has(item.videoId)) return;
-            seenVideoIds.add(item.videoId);
-
-            const card = document.createElement('div');
-            card.style.cssText = 'width:160px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;overflow:hidden;cursor:pointer;text-align:left;';
-
-            const img = document.createElement('img');
-            img.src = item.thumbnail || '';
-            img.style.cssText = 'width:100%;height:90px;object-fit:cover;display:block;background:#111;';
-
-            const info = document.createElement('div');
-            info.style.cssText = 'padding:8px;';
-
-            const titleEl = document.createElement('div');
-            titleEl.style.cssText = 'color:#fff;font-size:12px;font-weight:600;line-height:1.3;max-height:2.6em;overflow:hidden;';
-            titleEl.textContent = item.title || '';
-
-            const channelEl = document.createElement('div');
-            channelEl.style.cssText = 'color:#999;font-size:11px;margin-top:4px;';
-            channelEl.textContent = item.channelTitle || '';
-
-            info.appendChild(titleEl);
-            info.appendChild(channelEl);
-            card.appendChild(img);
-            card.appendChild(info);
-
-            card.addEventListener('click', () => {
-                if (!currentRoomId) return;
-                database.ref(`rooms/${currentRoomId}/youtubeId`).set({ videoId: item.videoId }).then(() => {
-                    showToast('Video seçildi!');
-                }).catch(() => {
-                    showToast('Video seçilə bilmədi. Yenidən cəhd edin.');
-                });
-            });
-
-            resultsEl.appendChild(card);
-        });
-    };
-
-    const performSearch = (query, pageToken) => {
-        const isLoadMore = !!pageToken;
-
-        if (isLoadMore) {
-            loadMoreBtn.disabled = true;
-            loadMoreBtn.textContent = 'Yüklənir...';
-        } else {
-            statusEl.textContent = 'Axtarılır...';
-            resultsEl.innerHTML = '';
-            loadMoreWrap.style.display = 'none';
-            seenVideoIds = new Set();
-            nextPageToken = null;
-            currentQuery = query;
-        }
-
-        const url = `/api/youtube-search?q=${encodeURIComponent(query)}` + (pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '');
-
-        fetch(url)
-            .then(async (res) => {
-                const data = await res.json();
-
-                if (!res.ok) {
-                    statusEl.textContent = data && data.error ? data.error : 'Axtarış zamanı xəta baş verdi.';
-                    if (!isLoadMore) resultsEl.innerHTML = '';
-                    loadMoreWrap.style.display = 'none';
-                    return;
-                }
-
-                const items = data.results || [];
-                if (!isLoadMore && items.length === 0) {
-                    statusEl.textContent = 'Nəticə tapılmadı.';
-                    loadMoreWrap.style.display = 'none';
-                    return;
-                }
-
-                statusEl.textContent = '';
-                appendResults(items);
-
-                nextPageToken = data.nextPageToken || null;
-                loadMoreWrap.style.display = nextPageToken ? 'block' : 'none';
-            })
-            .catch((err) => {
-                console.error('YouTube axtarış xətası:', err);
-                statusEl.textContent = 'İnternet bağlantınızı yoxlayın.';
-                if (!isLoadMore) resultsEl.innerHTML = '';
-                loadMoreWrap.style.display = 'none';
-            })
-            .finally(() => {
-                if (isLoadMore) {
-                    loadMoreBtn.disabled = false;
-                    loadMoreBtn.textContent = 'Daha çox göstər';
-                }
-            });
-    };
-
-    loadMoreBtn.addEventListener('click', () => {
-        if (!nextPageToken || !currentQuery) return;
-        performSearch(currentQuery, nextPageToken);
-    });
-
-    const renderSuggestions = (suggestions) => {
-        if (!suggestions.length) {
-            hideSuggestions();
-            return;
-        }
-        suggestEl.innerHTML = '';
-        suggestions.forEach(text => {
-            const item = document.createElement('div');
-            item.textContent = text;
-            item.style.cssText = 'padding:10px 14px;color:#eee;font-size:13px;cursor:pointer;';
-            item.addEventListener('mouseenter', () => { item.style.background = 'rgba(255,255,255,0.08)'; });
-            item.addEventListener('mouseleave', () => { item.style.background = 'transparent'; });
-            item.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                input.value = text;
-                hideSuggestions();
-                clearTimeout(ytSearchDebounceTimer);
-                performSearch(text);
-            });
-            suggestEl.appendChild(item);
-        });
-        suggestEl.style.display = 'block';
-    };
-
-    input.addEventListener('input', () => {
-        const query = input.value.trim();
-
-        clearTimeout(ytSearchDebounceTimer);
-        clearTimeout(ytSuggestDebounceTimer);
-
-        if (!query) {
-            resultsEl.innerHTML = '';
-            statusEl.textContent = '';
-            loadMoreWrap.style.display = 'none';
-            hideSuggestions();
-            return;
-        }
-
-        statusEl.textContent = 'Axtarılır...';
-        ytSearchDebounceTimer = setTimeout(() => performSearch(query), 400);
-
-        ytSuggestDebounceTimer = setTimeout(() => {
-            fetch(`/api/youtube-suggest?q=${encodeURIComponent(query)}`)
-                .then(res => res.json())
-                .then(data => renderSuggestions((data && data.suggestions) || []))
-                .catch(() => hideSuggestions());
-        }, 300);
-    });
-
-    input.addEventListener('blur', () => {
-        setTimeout(hideSuggestions, 150);
-    });
-
-    input.addEventListener('focus', () => {
-        if (!input.value.trim()) hideSuggestions();
-    });
-}
