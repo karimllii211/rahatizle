@@ -100,18 +100,22 @@ function initYouTubeSearch() {
     };
 
     const selectVideo = (videoId) => {
+        // Qeyd: Firebase-in update()/set() promise-i uğurlu olduqda da `undefined`
+        // ilə rezolv olunur — ona görə "yazıldımı" sualını `undefined`-ə görə
+        // yoxlamaq mümkün deyil (icazə rədd ediləndə edilən boş `return` də eyni
+        // şəkildə `undefined` verir). Bunun əvəzinə açıq bir sentinel istifadə edirik.
         roomRef.child('creator').once('value').then(snapshot => {
             const creatorData = snapshot.val();
             if (!creatorData || creatorData.uid !== currentUser.uid) {
                 showToast('Yalnız otaq yaradanı video seçə bilər.');
-                return;
+                return 'denied';
             }
             return roomRef.update({
                 'creator/platform': 'youtube',
                 'youtubeId': { videoId: videoId }
-            });
+            }).then(() => 'written');
         }).then((result) => {
-            if (result === undefined) return; // icazə rədd edildi, heç nə yazılmadı
+            if (result !== 'written') return;
             window.location.href = 'room.html?id=' + encodeURIComponent(roomId) + '&platform=youtube';
         }).catch(() => {
             showToast('Video seçilə bilmədi. Yenidən cəhd edin.');

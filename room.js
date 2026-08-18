@@ -715,11 +715,13 @@ function initRoom() {
                     <div id="player" style="width: 100%; height: 500px; display: none;"></div>
                 </div>
             `;
-            // #player DOM-u indi yarandı — gözləyən youtubeId varsa dərhal yüklə
-            // (bax: initOrLoadYouTubePlayer-in pending-queue fallback-i, Section 6).
-            if (typeof window.onYouTubeIframeAPIReady === 'function') {
-                window.onYouTubeIframeAPIReady();
-            }
+            // NOT: burada window.onYouTubeIframeAPIReady()-i erkən çağırmırıq —
+            // bu funksiya Section 6-da bundan SONRA təyin edilir (initRoom()-un
+            // sinxron gövdəsində platformHint bloku Section 6-dan əvvəl işə düşür),
+            // ona görə erkən çağırış həmişə no-op olardı. Real "flush" YouTube-un
+            // öz iframe_api skriptinin onYouTubeIframeAPIReady-i çağırması VƏ ya
+            // youtubeId Firebase listener-inin pending-queue fallback-i (Section 6,
+            // initOrLoadYouTubePlayer) ilə baş verir — #player artıq mövcuddur.
         }
         // NOT: 'local' burada qəsdən emal olunmur — bax localVideoBtn handler-i, Section 4.
     }
@@ -840,6 +842,7 @@ function initRoom() {
                 videoId: videoId,
                 playerVars: {
                     'autoplay': 1,
+                    'mute': 1,
                     'controls': 1,
                     'rel': 0,
                     'modestbranding': 1,
