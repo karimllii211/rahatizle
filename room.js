@@ -779,6 +779,13 @@ function initRoom() {
         if (videoPlaceholder) videoPlaceholder.classList.remove('hidden');
         playerDiv.style.display = 'block';
 
+        // Axtarış interfeysi və pleyer eyni blokda üst-üstə yığılmasın —
+        // video yükləndikdə axtarışı gizlət, pleyer bloku əsas sahədə görünsün.
+        const ytSearchBlock = document.getElementById('yt-search-block');
+        const ytPlayerBlock = document.getElementById('yt-player-block');
+        if (ytSearchBlock) ytSearchBlock.style.display = 'none';
+        if (ytPlayerBlock) ytPlayerBlock.style.display = 'flex';
+
         if (mainVideo && mainVideo.srcObject) {
             mainVideo.srcObject = null;
         }
@@ -922,21 +929,36 @@ platformBtns.forEach(btn => {
             }
             videoPlaceholder.innerHTML = `
                 <div id="youtube-ui-wrapper" style="display: flex; flex-direction: column; align-items: center; width: 100%; height: 100%; justify-content: flex-start; overflow-y: auto;">
-                    <img src="YouTubeLogo.webp" class="neon-logo" style="width: 64px; height: 64px; max-width: 64px; margin-bottom: 12px; flex-shrink: 0;">
-                    <div style="position: relative; width: 80%; max-width: 600px;">
-                        <input type="text" id="yt-search-input" placeholder="YouTube-da axtar..." autocomplete="off" style="width: 100%; padding: 15px; border-radius: 8px; color: black;">
-                        <div id="yt-suggest-list" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:4px;background:#0A0A0A;border:1px solid rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;overflow-y:auto;max-height:220px;z-index:1000;"></div>
-                        <div id="yt-search-status" style="color: #999; font-size: 12px; margin-top: 8px; min-height: 16px;"></div>
-                        <div id="yt-search-results" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; width: 100%; max-height: 420px; overflow-y: auto; margin-top: 8px;"></div>
-                        <div id="yt-loadmore-wrap" style="display:none; width:100%; text-align:center; margin-top:12px;">
-                            <button type="button" id="yt-loadmore-btn" style="background:rgba(255,1,76,0.2); border:1px solid rgba(255,1,76,0.5); color:#FF014C; padding:10px 24px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">Daha çox göstər</button>
+                    <div id="yt-search-block" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                        <img src="YouTubeLogo.webp" class="neon-logo" style="width: 64px; height: 64px; max-width: 64px; margin-bottom: 12px; flex-shrink: 0;">
+                        <div style="position: relative; width: 80%; max-width: 600px;">
+                            <input type="text" id="yt-search-input" placeholder="YouTube-da axtar..." autocomplete="off" style="width: 100%; padding: 15px; border-radius: 8px; color: black;">
+                            <div id="yt-suggest-list" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:4px;background:#0A0A0A;border:1px solid rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;overflow-y:auto;max-height:220px;z-index:1000;"></div>
+                            <div id="yt-search-status" style="color: #999; font-size: 12px; margin-top: 8px; min-height: 16px;"></div>
+                            <div id="yt-search-results" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; width: 100%; max-height: 420px; overflow-y: auto; margin-top: 8px;"></div>
+                            <div id="yt-loadmore-wrap" style="display:none; width:100%; text-align:center; margin-top:12px;">
+                                <button type="button" id="yt-loadmore-btn" style="background:rgba(255,1,76,0.2); border:1px solid rgba(255,1,76,0.5); color:#FF014C; padding:10px 24px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">Daha çox göstər</button>
+                            </div>
                         </div>
                     </div>
-                    <div id="player" style="width: 100%; height: 500px; margin-top: 20px; display: none;"></div>
+                    <div id="yt-player-block" style="display: none; flex-direction: column; align-items: center; width: 100%;">
+                        <button type="button" id="yt-search-again-btn" style="align-self: flex-start; margin: 0 0 10px 0; background:rgba(255,1,76,0.2); border:1px solid rgba(255,1,76,0.5); color:#FF014C; padding:8px 16px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">← Yenidən axtar</button>
+                        <div id="player" style="width: 100%; height: 500px; display: none;"></div>
+                    </div>
                 </div>
             `;
 
             setupYouTubeSearch();
+
+            const searchAgainBtn = document.getElementById('yt-search-again-btn');
+            if (searchAgainBtn) {
+                searchAgainBtn.addEventListener('click', () => {
+                    const sb = document.getElementById('yt-search-block');
+                    const pb = document.getElementById('yt-player-block');
+                    if (sb) sb.style.display = 'flex';
+                    if (pb) pb.style.display = 'none';
+                });
+            }
 
             // Otağa yeni qoşulan istifadəçidə (host artıq video seçmişdisə) youtubeId
             // Firebase yeniləməsi #player DOM-da yaranmazdan əvvəl gələ bilər —
