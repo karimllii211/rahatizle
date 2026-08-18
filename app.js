@@ -736,6 +736,24 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    const removeAvatarFromUI = () => {
+        const pairs = [
+            ['profilePageAvatar', 'profilePageAvatarText'],
+            ['navAvatar', 'navbar-avatar-text']
+        ];
+        pairs.forEach(([imgId, textId]) => {
+            const img = document.getElementById(imgId);
+            const text = document.getElementById(textId);
+            if (img) {
+                img.src = '';
+                img.classList.add('hidden');
+            }
+            if (text) text.classList.remove('hidden');
+        });
+    };
+
+    const deleteAvatarBtn = document.getElementById('deleteAvatarBtn');
+
     const handleAvatarSelection = async (input) => {
         if (!currentUser) return;
         const file = input.files && input.files[0];
@@ -746,6 +764,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await database.ref('users/' + currentUser.uid).update({ photoURL: dataUrl });
             // Auth profili yalnız qısa URL-ləri qəbul edir; base64 buraya yazılmır.
             applyAvatarToUI(dataUrl);
+            if (deleteAvatarBtn) deleteAvatarBtn.classList.remove('hidden');
             showToast("Profil şəkli uğurla yeniləndi!");
         } catch (err) {
             console.error("Şəkil yükləmə xətası:", err);
@@ -759,6 +778,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const input = document.getElementById(id);
         if (input) input.addEventListener('change', () => handleAvatarSelection(input));
     });
+
+    const handleAvatarDelete = async () => {
+        if (!currentUser) return;
+        try {
+            await database.ref('users/' + currentUser.uid).update({ photoURL: '' });
+            removeAvatarFromUI();
+            if (deleteAvatarBtn) deleteAvatarBtn.classList.add('hidden');
+            showToast("Profil şəkli silindi!");
+        } catch (err) {
+            console.error("Şəkil silmə xətası:", err);
+            showToast(err.message || "Şəkil silinərkən xəta baş verdi.");
+        }
+    };
+
+    if (deleteAvatarBtn) {
+        deleteAvatarBtn.addEventListener('click', handleAvatarDelete);
+    }
 
     const saveProfileBtn = document.getElementById('saveProfileBtn');
     if (saveProfileBtn) {
@@ -855,10 +891,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     profilePageAvatar.src = user.photoURL;
                     profilePageAvatar.classList.remove('hidden');
                     profilePageAvatarText.classList.add('hidden');
+                    if (deleteAvatarBtn) deleteAvatarBtn.classList.remove('hidden');
                 } else {
                     profilePageAvatar.classList.add('hidden');
                     profilePageAvatarText.classList.remove('hidden');
                     profilePageAvatarText.innerText = initials;
+                    if (deleteAvatarBtn) deleteAvatarBtn.classList.add('hidden');
                 }
             }
 
@@ -965,7 +1003,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     // Avatar bazada saxlanılır (Auth photoURL uzunluq limiti səbəbindən).
-                    if (data.photoURL) applyAvatarToUI(data.photoURL);
+                    if (data.photoURL) {
+                        applyAvatarToUI(data.photoURL);
+                        if (deleteAvatarBtn) deleteAvatarBtn.classList.remove('hidden');
+                    } else {
+                        if (deleteAvatarBtn) deleteAvatarBtn.classList.add('hidden');
+                    }
 
                     const fnameInput = document.getElementById('profFirstName');
                     if (fnameInput && data.displayName) {
