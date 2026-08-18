@@ -797,6 +797,10 @@ function initRoom() {
                 window.ytPlayer.playVideo();
             }
         } else {
+            // Player hazır olub real vaxta sinxronlaşana qədər ilkin autoplay
+            // hadisələrinin Firebase-ə yazılmasının qarşısını al (bax: onPlayerReady).
+            ignoreNextYTEvent = true;
+
             window.ytPlayer = new YT.Player('player', {
                 videoId: videoId,
                 playerVars: {
@@ -807,6 +811,7 @@ function initRoom() {
                     'playsinline': 1
                 },
                 events: {
+                    'onReady': onPlayerReady,
                     'onStateChange': onPlayerStateChange
                 }
             });
@@ -841,6 +846,42 @@ function initRoom() {
 
             setTimeout(() => { ignoreNextYTEvent = false; }, 800);
         });
+    }
+
+    // Yeni yaradılan player (adətən otağa qoşulan istifadəçi üçün) autoplay
+    // ilə həmişə 0-cı saniyədən başlayır. Real vaxta sinxronlaşmadan bu ilkin
+    // hadisələrin Firebase-ə yazılmasının (və beləliklə hamının 0-a düşməsinin)
+    // qarşısını almaq üçün ignoreNextYTEvent player yaradılarkən true edilir —
+    // burada otaqdakı cari vaxta/state-ə seekTo edilir, YALNIZ bundan sonra
+    // normal Play/Pause yazılarına icazə verilir.
+    function onPlayerReady() {
+        if (!currentRoomId || !window.ytPlayer || !currentUser) {
+            ignoreNextYTEvent = false;
+            return;
+        }
+        database.ref(`rooms/${currentRoomId}/youtubeState`).once('value').then(snapshot => {
+            const data = snapshot.val();
+            if (data && typeof data.time === 'number') {
+                // Otaqda artıq gedən video var — real vaxta və state-ə sinxronlaş.
+                window.ytPlayer.seekTo(data.time, true);
+                if (data.state === 'pause') {
+                    window.ytPlayer.pauseVideo();
+                } else {
+                    window.ytPlayer.playVideo();
+                }
+                setTimeout(() => { ignoreNextYTEvent = false; }, 800);
+            } else {
+                // Bu, otaqda seçilən İLK videodur — real başlanğıc nöqtəsi
+                // olduğu üçün baza vəziyyətini özümüz yazırıq.
+                ignoreNextYTEvent = false;
+                database.ref(`rooms/${currentRoomId}/youtubeState`).set({
+                    state: 'play',
+                    time: window.ytPlayer.getCurrentTime() || 0,
+                    updatedBy: currentUser.uid,
+                    timestamp: Date.now()
+                });
+            }
+        }).catch(() => { ignoreNextYTEvent = false; });
     }
 
     function onPlayerStateChange(event) {
