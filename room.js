@@ -692,7 +692,27 @@ function initRoom() {
         'prime': 'PrimeVideo.svg.webp'
     };
 
+    // Sidebar-dakı "hazırkı platforma" nişanı üçün ayrıca xəritə — logos-a
+    // 'youtube' əlavə etsək renderPlatformView onu (səhvən) statik loqo kimi
+    // göstərərdi, YouTube pleyerini yaratmaq əvəzinə.
+    const platformBadgeIcons = { netflix: 'Netflix.png', disney: 'DisneyPlus.png', prime: 'PrimeVideo.svg.webp', youtube: 'YouTube.png' };
+    const platformBadgeNames = { netflix: 'Netflix', disney: 'Disney+', prime: 'Prime Video', youtube: 'YouTube' };
+
+    function updateActivePlatformBadge(platform) {
+        const icon = document.getElementById('activePlatformIcon');
+        const fallback = document.getElementById('activePlatformIconFallback');
+        const nameEl = document.getElementById('activePlatformName');
+        const iconSrc = platformBadgeIcons[platform];
+        if (iconSrc && icon) {
+            icon.src = iconSrc;
+            icon.classList.remove('hidden');
+            if (fallback) fallback.classList.add('hidden');
+        }
+        if (nameEl && platformBadgeNames[platform]) nameEl.textContent = platformBadgeNames[platform];
+    }
+
     function renderPlatformView(platform) {
+        updateActivePlatformBadge(platform);
         if (videoPlaceholder) {
             videoPlaceholder.classList.remove('hidden');
             videoPlaceholder.style.display = 'flex';
