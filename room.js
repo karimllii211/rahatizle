@@ -195,6 +195,13 @@ function initRoom() {
         });
     }
 
+    // Video üzərindəki "Videonu Dəyiş" düyməsi — platforma seçim axınını təkrar
+    // keçmədən, birbaşa YouTube axtarışına aparır (yalnız YouTube rejimində göstərilir).
+    const changeVideoBtn = document.getElementById('changeVideoBtn');
+    if (changeVideoBtn) {
+        changeVideoBtn.href = 'youtube-search.html?id=' + encodeURIComponent(currentRoomId);
+    }
+
     const roomRef = database.ref(`rooms/${currentRoomId}`);
     const viewersRef = database.ref(`rooms/${currentRoomId}/viewers`);
     const messagesRef = database.ref(`rooms/${currentRoomId}/messages`);
@@ -337,6 +344,33 @@ function initRoom() {
     let localStream = null;
     let peerConnection = null;
     let isHost = false;
+    let youtubeVideoActive = false;
+
+    // "Videonu Dəyiş" / "Videonu Bağla" düymələrinin görünürlüyünü hər dəfə
+    // mövcud vəziyyətdən (isHost, appliedPlatform, youtubeVideoActive) yenidən
+    // hesablayır. isHost (async) və platform render/youtubeId dinləyiciləri
+    // müstəqil, sıra qarantiyası olmayan Firebase sorğularıdır — ona görə hər
+    // birindən sonra bunu çağırmaq, tək yerdə mutasiya etməkdənsə, düymələrin
+    // həmişə düzgün son vəziyyətə düşməsini təmin edir.
+    function refreshVideoActionButtons() {
+        if (!changeVideoBtn || !closeVideoBtn) return;
+
+        changeVideoBtn.classList.toggle('hidden', !(isHost && appliedPlatform === 'youtube'));
+
+        if (!isHost) {
+            if (youtubeVideoActive) closeVideoBtn.classList.add('hidden');
+            return;
+        }
+
+        if (youtubeVideoActive) {
+            closeVideoBtn.classList.remove('hidden');
+        } else if (appliedPlatform === 'youtube') {
+            closeVideoBtn.classList.add('hidden');
+        }
+        // appliedPlatform !== 'youtube' olduqda (local/digər) closeVideoBtn-ə
+        // toxunmuruq — onun görünürlüyü local video yükləmə/bağlama axınında
+        // (aşağıda) idarə olunur.
+    }
 
     // Safari-nin avtomatik-oxutma siyasəti istifadəçi toxunuşu olmadan play()-i
     // rədd edir. Bu, həm ilk stream alındıqda, həm də sinxronizasiya vasitəsilə
@@ -434,6 +468,7 @@ function initRoom() {
         }
         
         console.log("👤 Mənim Rolum: ", isHost ? "HOST" : "GUEST");
+        refreshVideoActionButtons();
 
         if (isHost) {
             roomRef.child('guestTrigger').on('value', async snapshot => {
@@ -609,7 +644,19 @@ function initRoom() {
     if (closeVideoBtn) {
         closeVideoBtn.addEventListener('click', async () => {
             if (!isHost) return;
-            
+
+            // YouTube videosu aktivdirsə, onu Firebase-dən silirik — youtubeId
+            // dinləyicisi (Section 6) bunu həm bizdə, həm bütün qonaqlarda
+            // player-i məhv edib bağlayacaq (appliedPlatform-a deyil,
+            // youtubeVideoActive-ə etibar edirik ki, host local videoya
+            // keçdikdən sonra köhnə "youtube" platform dəyəri səhvən bu
+            // budağı işə salmasın).
+            if (youtubeVideoActive) {
+                await database.ref(`rooms/${currentRoomId}/youtubeId`).remove();
+                await database.ref(`rooms/${currentRoomId}/youtubeState`).remove();
+                return;
+            }
+
             if (localStream) {
                 localStream.getTracks().forEach(track => {
                     track.stop();
@@ -783,6 +830,7 @@ function initRoom() {
             // initOrLoadYouTubePlayer) ilə baş verir — #player artıq mövcuddur.
         }
         // NOT: 'local' burada qəsdən emal olunmur — bax localVideoBtn handler-i, Section 4.
+        refreshVideoActionButtons();
     }
 
     // Otaq yaradılarkən/select-platform.html-dən yönləndirildikdə URL-ə əlavə
@@ -918,7 +966,21 @@ function initRoom() {
     if (currentRoomId) {
         database.ref(`rooms/${currentRoomId}/youtubeId`).on('value', snapshot => {
             const data = snapshot.val();
-            if (data && data.videoId) initOrLoadYouTubePlayer(data.videoId);
+            youtubeVideoActive = !!(data && data.videoId);
+
+            if (data && data.videoId) {
+                initOrLoadYouTubePlayer(data.videoId);
+            } else if (window.ytPlayer) {
+                // Host "Videonu Bağla"ya basıb youtubeId-ni silib — bütün
+                // qonaqlarda (və host özündə) player-i məhv edirik ki, video
+                // həqiqətən dayansın, tək DOM-da gizli qalmasın.
+                if (typeof window.ytPlayer.destroy === 'function') window.ytPlayer.destroy();
+                window.ytPlayer = null;
+                const playerDiv = document.getElementById('player');
+                if (playerDiv) playerDiv.style.display = 'none';
+            }
+
+            refreshVideoActionButtons();
         });
 
         database.ref(`rooms/${currentRoomId}/youtubeState`).on('value', snapshot => {

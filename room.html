@@ -66,13 +66,16 @@
             header {
                 flex-wrap: wrap !important;
                 row-gap: 8px !important;
+                /* video-placeholder z-30-dan yuxarıda qalsın ki, header 2 sətrə
+                   keçəndə (aşağı bax) ÇIX/OTAĞI SİL video ekranının altında
+                   qalıb görünməz/klikəbilinməz olmasın — test edildi. */
+                z-index: 40 !important;
             }
             header .flex.shrink-0.flex-wrap {
                 width: 100% !important;
                 justify-content: flex-end !important;
             }
             #deleteRoomBtn,
-            #closeVideoBtn,
             header .flex.shrink-0.flex-wrap > a {
                 padding: 6px 10px !important;
                 font-size: 9px !important;
@@ -81,6 +84,23 @@
                 flex-shrink: 1 !important;
                 min-width: 0 !important;
             }
+
+            /* Video üzərindəki "Videonu Dəyiş" / "Videonu Bağla" düymələri mobildə kompakt */
+            #videoActionBtns #changeVideoBtn,
+            #videoActionBtns #closeVideoBtn {
+                padding: 6px 10px !important;
+                font-size: 9px !important;
+                line-height: 1.2 !important;
+            }
+
+            /* Sol panel (platforma siyahısı) mobildə sürüşən modal kimi açılır və
+               CHAT-ın (#chatPanel, z-index 9999 !important yuxarıda) ÜSTÜNDƏ
+               görünməlidir — əvvəllər sidePanel-in z-50-si chat-ın 9999-undan aşağı
+               qalıb, hər ikisi açıq olanda platforma siyahısı chat-ın arxasında
+               itirdi (test edildi). md:z-auto masaüstü override-i pozulmasın deyə
+               bu, yalnız bu mobil bloka salınıb. */
+            #sidePanel { z-index: 10001 !important; }
+            #panelBackdrop { z-index: 10000 !important; }
         }
 </style>
 </head>
@@ -148,9 +168,6 @@
 
             <div class="flex shrink-0 flex-wrap items-center justify-end gap-2">
 
-                <button type="button" id="closeVideoBtn" class="btn-press hidden rounded-lg border border-yellow-400/50 bg-yellow-600/50 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white hover:bg-yellow-500 sm:text-xs">
-                    <span>VİDEONU BAĞLA</span>
-                </button>
                 <a href="index.html" class="btn-press rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white hover:bg-white/20 sm:text-xs">
                     <span>Çıx</span>
                 </a>
@@ -160,12 +177,22 @@
             </div>
         </header>
 
-        
+
         <div id="videoScrollWrapper" class="flex h-full w-full flex-1 flex-col items-center overflow-y-auto p-3 pt-24 pb-20 sm:p-6 sm:pt-28 sm:pb-24">
             <div id="videoStageBox" class="group relative flex aspect-video w-full max-w-5xl shrink-0 items-center justify-center overflow-visible rounded-2xl border border-white/10 bg-[#050505] shadow-[0_0_50px_rgba(0,0,0,0.5)] sm:rounded-3xl">
                 <video id="main-video" controls muted autoplay playsinline class="relative z-20 hidden h-full w-full object-contain rounded-2xl sm:rounded-3xl"></video>
                 <div id="video-placeholder" class="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black transition-opacity duration-500 rounded-2xl sm:rounded-3xl overflow-y-auto">
                     <!-- Dinamik məzmun buraya yüklənəcək -->
+                </div>
+
+                <!-- Video üzərində üzən əməliyyat düymələri: video/YouTube dəyiş + bağla -->
+                <div id="videoActionBtns" class="absolute right-3 top-3 z-40 flex flex-wrap items-center justify-end gap-2 sm:right-4 sm:top-4">
+                    <a href="#" id="changeVideoBtn" class="btn-press hidden rounded-lg border border-white/20 bg-black/70 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm hover:bg-white/20 sm:text-xs">
+                        <span>Videonu Dəyiş</span>
+                    </a>
+                    <button type="button" id="closeVideoBtn" class="btn-press hidden rounded-lg border border-yellow-400/50 bg-yellow-600/70 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm hover:bg-yellow-500 sm:text-xs">
+                        <span>Videonu Bağla</span>
+                    </button>
                 </div>
             </div>
 
