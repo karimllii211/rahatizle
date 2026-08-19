@@ -39,6 +39,14 @@
         .neon-logo { filter: drop-shadow(0 0 15px currentColor); max-width: 200px; }
         #chatPanel { z-index: 9999 !important; }
 
+        /* "Otağı Sil" təsdiq pəncərəsi (#custom-confirm) hər zaman ən üstdə
+           olmalıdır — chatPanel-in (z-9999) və mobil sidePanel-in (z-10001)
+           İSTƏNİLƏN vəziyyətdə (açıq/bağlı) üstündə görünsün, yoxsa istifadəçi
+           "Bəli/Xeyr" seçə bilmir (test edildi: chat açıq olanda təsdiq
+           pəncərəsi onun arxasında qalırdı). Bu, masaüstündə də eyni bug idi,
+           ona görə mobilə məxsus deyil — həmişə tətbiq olunur. */
+        #custom-confirm { z-index: 20000 !important; }
+
         .sidebar-mini-icon { width: 32px !important; height: 32px !important; max-width: 32px !important; min-width: 32px !important; object-fit: contain !important; display: block !important; margin: 0 !important; }
 
         /* === YOUTUBE PLEYERİN GÖRÜNMƏSİ === */
@@ -255,6 +263,6 @@
     <script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
-    <script defer src="room.js?v=5"></script>
+    <script defer src="room.js?v=6"></script>
 </body>
 </html>
