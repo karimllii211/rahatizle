@@ -52,6 +52,36 @@
             max-height: none !important;
             min-height: 0 !important;
         }
+
+        /* === MOBİLDƏ "OTAĞI SİL" DÜYMƏSİ KOMPAKTLAŞDIRILIR ===
+           Header-in sağ tərəfindəki düymələr konteyneri (VİDEONU BAĞLA / Çıx /
+           Otağı Sil) shrink-0 olduğu üçün öz təbii (masaüstü) enini saxlayır.
+           Dar ekranlarda bu, sol tərəfdəki KOD/İzləyici sütununu demək olar
+           sıfır enə sıxışdırır və "Aktiv İzləyici" pilli düymələrin üstünə
+           vizual olaraq düşür (test edildi: 320-375px enində real overlap).
+           Həll: düymələr qrupu lazım gələndə öz sətrinə keçsin (header
+           flex-wrap), və hər düymə bir az kompaktlaşsın. Rənglər və masaüstü
+           görünüş toxunulmur — yalnız 768px altında. */
+        @media (max-width: 768px) {
+            header {
+                flex-wrap: wrap !important;
+                row-gap: 8px !important;
+            }
+            header .flex.shrink-0.flex-wrap {
+                width: 100% !important;
+                justify-content: flex-end !important;
+            }
+            #deleteRoomBtn,
+            #closeVideoBtn,
+            header .flex.shrink-0.flex-wrap > a {
+                padding: 6px 10px !important;
+                font-size: 9px !important;
+                line-height: 1.2 !important;
+                white-space: nowrap !important;
+                flex-shrink: 1 !important;
+                min-width: 0 !important;
+            }
+        }
 </style>
 </head>
 <body class="page-enter flex h-[100dvh] overflow-hidden bg-[#030303] font-sans text-white">

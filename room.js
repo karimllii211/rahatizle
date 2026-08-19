@@ -763,6 +763,17 @@ function initRoom() {
                     <div id="player" style="width: 100%; height: 500px; display: none;"></div>
                 </div>
             `;
+            // #player indi DOM-dadır — əgər youtubeId dinləyicisi (Section 6) bu render-dən
+            // ƏVVƏL işə düşübsə (asinxron Firebase sorğularının sırası qarantiya olunmur,
+            // otağa sonradan qoşulan istifadəçidə bu, adi haldır), videoId
+            // window.pendingYouTubeVideoId-də "asılı" qalıb, çünki onu geri çağıracaq heç bir
+            // click handler yoxdur (platforma seçimi artıq select-platform.html-dədir).
+            // Ona görə burada dərhal flush edirik ki, player mütləq yaransın.
+            if (window.pendingYouTubeVideoId) {
+                const pendingVideoId = window.pendingYouTubeVideoId;
+                window.pendingYouTubeVideoId = null;
+                initOrLoadYouTubePlayer(pendingVideoId);
+            }
             // NOT: burada window.onYouTubeIframeAPIReady()-i erkən çağırmırıq —
             // bu funksiya Section 6-da bundan SONRA təyin edilir (initRoom()-un
             // sinxron gövdəsində platformHint bloku Section 6-dan əvvəl işə düşür),
