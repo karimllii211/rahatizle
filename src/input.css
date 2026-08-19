@@ -358,3 +358,16 @@
     transform: none;
   }
 }
+
+/* ==========================================================================
+   6. PROFİL AVATARI
+   Kamera overlay-i (.avatar-overlay) şəkil yoxdursa baş hərflərlə (initials)
+   üst-üstə düşməsin deyə gizlədilir. #profilePageAvatar öz "hidden" sinifini
+   (Tailwind, display:none) itirəndə/qazananda bu, app.js-in mövcud
+   applyAvatarToUI/removeAvatarFromUI və auth.onAuthStateChanged axınlarının
+   heç birinə toxunmadan avtomatik işləyir — hər ikisi onsuz da yalnız
+   #profilePageAvatar-a "hidden" sinifini əlavə/silir.
+   ========================================================================== */
+#profilePageAvatar.hidden ~ .avatar-overlay {
+  display: none;
+}

@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Inter:wght@400;500;600;700&display=swap">
 
-    <link rel="stylesheet" href="styles.css?v=2">
+    <link rel="stylesheet" href="styles.css?v=3">
     <script src="animations.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
     
@@ -71,15 +71,11 @@
            flex-wrap), və hər düymə bir az kompaktlaşsın. Rənglər və masaüstü
            görünüş toxunulmur — yalnız 768px altında. */
         @media (max-width: 768px) {
-            /* Header artıq video üzərində üzən overlay deyil (position:static) —
-               normal sənəd axınına qaytarılıb, öz TƏMİZ zolağını tutur və
-               videoScrollWrapper-i avtomatik aşağı itələyir (hər ikisi eyni
-               flex-col valideynin üzvüdür). Bununla ÇIX/OTAĞI SİL heç vaxt
-               video məzmunu/başlığı ilə üst-üstə düşə bilməz — əvvəllər
-               `position:absolute` olduğu üçün video üzərində üzürdü (test
-               edildi: screenshot-da video başlığının üzərinə düşürdü). */
+            /* Header (indi bütün ölçülərdə statik, video üzərində üzmür — bax
+               aşağı: header özü artıq `absolute` deyil) dar ekranlarda 4
+               düyməni (Videonu Dəyiş/Bağla/Çıx/Otağı Sil) sığdırmaq üçün
+               lazım gələndə öz sətrinə keçir. */
             header {
-                position: static !important;
                 flex-wrap: wrap !important;
                 row-gap: 8px !important;
             }
@@ -87,8 +83,7 @@
                 width: 100% !important;
                 justify-content: flex-end !important;
             }
-            #deleteRoomBtn,
-            header .flex.shrink-0.flex-wrap > a {
+            header .flex.shrink-0.flex-wrap > * {
                 padding: 6px 10px !important;
                 font-size: 9px !important;
                 line-height: 1.2 !important;
@@ -97,37 +92,8 @@
                 min-width: 0 !important;
             }
 
-            /* Header statik olduğu üçün əvvəlki pt-24 (yalnız overlay-dən
-               qorunmaq üçün idi) artıq lazım deyil. Əvəzinə video ilə header
-               arasında təmiz, aydın bir boşluq saxlanılır (item 3). */
             #videoScrollWrapper {
-                padding-top: 16px !important;
                 padding-bottom: 12px !important;
-            }
-
-            /* "Videonu Dəyiş" / "Videonu Bağla" artıq videonun ÜZƏRİNDƏ float
-               etmir. DOM-u dəyişmədən (JS-ə toxunulmadan), videoStageBox-un
-               overflow-visible xüsusiyyətindən istifadə edərək düymələr
-               qutunun ALT KƏNARINDAN kənara — öz ayrıca zolağına çıxarılır;
-               margin-bottom həmin sahəni növbəti elementdən (chat) qoruyur ki,
-               heç kim üst-üstə düşməsin (test edildi). */
-            #videoStageBox {
-                margin-bottom: 56px !important;
-            }
-            #videoActionBtns {
-                top: auto !important;
-                right: auto !important;
-                bottom: -56px !important;
-                left: 0 !important;
-                width: 100% !important;
-                justify-content: center !important;
-                flex-wrap: nowrap !important;
-            }
-            #videoActionBtns #changeVideoBtn,
-            #videoActionBtns #closeVideoBtn {
-                padding: 6px 10px !important;
-                font-size: 9px !important;
-                line-height: 1.2 !important;
             }
 
             /* Chat başlığındakı "Canlı Chat" mətni və ikonu mobildə tamamilə
@@ -221,7 +187,7 @@
     <!-- MƏRKƏZ: VİDEO -->
     <div class="relative flex h-full flex-1 flex-col bg-black">
 
-        <header class="absolute left-0 top-0 z-20 flex w-full items-start justify-between gap-2 bg-gradient-to-b from-black/90 to-transparent p-3 backdrop-blur-sm sm:p-5">
+        <header class="flex w-full items-start justify-between gap-2 bg-gradient-to-b from-black/90 to-transparent p-3 backdrop-blur-sm sm:p-5">
             <div class="flex min-w-0 items-center gap-2">
                 <button type="button" id="openPanelBtn" class="btn-press flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/50 text-white md:hidden" aria-label="Platformalar menyusu">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
@@ -238,6 +204,12 @@
 
             <div class="flex shrink-0 flex-wrap items-center justify-end gap-2">
 
+                <a href="#" id="changeVideoBtn" class="btn-press hidden rounded-lg border border-white/20 bg-black/70 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm hover:bg-white/20 sm:text-xs">
+                    <span>Videonu Dəyiş</span>
+                </a>
+                <button type="button" id="closeVideoBtn" class="btn-press hidden rounded-lg border border-yellow-400/50 bg-yellow-600/70 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm hover:bg-yellow-500 sm:text-xs">
+                    <span>Videonu Bağla</span>
+                </button>
                 <a href="index.html" class="btn-press rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white hover:bg-white/20 sm:text-xs">
                     <span>Çıx</span>
                 </a>
@@ -248,21 +220,11 @@
         </header>
 
 
-        <div id="videoScrollWrapper" class="flex h-full w-full flex-1 flex-col items-center overflow-y-auto p-3 pt-24 pb-20 sm:p-6 sm:pt-28 sm:pb-24">
+        <div id="videoScrollWrapper" class="flex h-full w-full flex-1 flex-col items-center overflow-y-auto p-3 pb-20 sm:p-6 sm:pb-24">
             <div id="videoStageBox" class="group relative flex aspect-video w-full max-w-5xl shrink-0 items-center justify-center overflow-visible rounded-2xl border border-white/10 bg-[#050505] shadow-[0_0_50px_rgba(0,0,0,0.5)] sm:rounded-3xl">
                 <video id="main-video" controls muted autoplay playsinline class="relative z-20 hidden h-full w-full object-contain rounded-2xl sm:rounded-3xl"></video>
                 <div id="video-placeholder" class="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black transition-opacity duration-500 rounded-2xl sm:rounded-3xl overflow-y-auto">
                     <!-- Dinamik məzmun buraya yüklənəcək -->
-                </div>
-
-                <!-- Video üzərində üzən əməliyyat düymələri: video/YouTube dəyiş + bağla -->
-                <div id="videoActionBtns" class="absolute right-3 top-3 z-40 flex flex-wrap items-center justify-end gap-2 sm:right-4 sm:top-4">
-                    <a href="#" id="changeVideoBtn" class="btn-press hidden rounded-lg border border-white/20 bg-black/70 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm hover:bg-white/20 sm:text-xs">
-                        <span>Videonu Dəyiş</span>
-                    </a>
-                    <button type="button" id="closeVideoBtn" class="btn-press hidden rounded-lg border border-yellow-400/50 bg-yellow-600/70 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm hover:bg-yellow-500 sm:text-xs">
-                        <span>Videonu Bağla</span>
-                    </button>
                 </div>
             </div>
 
