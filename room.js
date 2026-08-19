@@ -396,6 +396,7 @@ function initRoom() {
     
     let localStream = null;
     let peerConnection = null;
+    let pendingIceCandidates = []; // remoteDescription hələ təyin olunmayanda gələn ICE candidate-lər üçün növbə
     let isHost = false;
     let youtubeVideoActive = false;
     let screenShareStream = null; // Netflix/Disney+/Prime ekran paylaşımı (yalnız host)
@@ -591,8 +592,13 @@ function initRoom() {
 
     const setupPeerConnection = () => {
         if (peerConnection) return;
-        
+
+        pendingIceCandidates = []; // yeni bağlantı — köhnə növbələnmiş candidate-lər etibarsızdır
+
         peerConnection = new RTCPeerConnection(configuration);
+
+        // Diaqnostik: signalingState keçidlərini izləmək üçün (debug məqsədilə saxlanılır)
+        peerConnection.onsignalingstatechange = () => console.log('Signaling state dəyişdi:', peerConnection.signalingState);
 
         peerConnection.onicecandidate = event => {
             if (event.candidate) {
@@ -773,14 +779,32 @@ function initRoom() {
         console.log("📡 Host Offer yaratdı və Firebase-ə göndərdi.");
 
         // Host yalnız Answer-i dinləyir (Davamlı)
+        // DİQQƏT (re-entrancy qorunması): Firebase 'value' dinləyicisi eyni
+        // answer node-u üçün birdən artıq dəfə tetiklənə bilər (məs. iki hadisə
+        // demək olar eyni vaxtda gəlir, birinci hələ await-də olarkən ikincisi
+        // işə düşür). signalingState yalnız 'have-local-offer' olduqda answer-i
+        // gözləyirik — 'stable'-a keçdikdən sonra (uğurlu tətbiqdən sonra) və ya
+        // hələ offer göndərilməyibsə eyni answer-i YENİDƏN tətbiq etməyə cəhd
+        // etməmək üçün. Uğurlu tətbiqdən dərhal (await-dən ƏVVƏL, sinxron
+        // şəkildə) dinləyicini .off() ilə söndürürük ki, eyni "task" içində
+        // artıq növbəyə düşmüş ikinci hadisə yenidən setRemoteDescription
+        // çağırmasın.
         signalingRef.child('answer').on('value', async snapshot => {
             const data = snapshot.val();
-            if (data && data.uid !== currentUser.uid && peerConnection.signalingState !== "stable") {
-                await peerConnection.setRemoteDescription(new RTCSessionDescription(data));
-                console.log("✅ Host Answer aldı, əlaqə qurulur!");
-                // Yalnız setRemote bitdikdən sonra Host candidates-i oxuyur
-                listenForCandidates();
+            if (!data || data.uid === currentUser.uid) return;
+
+            if (peerConnection.signalingState !== 'have-local-offer') {
+                console.warn('Answer gözlənilmirdi, signalingState:', peerConnection.signalingState, '- keçilir');
+                return;
             }
+
+            signalingRef.child('answer').off('value');
+
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(data));
+            console.log("✅ Host Answer aldı, əlaqə qurulur!");
+            flushPendingIceCandidates();
+            // Yalnız setRemote bitdikdən sonra Host candidates-i oxuyur
+            listenForCandidates();
         });
     };
 
@@ -793,6 +817,7 @@ function initRoom() {
                 if (!peerConnection) setupPeerConnection();
                 if (peerConnection.signalingState === "stable") {
                     await peerConnection.setRemoteDescription(new RTCSessionDescription(data));
+                    flushPendingIceCandidates();
                     const answer = await peerConnection.createAnswer();
                     await peerConnection.setLocalDescription(answer);
                     await signalingRef.child('answer').set({
@@ -810,18 +835,36 @@ function initRoom() {
     };
 
     // --- DƏQİQ AXIN C: NAMİZƏDLƏR ---
+    // remoteDescription hələ təyin olunmamış olarsa (setRemoteDescription hələ
+    // bitməyib), addIceCandidate çağırışı "remote description was null" xətası
+    // verə bilər — belə hallarda candidate-i növbəyə yığırıq, remoteDescription
+    // təyin olunan kimi (flushPendingIceCandidates ilə) tətbiq edilir.
+    const flushPendingIceCandidates = () => {
+        if (!peerConnection || !peerConnection.remoteDescription || pendingIceCandidates.length === 0) return;
+        const queued = pendingIceCandidates;
+        pendingIceCandidates = [];
+        queued.forEach(candidate => {
+            peerConnection.addIceCandidate(candidate).catch(e => console.error(e));
+        });
+        console.log(`📥 Növbədəki ${queued.length} ICE candidate tətbiq edildi`);
+    };
+
     let listeningForCandidates = false;
     const listenForCandidates = () => {
         if (listeningForCandidates) return;
         listeningForCandidates = true;
-        
+
         const targetToListen = isHost ? 'guest' : 'host';
         console.log("ICE Candidates dinlənilməyə başlandı: " + targetToListen);
-        
+
         signalingRef.child('candidates').child(targetToListen).on('child_added', snapshot => {
             const data = snapshot.val();
             if (data && data.uid !== currentUser.uid && peerConnection) {
                 const candidate = new RTCIceCandidate(data.candidate);
+                if (!peerConnection.remoteDescription) {
+                    pendingIceCandidates.push(candidate);
+                    return;
+                }
                 peerConnection.addIceCandidate(candidate).catch(e => console.error(e));
                 console.log("ICE Candidate əlavə edildi");
             }
