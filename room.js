@@ -125,6 +125,32 @@ function initRoom() {
     const toggleChatBtn = document.getElementById('toggleChatBtn');
     const closeChatBtn = document.getElementById('closeChatBtn');
     const chatPanel = document.getElementById('chatPanel');
+    const videoScrollWrapper = document.getElementById('videoScrollWrapper');
+
+    // YouTube üçün chat: sağdan açılan overlay əvəzinə videonun altında,
+    // default olaraq açıq göstərilir. Digər platformalar bu overlay-i
+    // olduğu kimi saxlayır — bax: setYouTubeInlineChat/restoreDefaultChatPanel.
+    const chatPanelDefaultClassName = chatPanel.className;
+    const chatPanelDefaultParent = chatPanel.parentElement;
+    const chatPanelDefaultNextSibling = chatPanel.nextSibling;
+
+    function setYouTubeInlineChat() {
+        if (chatPanel.dataset.ytInline === '1') return;
+        chatPanel.dataset.ytInline = '1';
+        if (videoScrollWrapper) videoScrollWrapper.appendChild(chatPanel);
+        chatPanel.className = 'relative z-30 mt-4 flex h-[420px] w-full max-w-5xl shrink-0 flex-col overflow-hidden rounded-2xl border border-white/5 bg-[#0A0A0A] shadow-[0_10px_30px_rgba(0,0,0,0.4)]';
+        if (toggleChatBtn) toggleChatBtn.classList.add('hidden');
+        if (closeChatBtn) closeChatBtn.classList.add('hidden');
+    }
+
+    function restoreDefaultChatPanel() {
+        if (chatPanel.dataset.ytInline !== '1') return;
+        delete chatPanel.dataset.ytInline;
+        chatPanelDefaultParent.insertBefore(chatPanel, chatPanelDefaultNextSibling);
+        chatPanel.className = chatPanelDefaultClassName;
+        if (toggleChatBtn) toggleChatBtn.classList.remove('hidden');
+        if (closeChatBtn) closeChatBtn.classList.remove('hidden');
+    }
     
     
     
@@ -720,12 +746,14 @@ function initRoom() {
         if (mainVideo) mainVideo.classList.add('hidden');
 
         if (logos[platform]) {
+            restoreDefaultChatPanel();
             videoPlaceholder.innerHTML = `
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%;">
                     <img src="${logos[platform]}" class="neon-logo">
                 </div>
             `;
         } else if (platform === 'youtube') {
+            setYouTubeInlineChat();
             if (window.ytPlayer && typeof window.ytPlayer.destroy === 'function') {
                 window.ytPlayer.destroy();
                 window.ytPlayer = null;
