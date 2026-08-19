@@ -568,7 +568,6 @@ function initRoom() {
                     if (stream) {
                         stream.getTracks().forEach(track => {
                             const sender = peerConnection.addTrack(track, stream);
-                            console.log("[HOST 2] Track əlavə olundu:" + track.kind);
                             if (track.kind === 'video') {
                                 const parameters = sender.getParameters();
                                 if (!parameters.encodings) parameters.encodings = [{}];
@@ -601,9 +600,7 @@ function initRoom() {
         // Diaqnostik: signalingState keçidlərini izləmək üçün (debug məqsədilə saxlanılır)
         peerConnection.onsignalingstatechange = () => console.log('Signaling state dəyişdi:', peerConnection.signalingState);
 
-        // MÜVƏQQƏTİ DİAQNOSTİK LOQLAR — ekran paylaşımında qonaqda görüntü/səs
-        // gəlməmə problemi araşdırılır, sonra silinəcək.
-        peerConnection.oniceconnectionstatechange = () => console.log("[QONAQ 8] ICE connection state:" + peerConnection.iceConnectionState);
+        // Diaqnostik: ICE candidate xətalarını izləmək üçün (debug məqsədilə saxlanılır)
         peerConnection.onicecandidateerror = (e) => console.error('[ICE XƏTA]', e.errorText, e.url);
 
         peerConnection.onicecandidate = event => {
@@ -617,11 +614,9 @@ function initRoom() {
         };
 
         peerConnection.ontrack = event => {
-            console.log("[QONAQ 6] TRACK ALINDI:" + event.track.kind);
             if (!isHost && mainVideo) {
                 if (mainVideo.srcObject !== event.streams[0]) {
                     mainVideo.srcObject = event.streams[0];
-                    console.log("[QONAQ 7] srcObject təyin olundu");
                     console.log("🎥 Qonaq stream aldı və srcObject təyin edildi!");
                     mainVideo.autoplay = true;
                     mainVideo.muted = true;
@@ -669,8 +664,6 @@ function initRoom() {
             }
             return;
         }
-
-        console.log("[HOST 1] Stream alındı, video track sayı:" + stream.getVideoTracks().length + ", audio track sayı:" + stream.getAudioTracks().length);
 
         screenShareStream = stream;
 
@@ -770,7 +763,6 @@ function initRoom() {
         if (streamToSend) {
             streamToSend.getTracks().forEach(track => {
                 const sender = peerConnection.addTrack(track, streamToSend);
-                console.log("[HOST 2] Track əlavə olundu:" + track.kind);
                 if (track.kind === 'video') {
                     const parameters = sender.getParameters();
                     if (!parameters.encodings) parameters.encodings = [{}];
@@ -781,14 +773,12 @@ function initRoom() {
         }
 
         const offer = await peerConnection.createOffer();
-        console.log("[HOST 3] Offer yaradıldı");
         await peerConnection.setLocalDescription(offer);
         await signalingRef.child('offer').set({
             sdp: offer.sdp,
             type: offer.type,
             uid: currentUser.uid
         });
-        console.log("[HOST 4] Offer göndərildi, roomId/path:" + `rooms/${currentRoomId}/signaling/offer`);
         console.log("📡 Host Offer yaratdı və Firebase-ə göndərdi.");
 
         // Host yalnız Answer-i dinləyir (Davamlı)
@@ -806,8 +796,6 @@ function initRoom() {
             const data = snapshot.val();
             if (!data || data.uid === currentUser.uid) return;
 
-            console.log("[HOST 5] Answer alındı");
-
             if (peerConnection.signalingState !== 'have-local-offer') {
                 console.warn('Answer gözlənilmirdi, signalingState:', peerConnection.signalingState, '- keçilir');
                 return;
@@ -816,7 +804,6 @@ function initRoom() {
             signalingRef.child('answer').off('value');
 
             await peerConnection.setRemoteDescription(new RTCSessionDescription(data));
-            console.log("[HOST 6] Answer təyin olundu, connectionState:" + peerConnection.connectionState + ", iceConnectionState:" + peerConnection.iceConnectionState);
             console.log("✅ Host Answer aldı, əlaqə qurulur!");
             flushPendingIceCandidates();
             // Yalnız setRemote bitdikdən sonra Host candidates-i oxuyur
@@ -826,26 +813,21 @@ function initRoom() {
 
     // --- DƏQİQ AXIN: GUEST ---
     const listenForOffer = () => {
-        console.log("[QONAQ 1] Offer dinləyicisi aktivdir, path:" + `rooms/${currentRoomId}/signaling/offer`);
         signalingRef.child('offer').on('value', async snapshot => {
             const data = snapshot.val();
             if (data && data.uid !== currentUser.uid) {
-                console.log("[QONAQ 2] Offer alındı");
                 console.log("📥 Qonaq Offer aldı, Answer yaradır...");
                 if (!peerConnection) setupPeerConnection();
                 if (peerConnection.signalingState === "stable") {
                     await peerConnection.setRemoteDescription(new RTCSessionDescription(data));
-                    console.log("[QONAQ 3] Remote description təyin olundu");
                     flushPendingIceCandidates();
                     const answer = await peerConnection.createAnswer();
-                    console.log("[QONAQ 4] Answer yaradıldı");
                     await peerConnection.setLocalDescription(answer);
                     await signalingRef.child('answer').set({
                         sdp: answer.sdp,
                         type: answer.type,
                         uid: currentUser.uid
                     });
-                    console.log("[QONAQ 5] Answer göndərildi");
                     console.log("📤 Qonaq Answer göndərdi.");
 
                     // Yalnız setRemote bitdikdən və Answer yaradıldıqdan sonra Guest candidates-i oxuyur

@@ -301,51 +301,36 @@ document.addEventListener('DOMContentLoaded', () => {
         startResendTimer();
     };
 
-    // --- EMAILJS ŞİFRƏ BƏRPASI (FRONTEND) ---
+    // --- ŞİFRƏ BƏRPASI KODU (SERVER-SIDE) ---
+    // Kod serverdə yaradılır və EmailJS ilə serverdən göndərilir; brauzer
+    // yalnız kodsuz dəyərsiz olan imzalı "token"i alır (e-poçt dəyişmə
+    // axınında olduğu kimi), ona görə özü şifrə sıfırlaya bilməz.
     const requestPasswordResetCode = async (userEmail) => {
         currentOTPRecoveryEmail = userEmail;
         enteredResetCode = null;
-        
-        // 6 rəqəmli kod generasiya edirik
-        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-        resetToken = otpCode; // Kodu yadda saxlayırıq (frontend yoxlanışı üçün)
-        
+        resetToken = null;
+
         showToast("E-poçt göndərilir, zəhmət olmasa gözləyin...");
-        
-        // EmailJS göndərmə prosesi
-        const sendEmail = () => {
-            window.emailjs.send("service_9umksl7", "template_0aiimmq", {
-                security_code: otpCode,
-                email: userEmail,
-                to_email: userEmail,
-                message: otpCode,
-                otp_code: otpCode
-            }, "-joV9uOaw310_PJCg")
-            .then(function(response) {
-                console.log('SUCCESS!', response.status, response.text);
+
+        try {
+            const response = await fetch('/api/reset-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'request-code', email: userEmail })
+            });
+            const data = await response.json().catch(() => ({}));
+
+            if (response.ok && data.token) {
+                resetToken = data.token;
                 showToast("6 rəqəmli kod e-poçtunuza göndərildi!");
                 openOTPModal();
-            }, function(error) {
-                console.error('EmailJS ERROR:', error);
-                showToast("Kod göndərilə bilmədi. Zəhmət olmasa yenidən cəhd edin.");
-            });
-        };
+                return;
+            }
 
-        if (typeof window.emailjs === 'undefined') {
-            console.warn("EmailJS is undefined. Dynamically loading the script...");
-            const script = document.createElement('script');
-            script.src = "https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js";
-            script.onload = () => {
-                window.emailjs.init("-joV9uOaw310_PJCg");
-                sendEmail();
-            };
-            script.onerror = () => {
-                console.error("Failed to load EmailJS from CDN.");
-                showToast("Xəta: EmailJS yüklənə bilmədi. İnternet bağlantınızı və ya brauzer icazələrini (CSP/AdBlock) yoxlayın.");
-            };
-            document.head.appendChild(script);
-        } else {
-            sendEmail();
+            showToast(data.error || "Kod göndərilə bilmədi. Zəhmət olmasa yenidən cəhd edin.");
+        } catch (error) {
+            console.error("Şifrə bərpası kodu xətası:", error);
+            showToast("Şəbəkə xətası baş verdi.");
         }
     };
 
@@ -465,7 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (otpMode === 'password') {
                 if (!/^\d{6}$/.test(entered)) return showToast("6 rəqəmli kodu daxil edin.");
                 if (!resetToken) return showToast("Sessiyanın vaxtı bitib. Yeni kod tələb edin.");
-                if (entered !== resetToken) return showToast("Kod yanlışdır.");
+                // Kodun düzgünlüyü YALNIZ serverdə (verifyToken) yoxlanılır — bax setNewPasswordBtn.
                 enteredResetCode = entered;
                 const otpStep = document.getElementById('otpStepContainer');
                 const newPwdStep = document.getElementById('newPasswordStepContainer');
@@ -520,7 +505,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: JSON.stringify({
                         action: 'direct-reset',
                         email: currentOTPRecoveryEmail,
-                        newPassword: newPwd
+                        newPassword: newPwd,
+                        token: resetToken,
+                        code: enteredResetCode
                     })
                 });
 
