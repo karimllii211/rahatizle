@@ -71,13 +71,17 @@
            flex-wrap), və hər düymə bir az kompaktlaşsın. Rənglər və masaüstü
            görünüş toxunulmur — yalnız 768px altında. */
         @media (max-width: 768px) {
+            /* Header artıq video üzərində üzən overlay deyil (position:static) —
+               normal sənəd axınına qaytarılıb, öz TƏMİZ zolağını tutur və
+               videoScrollWrapper-i avtomatik aşağı itələyir (hər ikisi eyni
+               flex-col valideynin üzvüdür). Bununla ÇIX/OTAĞI SİL heç vaxt
+               video məzmunu/başlığı ilə üst-üstə düşə bilməz — əvvəllər
+               `position:absolute` olduğu üçün video üzərində üzürdü (test
+               edildi: screenshot-da video başlığının üzərinə düşürdü). */
             header {
+                position: static !important;
                 flex-wrap: wrap !important;
                 row-gap: 8px !important;
-                /* video-placeholder z-30-dan yuxarıda qalsın ki, header 2 sətrə
-                   keçəndə (aşağı bax) ÇIX/OTAĞI SİL video ekranının altında
-                   qalıb görünməz/klikəbilinməz olmasın — test edildi. */
-                z-index: 40 !important;
             }
             header .flex.shrink-0.flex-wrap {
                 width: 100% !important;
@@ -93,12 +97,70 @@
                 min-width: 0 !important;
             }
 
-            /* Video üzərindəki "Videonu Dəyiş" / "Videonu Bağla" düymələri mobildə kompakt */
+            /* Header statik olduğu üçün əvvəlki pt-24 (yalnız overlay-dən
+               qorunmaq üçün idi) artıq lazım deyil. Əvəzinə video ilə header
+               arasında təmiz, aydın bir boşluq saxlanılır (item 3). */
+            #videoScrollWrapper {
+                padding-top: 16px !important;
+                padding-bottom: 12px !important;
+            }
+
+            /* "Videonu Dəyiş" / "Videonu Bağla" artıq videonun ÜZƏRİNDƏ float
+               etmir. DOM-u dəyişmədən (JS-ə toxunulmadan), videoStageBox-un
+               overflow-visible xüsusiyyətindən istifadə edərək düymələr
+               qutunun ALT KƏNARINDAN kənara — öz ayrıca zolağına çıxarılır;
+               margin-bottom həmin sahəni növbəti elementdən (chat) qoruyur ki,
+               heç kim üst-üstə düşməsin (test edildi). */
+            #videoStageBox {
+                margin-bottom: 56px !important;
+            }
+            #videoActionBtns {
+                top: auto !important;
+                right: auto !important;
+                bottom: -56px !important;
+                left: 0 !important;
+                width: 100% !important;
+                justify-content: center !important;
+                flex-wrap: nowrap !important;
+            }
             #videoActionBtns #changeVideoBtn,
             #videoActionBtns #closeVideoBtn {
                 padding: 6px 10px !important;
                 font-size: 9px !important;
                 line-height: 1.2 !important;
+            }
+
+            /* Chat başlığındakı "Canlı Chat" mətni və ikonu mobildə tamamilə
+               gizlədilir (item 4). Bağlama (X) düyməsi kontenerdə tək qalanda
+               justify-between onu sola atırdı — sağda saxlamaq üçün
+               flex-end-ə keçirilir. */
+            #chatPanel h2 {
+                display: none !important;
+            }
+            #chatPanel > div:first-child {
+                justify-content: flex-end !important;
+            }
+
+            /* YouTube-inline chat (room.js: setYouTubeInlineChat,
+               data-yt-inline="1") sabit h-[420px] əvəzinə videoScrollWrapper-in
+               qalan sahəsini (flex:1) dolduraraq videonun altına TAM bitişik
+               olur (mt-4 sıfırlanır). #chatMessages öz Tailwind flex-1/
+               overflow-y-auto-su ilə YALNIZ öz daxilində scroll edir,
+               chatForm (input+göndər) normal, scroll olunmayan flex üzvü
+               olaraq HƏMİŞƏ tam görünür — əvvəlki sabit hündürlük ekranda
+               ya artıq boşluq, ya da input-un kəsilməsinə səbəb olurdu (test
+               edildi). min-height mesajlar üçün ağlabatan minimum sahə saxlayır;
+               ehtiyat üçün videoScrollWrapper-in öz overflow-y-auto-su
+               toxunulmadan qalır (son çarə kimi səhifə səviyyəsində scroll). */
+            #chatPanel[data-yt-inline="1"] {
+                height: auto !important;
+                max-height: none !important;
+                min-height: 260px !important;
+                flex: 1 1 auto !important;
+                margin-top: 0 !important;
+            }
+            #chatPanel[data-yt-inline="1"] #chatMessages {
+                min-height: 0 !important;
             }
 
             /* Sol panel (platforma siyahısı) mobildə sürüşən modal kimi açılır və
