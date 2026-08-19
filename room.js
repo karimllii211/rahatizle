@@ -658,10 +658,46 @@ function initRoom() {
 
         screenShareStream = stream;
 
-        await signalingRef.remove();
-        // Mövcud startHostWebRTC-i təkrar istifadə edir (offer yaratma/göndərmə,
-        // answer dinləmə, listenForCandidates) — yalnız stream və bitrate fərqlidir.
-        await window.startHostWebRTC(stream, 3000000); // 3 Mbps
+        // Əvvəlki cəhddən qalan "answer" dinləyicisini sil — startHostWebRTC hər
+        // çağırışda YENİ bir signalingRef.child('answer').on('value', ...) qeydə
+        // alır və heç vaxt açmır. Təkrar cəhddə iki dinləyici eyni anda "stable
+        // deyil" yoxlamasını keçib eyni cavaba iki dəfə setRemoteDescription
+        // çağırmağa cəhd edir → "Called in wrong state: stable". Callback
+        // göstərmədən .off('value') bu yoldakı BÜTÜN dinləyiciləri silir; heç biri
+        // yoxdursa (ilk cəhd) təhlükəsiz heç-nə-etmir.
+        signalingRef.child('answer').off('value');
+
+        // Əvvəlki cəhddən qalma köhnə/uğursuz peerConnection varsa (məs. answer
+        // gəlmədən "Paylaşımı Dayandır" basılıb, "have-local-offer"-də ilişib
+        // qalıb, ya da transport sonradan "failed" olub) — setupPeerConnection()
+        // `if (peerConnection) return;` keçidi ilə onu SƏHVƏN yenidən istifadə
+        // edərdi. Bağla və sıfırla ki, təzə cəhd təmiz RTCPeerConnection-dan başlasın
+        // (guestTrigger handler-indəki eyni close+null nümunəsi təkrar istifadə olunur).
+        if (peerConnection) {
+            const state = peerConnection.connectionState || peerConnection.iceConnectionState;
+            const isStale = peerConnection.signalingState !== 'stable' ||
+                state === 'failed' || state === 'disconnected' || state === 'closed';
+            if (isStale) {
+                peerConnection.close();
+                peerConnection = null;
+            }
+        }
+
+        try {
+            await signalingRef.remove(); // köhnə offer/answer/candidate məlumatlarını təmizləyir
+            // Mövcud startHostWebRTC-i təkrar istifadə edir (offer yaratma/göndərmə,
+            // answer dinləmə, listenForCandidates) — yalnız stream və bitrate fərqlidir.
+            await window.startHostWebRTC(stream, 3000000); // 3 Mbps
+        } catch (err) {
+            // Bu addım uğursuz olarsa screenShareStream sıfırlanmasa, funksiyanın
+            // başındakı `if (screenShareStream) return;` keçidi SƏBƏBSİZ olaraq
+            // bütün gələcək cəhdləri əbədilik bloklayardı.
+            console.error("Ekran paylaşımı WebRTC quraşdırılması uğursuz oldu:", err);
+            showToast("Ekran paylaşımı başladıla bilmədi.");
+            stream.getTracks().forEach(track => track.stop());
+            screenShareStream = null;
+            return;
+        }
 
         await videoActiveRef.set(true);
 
