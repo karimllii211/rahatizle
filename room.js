@@ -535,6 +535,20 @@ function initRoom() {
         console.log("👤 Mənim Rolum: ", isHost ? "HOST" : "GUEST");
         refreshVideoActionButtons();
 
+        // isHost bu an müəyyənləşir (async), amma Netflix/Disney+/Prime
+        // placeholder-i (loqo + "keç"/"Ekranı Paylaş" düymələri) daha ERKƏN,
+        // isHost hələ `false` olarkən artıq render olunmuş ola bilər (bax:
+        // platformHint bloku və ya roomRef.on('value') — hər ikisi bu sətirdən
+        // ƏVVƏL işə düşə bilər). Həmin ilkin render-də host düymələri əlavə
+        // olunmayıb və heç bir click listener bağlanmayıb. isHost=true olduqda
+        // eyni platforma üçün YENİDƏN render etməsək, host düymələri HEÇ VAXT
+        // görünmür. appliedPlatform dəyişməzsə roomRef.on('value') ikinci dəfə
+        // renderPlatformView çağırmır (currentPlatform === appliedPlatform),
+        // ona görə bu, yeganə düzgün "refresh" nöqtəsidir.
+        if (isHost && appliedPlatform && logos[appliedPlatform]) {
+            renderPlatformPlaceholderContent(appliedPlatform);
+        }
+
         if (isHost) {
             roomRef.child('guestTrigger').on('value', async snapshot => {
                 if (snapshot.exists() && (mainVideo.src || screenShareStream)) {
