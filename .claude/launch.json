@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "static-server",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8743"],
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["/private/tmp/claude-501/-Users-faiqkarimli-Downloads-rahatizle/d3d87190-be8e-4683-9b29-37a2842ecc84/scratchpad/static-server.js", "/Users/faiqkarimli/Downloads/rahatizle", "8743"],
       "port": 8743
     }
   ]

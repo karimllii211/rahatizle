@@ -90,6 +90,59 @@ const showConfirmModal = (message) => {
     });
 };
 
+// --- EKRAN PAYLAŞIMI: Netflix / Disney+ / Prime Video rəsmi saytlarının linkləri ---
+const PLATFORM_URLS = {
+    netflix: 'https://www.netflix.com',
+    disney: 'https://www.disneyplus.com',
+    prime: 'https://www.primevideo.com'
+};
+
+// Disney+ hazırda rəsmi olaraq mövcud olan ölkələr (ISO 3166-1 alpha-2).
+// DİQQƏT: Disney+ vaxtaşırı yeni ölkələr əlavə edir, bu siyahı mütəmadi
+// yenilənməlidir. AZ (Azərbaycan) qəsdən bu siyahıda YOXDUR.
+const DISNEY_PLUS_COUNTRIES = [
+    'US', 'CA', 'GB', 'IE', 'DE', 'FR', 'IT', 'ES', 'NL', 'BE', 'AT', 'CH',
+    'PT', 'SE', 'NO', 'DK', 'FI', 'PL', 'CZ', 'SK', 'HU', 'RO', 'BG', 'HR',
+    'SI', 'GR', 'LU', 'IS', 'EE', 'LV', 'LT', 'MT', 'CY', 'TR',
+    'IL', 'AE', 'SA', 'QA', 'KW', 'BH', 'OM', 'EG', 'MA', 'ZA',
+    'AU', 'NZ', 'JP', 'KR', 'HK', 'TW', 'SG', 'ID', 'MY', 'TH', 'PH', 'IN',
+    'BR', 'AR', 'MX', 'CL', 'CO', 'PE', 'EC', 'UY', 'PY', 'BO', 'PA', 'CR',
+    'GT', 'HN', 'SV', 'NI', 'DO', 'VE'
+];
+
+// Pulsuz IP-əsaslı geolokasiya — açar tələb etmir, CORS dəstəkləyir.
+// Xəta/timeout halında sükutla `true` qaytarır ki, əsas axın pozulmasın.
+async function isDisneyAvailableInUserCountry() {
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
+        const response = await fetch('https://ipapi.co/json/', { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (!response.ok) return true;
+        const data = await response.json();
+        const countryCode = data && data.country_code ? String(data.country_code).toUpperCase() : null;
+        if (!countryCode) return true;
+        return DISNEY_PLUS_COUNTRIES.includes(countryCode);
+    } catch (err) {
+        return true;
+    }
+}
+
+async function handleGoToPlatform(platform) {
+    const url = PLATFORM_URLS[platform];
+    if (!url) return;
+
+    if (platform === 'disney') {
+        const available = await isDisneyAvailableInUserCountry();
+        if (!available) {
+            const proceed = await showConfirmModal('Hal-hazırda olduğunuz bölgədə Disney+ mövcud deyil. Yenə də davam etmək istəyirsiniz?');
+            if (!proceed) return;
+        }
+    }
+
+    window.open(url, '_blank', 'noopener,noreferrer');
+}
+
 // Auth Guard
 auth.onAuthStateChanged(user => {
     if (!user) {
@@ -345,6 +398,7 @@ function initRoom() {
     let peerConnection = null;
     let isHost = false;
     let youtubeVideoActive = false;
+    let screenShareStream = null; // Netflix/Disney+/Prime ekran paylaşımı (yalnız host)
 
     // "Videonu Dəyiş" / "Videonu Bağla" düymələrinin görünürlüyünü hər dəfə
     // mövcud vəziyyətdən (isHost, appliedPlatform, youtubeVideoActive) yenidən
@@ -361,6 +415,17 @@ function initRoom() {
             if (youtubeVideoActive) closeVideoBtn.classList.add('hidden');
             return;
         }
+
+        // closeVideoBtn Netflix/Disney+/Prime ekran paylaşımı aktiv olduqda
+        // "Paylaşımı Dayandır" olaraq yenidən istifadə edilir — ayrıca düymə
+        // yaratmaq əvəzinə mövcud "Videonu Bağla" mexanizmi təkrar istifadə olunur.
+        const closeVideoBtnLabel = closeVideoBtn.querySelector('span');
+        if (screenShareStream) {
+            if (closeVideoBtnLabel) closeVideoBtnLabel.textContent = 'Paylaşımı Dayandır';
+            closeVideoBtn.classList.remove('hidden');
+            return;
+        }
+        if (closeVideoBtnLabel) closeVideoBtnLabel.textContent = 'Videonu Bağla';
 
         if (youtubeVideoActive) {
             closeVideoBtn.classList.remove('hidden');
@@ -472,29 +537,31 @@ function initRoom() {
 
         if (isHost) {
             roomRef.child('guestTrigger').on('value', async snapshot => {
-                if (snapshot.exists() && mainVideo.src) {
+                if (snapshot.exists() && (mainVideo.src || screenShareStream)) {
                     console.log("🔄 Qonaq yenidən qoşuldu, WebRTC sıfırlanır...");
-                    
+
                     if (peerConnection) {
                         peerConnection.close();
                     }
                     peerConnection = null;
-                    
+
                     setupPeerConnection();
-                    
-                    const stream = mainVideo.captureStream ? mainVideo.captureStream() : (mainVideo.webkitCaptureStream ? mainVideo.webkitCaptureStream() : (mainVideo.mozCaptureStream ? mainVideo.mozCaptureStream() : null));
+
+                    // Ekran paylaşımı aktivdirsə həmin stream-i, əks halda local
+                    // fayldan tutulan (captureStream) axını yenidən əlavə edirik.
+                    const stream = screenShareStream || (mainVideo.captureStream ? mainVideo.captureStream() : (mainVideo.webkitCaptureStream ? mainVideo.webkitCaptureStream() : (mainVideo.mozCaptureStream ? mainVideo.mozCaptureStream() : null)));
                     if (stream) {
                         stream.getTracks().forEach(track => {
                             const sender = peerConnection.addTrack(track, stream);
                             if (track.kind === 'video') {
                                 const parameters = sender.getParameters();
                                 if (!parameters.encodings) parameters.encodings = [{}];
-                                parameters.encodings[0].maxBitrate = 10000000; // 10 Mbps
+                                parameters.encodings[0].maxBitrate = screenShareStream ? 3000000 : 10000000; // 3 Mbps ekran paylaşımı / 10 Mbps local fayl
                                 sender.setParameters(parameters).catch(e => console.error("Bitrate xətası:", e));
                             }
                         });
                     }
-                    
+
                     const offer = await peerConnection.createOffer();
                     await peerConnection.setLocalDescription(offer);
                     await signalingRef.child('offer').set({
@@ -558,18 +625,89 @@ function initRoom() {
         };
     };
 
+    // --- EKRAN PAYLAŞIMI (Netflix / Disney+ / Prime Video) ---
+    // Mövcud setupPeerConnection/signalingRef/TURN konfiqurasiyasını təkrar
+    // istifadə edir, sıfırdan yeni WebRTC axını qurulmur. Yalnız host çağıra bilər.
+    async function startScreenShare() {
+        if (!isHost || screenShareStream) return;
+
+        let stream;
+        try {
+            stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+        } catch (err) {
+            if (err.name !== 'NotAllowedError') {
+                console.error("Ekran paylaşımı xətası:", err);
+                showToast("Ekran paylaşımı başladıla bilmədi.");
+            }
+            return;
+        }
+
+        screenShareStream = stream;
+
+        await signalingRef.remove();
+        // Mövcud startHostWebRTC-i təkrar istifadə edir (offer yaratma/göndərmə,
+        // answer dinləmə, listenForCandidates) — yalnız stream və bitrate fərqlidir.
+        await window.startHostWebRTC(stream, 3000000); // 3 Mbps
+
+        await videoActiveRef.set(true);
+
+        // Host özü də canlı paylaşımın önizləməsini görür (mövcud srcObject mexanizmi).
+        mainVideo.srcObject = stream;
+        mainVideo.muted = true;
+        mainVideo.autoplay = true;
+        mainVideo.playsInline = true;
+        mainVideo.classList.remove('hidden');
+        if (videoPlaceholder) videoPlaceholder.classList.add('hidden');
+        const playPromise = mainVideo.play();
+        if (playPromise !== undefined) playPromise.catch(() => {});
+
+        // Brauzerin öz "Stop sharing" bar-ı ilə dayandırma da eyni UI keçidini tetikləsin.
+        stream.getVideoTracks()[0].onended = () => stopScreenShare();
+
+        refreshVideoActionButtons();
+    }
+
+    async function stopScreenShare() {
+        if (!screenShareStream) return;
+
+        screenShareStream.getTracks().forEach(track => {
+            track.stop();
+            if (peerConnection) {
+                const sender = peerConnection.getSenders().find(s => s.track === track);
+                if (sender) peerConnection.removeTrack(sender);
+            }
+        });
+        screenShareStream = null;
+
+        mainVideo.srcObject = null;
+        mainVideo.classList.add('hidden');
+        if (videoPlaceholder) videoPlaceholder.classList.remove('hidden');
+
+        await videoActiveRef.set(false);
+        await signalingRef.remove();
+
+        if (appliedPlatform) renderPlatformPlaceholderContent(appliedPlatform);
+        refreshVideoActionButtons();
+    }
+
     // --- DƏQİQ AXIN: HOST ---
-    window.startHostWebRTC = async () => {
+    // streamOverride/bitrateOverride ekran paylaşımı (startScreenShare) tərəfindən
+    // istifadə olunur ki, eyni offer/answer/candidate axını təkrar yazılmasın —
+    // arqumentsiz çağırışda (local video yükləmə) əvvəlki davranış dəyişmir.
+    window.startHostWebRTC = async (streamOverride, bitrateOverride) => {
         if (!isHost) return;
         setupPeerConnection();
-        
-        if (localStream) {
-            localStream.getTracks().forEach(track => {
-                const sender = peerConnection.addTrack(track, localStream);
+
+        const streamToSend = streamOverride || localStream;
+        const maxBitrate = bitrateOverride || 10000000; // default: 10 Mbps (local fayl)
+
+        if (streamToSend) {
+            streamToSend.getTracks().forEach(track => {
+                const sender = peerConnection.addTrack(track, streamToSend);
                 if (track.kind === 'video') {
                     const parameters = sender.getParameters();
                     if (!parameters.encodings) parameters.encodings = [{}];
-                    parameters.encodings[0].maxBitrate = 10000000; // 10 Mbps
+                    parameters.encodings[0].maxBitrate = maxBitrate;
                     sender.setParameters(parameters).catch(e => console.error("Bitrate xətası:", e));
                 }
             });
@@ -644,6 +782,13 @@ function initRoom() {
     if (closeVideoBtn) {
         closeVideoBtn.addEventListener('click', async () => {
             if (!isHost) return;
+
+            // Netflix/Disney+/Prime ekran paylaşımı aktivdirsə, "Videonu Bağla"
+            // düyməsi (bu zaman "Paylaşımı Dayandır" kimi göstərilir) paylaşımı dayandırır.
+            if (screenShareStream) {
+                await stopScreenShare();
+                return;
+            }
 
             // YouTube videosu aktivdirsə, onu Firebase-dən silirik — youtubeId
             // dinləyicisi (Section 6) bunu həm bizdə, həm bütün qonaqlarda
@@ -784,7 +929,43 @@ function initRoom() {
         if (nameEl && platformBadgeNames[platform]) nameEl.textContent = platformBadgeNames[platform];
     }
 
+    // Netflix/Disney+/Prime üçün loqo + (host-a) "[Platforma]'ya keç" və
+    // "Ekranı Paylaş" düymələrini ehtiva edən placeholder-i qurur.
+    const platformGoToLabels = { netflix: "Netflix'ə keç", disney: "Disney+'a keç", prime: "Prime Video'ya keç" };
+
+    function renderPlatformPlaceholderContent(platform) {
+        if (!videoPlaceholder || !logos[platform]) return;
+        const goToLabel = platformGoToLabels[platform] || `${platformBadgeNames[platform] || platform}'a keç`;
+
+        const hostControlsHTML = isHost ? `
+            <div style="display:flex; flex-direction:column; align-items:center; gap:12px; margin-top:20px;">
+                <button type="button" id="goToPlatformBtn" class="btn-press rounded-lg border border-white/20 bg-white/10 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/20 sm:text-sm">${goToLabel}</button>
+                <button type="button" id="startScreenShareBtn" class="btn-press rounded-lg border border-[#FF014C]/60 bg-[#FF014C] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#FF014C]/80 sm:text-sm">Ekranı Paylaş</button>
+            </div>` : '';
+
+        videoPlaceholder.innerHTML = `
+            <div id="platformLogoWrap" style="display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%;${isHost ? ' cursor:pointer;' : ''}">
+                <img src="${logos[platform]}" class="neon-logo">
+                ${hostControlsHTML}
+            </div>
+        `;
+
+        if (!isHost) return;
+
+        const goBtn = document.getElementById('goToPlatformBtn');
+        const shareBtn = document.getElementById('startScreenShareBtn');
+        const logoWrap = document.getElementById('platformLogoWrap');
+
+        if (goBtn) goBtn.addEventListener('click', (e) => { e.stopPropagation(); handleGoToPlatform(platform); });
+        if (shareBtn) shareBtn.addEventListener('click', (e) => { e.stopPropagation(); startScreenShare(); });
+        // Loqonun üzərinə klik = "Ekranı Paylaş" düyməsi ilə eyni funksiya.
+        if (logoWrap) logoWrap.addEventListener('click', () => startScreenShare());
+    }
+
     function renderPlatformView(platform) {
+        // Platforma dəyişəndə aktiv ekran paylaşımı varsa təmiz vəziyyətdən başla.
+        if (screenShareStream) stopScreenShare();
+
         updateActivePlatformBadge(platform);
         if (videoPlaceholder) {
             videoPlaceholder.classList.remove('hidden');
@@ -794,11 +975,7 @@ function initRoom() {
 
         if (logos[platform]) {
             restoreDefaultChatPanel();
-            videoPlaceholder.innerHTML = `
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%;">
-                    <img src="${logos[platform]}" class="neon-logo">
-                </div>
-            `;
+            renderPlatformPlaceholderContent(platform);
         } else if (platform === 'youtube') {
             setYouTubeInlineChat();
             if (window.ytPlayer && typeof window.ytPlayer.destroy === 'function') {
