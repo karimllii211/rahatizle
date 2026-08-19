@@ -927,7 +927,7 @@ function initRoom() {
     // Sidebar-dakı "hazırkı platforma" nişanı üçün ayrıca xəritə — logos-a
     // 'youtube' əlavə etsək renderPlatformView onu (səhvən) statik loqo kimi
     // göstərərdi, YouTube pleyerini yaratmaq əvəzinə.
-    const platformBadgeIcons = { netflix: 'Netflix.png', disney: 'DisneyPlus.png', prime: 'PrimeVideo.svg.webp', youtube: 'YouTube.png' };
+    const platformBadgeIcons = { netflix: 'Netflix.png', disney: 'DisneyPlus.png', prime: 'PrimeVideo.svg.webp', youtube: 'YouTubeLogo1.png' };
     const platformBadgeNames = { netflix: 'Netflix', disney: 'Disney+', prime: 'Prime Video', youtube: 'YouTube' };
 
     function updateActivePlatformBadge(platform) {
