@@ -824,7 +824,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saveProfileBtn) {
         saveProfileBtn.addEventListener('click', () => {
             if (!currentUser) return;
-            
+
+            // E-poçt sahəsi birbaşa redaktə edilir: dəyər hazırkı e-poçtdan
+            // fərqlidirsə, digər sahələri saxlamaq əvəzinə mövcud OTP axınını
+            // (əvvəllər sendEmailOTPBtn-in çağırdığı) işə salırıq — kod təsdiq
+            // olunanda executeEmailUpdate faktiki dəyişikliyi edir.
+            const profEmailInput = document.getElementById('profEmail');
+            const newEmail = profEmailInput ? profEmailInput.value.trim() : '';
+            if (newEmail && newEmail !== currentUser.email) {
+                if (currentUser.providerData && currentUser.providerData[0] && currentUser.providerData[0].providerId === 'google.com') {
+                    return showToast("Google hesablarının e-poçtu dəyişdirilə bilməz.");
+                }
+                otpMode = 'email';
+                newEmailPending = newEmail;
+                requestEmailChangeCode(newEmail);
+                return;
+            }
+
             const fname = cleanText(document.getElementById('profFirstName').value);
             const lname = cleanText(document.getElementById('profLastName').value);
             const phone = cleanText(document.getElementById('profPhone').value, 20);

@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Inter:wght@400;500;600;700&display=swap">
 
-    <link rel="stylesheet" href="styles.css?v=6">
+    <link rel="stylesheet" href="styles.css?v=7">
     <script src="animations.js"></script>
 </head>
 <body class="page-enter antialiased min-h-screen bg-[#030712] font-sans text-white selection:bg-[#FF014C] selection:text-white">
@@ -28,7 +28,7 @@
 
     <!-- NAVBAR -->
     <header class="sticky top-0 z-40 px-3 pt-3 sm:px-5 sm:pt-4">
-        <nav class="nav-shell relative mx-auto max-w-[1400px] rounded-2xl border border-white/10 bg-[#030303]/85 backdrop-blur-md">
+        <nav class="nav-shell relative mx-auto max-w-[1400px] rounded-2xl border border-white/10 bg-[#030303] backdrop-blur-md">
             <div class="flex h-16 items-center justify-between gap-2 px-3 sm:h-20 sm:gap-4 sm:px-6">
 
                 <!-- Logo -->
@@ -132,6 +132,16 @@
             </div>
         </section>
 
+        <!-- OTAQLARIM -->
+        <section class="auth-user-only mx-auto w-full max-w-3xl pb-12" hidden data-reveal>
+            <div class="bg-[#080808] border border-white/5 p-5 sm:p-8 rounded-3xl">
+                <h2 class="text-xl font-bold mb-6 tracking-wide text-[#FF014C] uppercase text-left">Otaqlarım</h2>
+                <div id="profileRoomsList" class="flex flex-col gap-3 max-h-60 overflow-y-auto pr-2">
+                    <div class="text-sm text-gray-500 py-4 text-center">Aktiv otaq tapılmadı.</div>
+                </div>
+            </div>
+        </section>
+
         <!-- FOOTER -->
         <footer class="mt-10 flex flex-col items-center justify-between gap-6 border-t border-white/5 py-10 md:flex-row" data-reveal>
             <div class="flex items-center gap-4 opacity-60 transition-opacity hover:opacity-100">
@@ -146,13 +156,10 @@
                 </div>
             </div>
             <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
-                <a href="index.html" class="text-sm text-[#C8C8C8] transition-colors hover:text-white">Ana Səhifə</a>
-                <a href="create-room.html" class="text-sm text-[#C8C8C8] transition-colors hover:text-white">Otaqlar</a>
                 <a href="contact.html" class="text-sm text-[#C8C8C8] transition-colors hover:text-white">Əlaqə</a>
                 <a href="terms.html" class="text-sm text-[#C8C8C8] transition-colors hover:text-white">Qaydalar</a>
                 <a href="privacy.html" class="text-sm text-[#C8C8C8] transition-colors hover:text-white">Məxfilik Siyasəti</a>
                 <div id="footer-guest-links" class="flex items-center gap-6">
-                    <button type="button" class="open-login-modal text-sm font-bold text-[#C8C8C8] transition-colors hover:text-[#FF014C]">Giriş</button>
                     <button type="button" class="open-register-modal hidden text-sm font-bold text-[#C8C8C8] transition-colors hover:text-[#FF014C] sm:block">Qeydiyyat</button>
                 </div>
             </div>

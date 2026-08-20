@@ -15,13 +15,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Inter:wght@400;500;600;700&display=swap">
 
-    <link rel="stylesheet" href="styles.css?v=6">
+    <link rel="stylesheet" href="styles.css?v=7">
     <script src="animations.js"></script>
 </head>
 <body class="page-enter flex min-h-screen flex-col bg-[#030303] font-sans text-white antialiased">
 
     <!-- Navbar -->
-    <nav class="nav-shell sticky top-0 z-40 w-full border-b border-white/5 bg-[#030303]/85 px-4 py-4 backdrop-blur-md sm:px-6 sm:py-6">
+    <nav class="nav-shell sticky top-0 z-40 w-full border-b border-white/5 bg-[#030303] px-4 py-4 backdrop-blur-md sm:px-6 sm:py-6">
         <div class="max-w-[1400px] mx-auto flex items-center justify-between">
             <div class="flex items-center gap-6">
                 <a href="index.html" class="text-gray-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
@@ -115,20 +115,6 @@
                     <button type="button" id="requestPasswordChangeBtn" class="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold py-3 rounded-xl transition-all duration-300 uppercase tracking-wider text-sm mb-4">
                         Şifrəni Dəyiş
                     </button>
-
-                    <div id="emailChangeContainer" class="border-t border-white/10 pt-4 mt-4">
-                        <button type="button" id="changeEmailBtn" class="w-full bg-[#FF014C] hover:bg-red-600 text-white font-bold py-3 rounded-xl transition-all duration-300 uppercase tracking-wider text-sm mt-4">
-                            E-poçtu Yenilə
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Active Rooms -->
-                <div class="bg-[#080808] border border-white/5 p-5 sm:p-8 rounded-3xl flex-1 flex flex-col">
-                    <h2 class="text-xl font-bold mb-6 tracking-wide text-[#FF014C] uppercase">Aktiv Otaqlarım</h2>
-                    <div id="profileRoomsList" class="flex-1 flex flex-col gap-3 max-h-60 overflow-y-auto pr-2">
-                        <div class="text-sm text-gray-500 py-4 text-center">Aktiv otaq tapılmadı.</div>
-                    </div>
                 </div>
 
                 <!-- Danger Zone -->
@@ -172,22 +158,6 @@
                 </div>
                 <button type="button" id="setNewPasswordBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all duration-500 uppercase tracking-wider">
                     Şifrəni Yenilə
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- E-poçt Dəyişmə Modalı -->
-    <div id="change-email-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4 transition-all duration-500">
-        <div class="relative max-w-sm mx-auto w-full bg-[#030303] p-6 sm:p-8 rounded-2xl border border-red-600 shadow-[0_0_20px_rgba(220,38,38,0.2)] animate-modal duration-500">
-            <button class="close-email-modal absolute top-5 right-5 text-gray-500 hover:text-white transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-            <h2 class="text-2xl font-bold mb-4 text-center tracking-wider text-white uppercase">Yeni E-poçt</h2>
-            <p class="text-center text-gray-400 text-sm mb-6">Yeni e-poçt ünvanınızı daxil edin. Bu ünvana təsdiq kodu göndəriləcək.</p>
-            
-            <div class="space-y-4">
-                <input type="email" id="newEmailInput" placeholder="yeni@email.com" class="w-full bg-black text-white px-5 py-4 border border-red-600 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all text-sm">
-                <button type="button" id="sendEmailOTPBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all duration-300 uppercase tracking-wider">
-                    Kod Göndər
                 </button>
             </div>
         </div>

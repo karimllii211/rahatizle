@@ -330,6 +330,12 @@
     top: 1rem;
     max-width: none;
   }
+
+  /* Nav header-i (nav-shell-i əhatə edən header) ekranın yuxarı kənarına
+     tam bitişik olsun — yuxarıdan heç bir boşluq qalmasın. */
+  header:has(.nav-shell) {
+    padding-top: 0;
+  }
 }
 
 /* Çox dar ekranlar (320px) */
