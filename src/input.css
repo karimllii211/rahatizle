@@ -371,3 +371,14 @@
 #profilePageAvatar.hidden ~ .avatar-overlay {
   display: none;
 }
+
+/* Şəkil VARKƏN kamera overlay-i defolt gizli qalır, yalnız konteynerin
+   üzərinə gələndə (hover) qısa animasiya ilə görünür — "şəkli dəyişmək
+   üçün klikləyin" işarəsi itmir, amma daimi görünüb şəkli örtmür. */
+#profilePageAvatar:not(.hidden) ~ .avatar-overlay {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+#avatarContainer:hover #profilePageAvatar:not(.hidden) ~ .avatar-overlay {
+  opacity: 1;
+}
