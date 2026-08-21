@@ -497,9 +497,9 @@ function initRoom() {
         iceServers: [
             { urls: "stun:stun.l.google.com:19302" }, // Standart STUN
             {
-                urls: turn.url || 'turn:141.144.238.167:3478',
-                username: turn.username || 'rahatizle',
-                credential: turn.credential || 'Video2026!'
+                urls: turn.url || 'turn:free.expressturn.com:3478',
+                username: turn.username || '000000002102689018',
+                credential: turn.credential || 'E8GD4U6RpHZcNMvfPcbANCvRQbc='
             }
         ]
     };
