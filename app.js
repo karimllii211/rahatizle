@@ -1094,7 +1094,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // Yalnız hesab sahibinə aid səhifələr qonaq üçün açıq qalmamalıdır.
             if (/profile\.html$/.test(window.location.pathname)) {
-                window.location.replace('index.html');
+                window.location.replace('/');
                 return;
             }
 
@@ -1115,7 +1115,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const conf = await showConfirmModal("Hesabınızdan çıxmaq istədiyinizə əminsiniz?");
             if (conf) {
                 auth.signOut().then(() => {
-                    window.location.replace('index.html');
+                    window.location.replace('/');
                 });
             }
         });
@@ -1148,7 +1148,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await currentUser.delete();
                 await auth.signOut();
 
-                window.location.replace('index.html');
+                window.location.replace('/');
             } catch (error) {
                 showToast(getErrorMessage(error.code));
             }

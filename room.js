@@ -146,7 +146,7 @@ async function handleGoToPlatform(platform) {
 // Auth Guard
 auth.onAuthStateChanged(user => {
     if (!user) {
-        window.location.replace('index.html');
+        window.location.replace('/');
     } else {
         currentUser = user;
         initRoom();
@@ -158,7 +158,7 @@ function initRoom() {
     currentRoomId = urlParams.get('id');
 
     if (!currentRoomId) {
-        window.location.replace('index.html');
+        window.location.replace('/');
         return;
     }
     
@@ -265,7 +265,7 @@ function initRoom() {
         const data = snapshot.val();
         if (!data) {
             // Otaq silinib, hər kəsi ana səhifəyə qaytar
-            window.location.replace('index.html');
+            window.location.replace('/');
             return;
         }
 
@@ -703,13 +703,16 @@ function initRoom() {
         const streamToSend = screenShareStream || localStream;
         if (!streamToSend) return;
 
-        const maxBitrate = bitrateOverride || (screenShareStream ? 3000000 : 10000000); // 3 Mbps ekran paylaşımı / 10 Mbps local fayl
+        const maxBitrate = bitrateOverride || (screenShareStream ? 3000000 : 15000000); // 3 Mbps ekran paylaşımı / 15 Mbps local fayl
         streamToSend.getTracks().forEach(track => {
             const sender = pc.addTrack(track, streamToSend);
             if (track.kind === 'video') {
                 const parameters = sender.getParameters();
                 if (!parameters.encodings) parameters.encodings = [{}];
                 parameters.encodings[0].maxBitrate = maxBitrate;
+                // Yalnız local video üçün: ekranı ölçüləndirmək əvəzinə keyfiyyəti
+                // qorumağa üstünlük ver (screenShareStream aktivdirsə toxunulmur).
+                if (!screenShareStream) parameters.degradationPreference = 'maintain-resolution';
                 sender.setParameters(parameters).catch(e => console.error("Bitrate xətası:", e));
             }
         });
@@ -1050,6 +1053,9 @@ function initRoom() {
                     const stream = mainVideo.captureStream ? mainVideo.captureStream() : (mainVideo.webkitCaptureStream ? mainVideo.webkitCaptureStream() : (mainVideo.mozCaptureStream ? mainVideo.mozCaptureStream() : null));
 
                     if (!stream || stream.getTracks().length === 0) throw new Error("Stream boşdur və ya yaradıla bilmədi.");
+                    // peerConnection-a əlavə edilməzdən ƏVVƏL: encoder-ə bunun canlı
+                    // kameradan deyil, detallı statik məzmun olduğunu bildirir.
+                    stream.getVideoTracks().forEach(track => { track.contentHint = 'detail'; });
                     console.log("✅ Video Stream uğurla yaradıldı!", stream.getTracks());
                     localStream = stream;
 

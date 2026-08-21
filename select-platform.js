@@ -51,7 +51,7 @@ if (toastCloseBtn) {
 // Auth Guard
 auth.onAuthStateChanged(user => {
     if (!user) {
-        window.location.replace('index.html');
+        window.location.replace('/');
     } else {
         currentUser = user;
         initPlatformSelect();
@@ -63,7 +63,7 @@ function initPlatformSelect() {
     const roomId = urlParams.get('id');
 
     if (!roomId) {
-        window.location.replace('index.html');
+        window.location.replace('/');
         return;
     }
 
@@ -75,7 +75,7 @@ function initPlatformSelect() {
     // Otaq silinibsə ana səhifəyə qaytar
     roomRef.once('value').then(snapshot => {
         if (!snapshot.exists()) {
-            window.location.replace('index.html');
+            window.location.replace('/');
         }
     });
 
