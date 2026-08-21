@@ -276,6 +276,8 @@ function initRoom() {
                 deleteRoomBtn.onclick = async () => {
                     const conf = await showConfirmModal("Otağı tamamilə silmək istədiyinizə əminsiniz? Hər kəs otaqdan çıxarılacaq.");
                     if (conf) {
+                        Object.values(peerConnections).forEach(pc => pc.close());
+                        await signalingRef.child('peers').remove();
                         roomRef.remove();
                     }
                 };
@@ -395,11 +397,18 @@ function initRoom() {
     const closeVideoBtn = document.getElementById('closeVideoBtn');
     
     let localStream = null;
+    // GUEST: yalnız host-a tək bağlantı üçün (star topologiyasında qonağın YALNIZ bir bağlantısı var)
     let peerConnection = null;
     let pendingIceCandidates = []; // remoteDescription hələ təyin olunmayanda gələn ICE candidate-lər üçün növbə
     let isHost = false;
     let youtubeVideoActive = false;
     let screenShareStream = null; // Netflix/Disney+/Prime ekran paylaşımı (yalnız host)
+
+    // HOST: hər qonaq üçün ayrıca RTCPeerConnection (guestUid -> RTCPeerConnection) —
+    // ulduz (star) topologiyası, qonaqlar bir-biri ilə DEYİL, YALNIZ host ilə bağlanır.
+    const peerConnections = {};
+    const pendingIceCandidatesByGuest = {}; // guestUid -> növbələnmiş ICE candidate-lər
+    const listeningForCandidatesSet = new Set(); // hansı guestUid-lər üçün candidate dinləməsi artıq aktivdir
 
     // "Videonu Dəyiş" / "Videonu Bağla" düymələrinin görünürlüyünü hər dəfə
     // mövcud vəziyyətdən (isHost, appliedPlatform, youtubeVideoActive) yenidən
@@ -525,12 +534,11 @@ function initRoom() {
             mainVideo.style.pointerEvents = 'auto';
             if (localVideoBtn) localVideoBtn.parentElement.classList.add('hidden');
             
-            // Qonaq girən kimi offer-i dinləyir (Dəqiq Axın B)
+            // Qonaq girən kimi öz offer-ini dinləyir (Dəqiq Axın B)
             listenForOffer();
-            
-            // Yenilənməni bildir (Guest Refresh Trigger)
-            roomRef.child('guestTrigger').set(Date.now());
-            signalingRef.child('candidates').remove(); // Köhnə candidate-ləri təmizlə
+
+            // Köhnə (əvvəlki sessiyadan qalan) candidate-ləri təmizlə — yalnız ÖZ yolumuz
+            signalingRef.child('peers').child(currentUser.uid).child('candidates').remove();
         }
         
         console.log("👤 Mənim Rolum: ", isHost ? "HOST" : "GUEST");
@@ -551,45 +559,41 @@ function initRoom() {
         }
 
         if (isHost) {
-            roomRef.child('guestTrigger').on('value', async snapshot => {
-                if (snapshot.exists() && (mainVideo.src || screenShareStream)) {
-                    console.log("🔄 Qonaq yenidən qoşuldu, WebRTC sıfırlanır...");
+            // Ulduz (star) topologiyası: hər qonaq YALNIZ host-a bağlanır, qonaqlar
+            // bir-biri ilə bağlanmır. Mövcud presence sistemini (viewersRef) yeni
+            // qonaq aşkarlama üçün təkrar istifadə edirik — 'child_added' həm
+            // həqiqətən YENİ qonaqda, həm də əvvəlki qonaq yenidən qoşulduqda
+            // (onDisconnect().remove() + yenidən set() → node silinib-yenidən
+            // yaranır) tetiklənir, ona görə köhnə ayrıca "guestTrigger" mexanizmi
+            // artıq lazım deyil.
+            viewersRef.on('child_added', snapshot => {
+                const guestUid = snapshot.key;
+                if (guestUid === currentUser.uid) return; // öz presence qeydimiz
 
-                    if (peerConnection) {
-                        peerConnection.close();
-                    }
-                    peerConnection = null;
+                console.log(`👋 Yeni qonaq aşkarlandı: ${guestUid}`);
+                const pc = setupPeerConnectionForGuest(guestUid);
+                addCurrentStreamToPeerConnection(pc);
+                sendOfferToGuest(guestUid);
+            });
 
-                    setupPeerConnection();
+            viewersRef.on('child_removed', snapshot => {
+                const guestUid = snapshot.key;
+                if (guestUid === currentUser.uid) return;
 
-                    // Ekran paylaşımı aktivdirsə həmin stream-i, əks halda local
-                    // fayldan tutulan (captureStream) axını yenidən əlavə edirik.
-                    const stream = screenShareStream || (mainVideo.captureStream ? mainVideo.captureStream() : (mainVideo.webkitCaptureStream ? mainVideo.webkitCaptureStream() : (mainVideo.mozCaptureStream ? mainVideo.mozCaptureStream() : null)));
-                    if (stream) {
-                        stream.getTracks().forEach(track => {
-                            const sender = peerConnection.addTrack(track, stream);
-                            if (track.kind === 'video') {
-                                const parameters = sender.getParameters();
-                                if (!parameters.encodings) parameters.encodings = [{}];
-                                parameters.encodings[0].maxBitrate = screenShareStream ? 3000000 : 10000000; // 3 Mbps ekran paylaşımı / 10 Mbps local fayl
-                                sender.setParameters(parameters).catch(e => console.error("Bitrate xətası:", e));
-                            }
-                        });
-                    }
-
-                    const offer = await peerConnection.createOffer();
-                    await peerConnection.setLocalDescription(offer);
-                    await signalingRef.child('offer').set({
-                        type: offer.type,
-                        sdp: offer.sdp,
-                        uid: currentUser.uid
-                    });
-                    console.log("📡 Yeni Offer göndərildi!");
+                console.log(`👋 Qonaq ayrıldı, bağlantı təmizlənir: ${guestUid}`);
+                if (peerConnections[guestUid]) {
+                    peerConnections[guestUid].close();
+                    delete peerConnections[guestUid];
                 }
+                delete pendingIceCandidatesByGuest[guestUid];
+                listeningForCandidatesSet.delete(guestUid);
+                signalingRef.child('peers').child(guestUid).remove();
             });
         }
     });
 
+    // GUEST: host-a tək bağlantı qurur. Yalnız qonaq tərəfdə çağırılır (bax: listenForOffer).
+    // HOST tərəfin ekvivalenti üçün bax: setupPeerConnectionForGuest (aşağıda).
     const setupPeerConnection = () => {
         if (peerConnection) return;
 
@@ -605,8 +609,7 @@ function initRoom() {
 
         peerConnection.onicecandidate = event => {
             if (event.candidate) {
-                const target = isHost ? 'host' : 'guest';
-                signalingRef.child('candidates').child(target).push({
+                signalingRef.child('peers').child(currentUser.uid).child('candidates').child('guest').push({
                     candidate: event.candidate.toJSON(),
                     uid: currentUser.uid
                 });
@@ -648,6 +651,139 @@ function initRoom() {
         };
     };
 
+    // --- HOST: ULDUZ (STAR) TOPOLOGİYASI — hər qonaq üçün ayrıca RTCPeerConnection ---
+    // Əgər bu guestUid üçün artıq bağlantı varsa (məs. qonaq yenidən qoşulub),
+    // əvvəlcə onu bağlayıb təmiz vəziyyətdən yenisini yaradır.
+    function setupPeerConnectionForGuest(guestUid) {
+        if (peerConnections[guestUid]) {
+            peerConnections[guestUid].close();
+        }
+        pendingIceCandidatesByGuest[guestUid] = [];
+        listeningForCandidatesSet.delete(guestUid);
+
+        const pc = new RTCPeerConnection(configuration);
+        peerConnections[guestUid] = pc;
+
+        // Diaqnostik: hansı qonağa aid olduğu bilinsin deyə guestUid loqa əlavə olunur
+        pc.onsignalingstatechange = () => console.log(`[${guestUid}] Signaling state dəyişdi:`, pc.signalingState);
+        pc.onicecandidateerror = (e) => console.error(`[${guestUid}] [ICE XƏTA]`, e.errorText, e.url);
+
+        pc.onicecandidate = event => {
+            if (event.candidate) {
+                signalingRef.child('peers').child(guestUid).child('candidates').child('host').push({
+                    candidate: event.candidate.toJSON(),
+                    uid: currentUser.uid
+                });
+            }
+        };
+
+        // ontrack: DƏYİŞMİR — bu, yalnız QONAQ tərəfdə işləyir, host tərəfdə track almır, sadəcə göndərir.
+        pc.ontrack = event => {
+            if (!isHost && mainVideo) {
+                if (mainVideo.srcObject !== event.streams[0]) {
+                    mainVideo.srcObject = event.streams[0];
+                }
+            }
+        };
+
+        return pc;
+    }
+
+    // Hazırda aktiv olan stream-i (ekran paylaşımı və ya local fayl) verilən
+    // peerConnection-a əlavə edir — yeni qonaq qoşulanda VƏ mövcud qonaqlara
+    // yeni stream göndərilərkən (bax: startHostWebRTC) təkrar istifadə olunur.
+    function addCurrentStreamToPeerConnection(pc, bitrateOverride) {
+        const streamToSend = screenShareStream || localStream;
+        if (!streamToSend) return;
+
+        const maxBitrate = bitrateOverride || (screenShareStream ? 3000000 : 10000000); // 3 Mbps ekran paylaşımı / 10 Mbps local fayl
+        streamToSend.getTracks().forEach(track => {
+            const sender = pc.addTrack(track, streamToSend);
+            if (track.kind === 'video') {
+                const parameters = sender.getParameters();
+                if (!parameters.encodings) parameters.encodings = [{}];
+                parameters.encodings[0].maxBitrate = maxBitrate;
+                sender.setParameters(parameters).catch(e => console.error("Bitrate xətası:", e));
+            }
+        });
+    }
+
+    // Verilən guestUid-ə offer yaradıb göndərir, sonra onun answer-ini və
+    // ICE candidate-lərini dinləməyə başlayır.
+    async function sendOfferToGuest(guestUid) {
+        const pc = peerConnections[guestUid];
+        if (!pc) return;
+
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        await signalingRef.child('peers').child(guestUid).child('offer').set({
+            type: offer.type,
+            sdp: offer.sdp,
+            uid: currentUser.uid
+        });
+        console.log(`📡 [${guestUid}] Offer göndərildi.`);
+
+        listenForAnswerFromGuest(guestUid);
+        listenForCandidatesFromGuest(guestUid);
+    }
+
+    // Bu guestUid-in answer-ini dinləyir. Renegotiation zamanı (məs. yeni video
+    // başladıqda, bax: startHostWebRTC) təkrar çağırıla bilər — ona görə əvvəlcə
+    // köhnə dinləyicini söndürür (əvvəlki tək-qonaq axınındakı eyni re-entrancy
+    // qorunması, indi hər guestUid üçün ayrıca tətbiq olunur).
+    function listenForAnswerFromGuest(guestUid) {
+        const answerRef = signalingRef.child('peers').child(guestUid).child('answer');
+        answerRef.off('value');
+        answerRef.on('value', async snapshot => {
+            const data = snapshot.val();
+            const pc = peerConnections[guestUid];
+            if (!data || !pc || data.uid === currentUser.uid) return;
+
+            if (pc.signalingState !== 'have-local-offer') {
+                console.warn(`[${guestUid}] Answer gözlənilmirdi, signalingState:`, pc.signalingState, '- keçilir');
+                return;
+            }
+
+            answerRef.off('value');
+
+            await pc.setRemoteDescription(new RTCSessionDescription(data));
+            console.log(`✅ [${guestUid}] Answer alındı, əlaqə qurulur!`);
+            flushPendingIceCandidatesForGuest(guestUid);
+        });
+    }
+
+    function flushPendingIceCandidatesForGuest(guestUid) {
+        const pc = peerConnections[guestUid];
+        const queued = pendingIceCandidatesByGuest[guestUid];
+        if (!pc || !pc.remoteDescription || !queued || queued.length === 0) return;
+        pendingIceCandidatesByGuest[guestUid] = [];
+        queued.forEach(candidate => {
+            pc.addIceCandidate(candidate).catch(e => console.error(e));
+        });
+        console.log(`📥 [${guestUid}] Növbədəki ${queued.length} ICE candidate tətbiq edildi`);
+    }
+
+    function listenForCandidatesFromGuest(guestUid) {
+        if (listeningForCandidatesSet.has(guestUid)) return;
+        listeningForCandidatesSet.add(guestUid);
+
+        console.log(`ICE Candidates dinlənilməyə başlandı: [${guestUid}] guest`);
+        signalingRef.child('peers').child(guestUid).child('candidates').child('guest').on('child_added', snapshot => {
+            const data = snapshot.val();
+            const pc = peerConnections[guestUid];
+            if (data && pc && data.uid !== currentUser.uid) {
+                const candidate = new RTCIceCandidate(data.candidate);
+                if (!pc.remoteDescription) {
+                    if (!pendingIceCandidatesByGuest[guestUid]) pendingIceCandidatesByGuest[guestUid] = [];
+                    pendingIceCandidatesByGuest[guestUid].push(candidate);
+                    return;
+                }
+                pc.addIceCandidate(candidate).catch(e => console.error(e));
+                console.log(`[${guestUid}] ICE Candidate əlavə edildi`);
+            }
+        });
+    }
+
     // --- EKRAN PAYLAŞIMI (Netflix / Disney+ / Prime Video) ---
     // Mövcud setupPeerConnection/signalingRef/TURN konfiqurasiyasını təkrar
     // istifadə edir, sıfırdan yeni WebRTC axını qurulmur. Yalnız host çağıra bilər.
@@ -667,36 +803,11 @@ function initRoom() {
 
         screenShareStream = stream;
 
-        // Əvvəlki cəhddən qalan "answer" dinləyicisini sil — startHostWebRTC hər
-        // çağırışda YENİ bir signalingRef.child('answer').on('value', ...) qeydə
-        // alır və heç vaxt açmır. Təkrar cəhddə iki dinləyici eyni anda "stable
-        // deyil" yoxlamasını keçib eyni cavaba iki dəfə setRemoteDescription
-        // çağırmağa cəhd edir → "Called in wrong state: stable". Callback
-        // göstərmədən .off('value') bu yoldakı BÜTÜN dinləyiciləri silir; heç biri
-        // yoxdursa (ilk cəhd) təhlükəsiz heç-nə-etmir.
-        signalingRef.child('answer').off('value');
-
-        // Əvvəlki cəhddən qalma köhnə/uğursuz peerConnection varsa (məs. answer
-        // gəlmədən "Paylaşımı Dayandır" basılıb, "have-local-offer"-də ilişib
-        // qalıb, ya da transport sonradan "failed" olub) — setupPeerConnection()
-        // `if (peerConnection) return;` keçidi ilə onu SƏHVƏN yenidən istifadə
-        // edərdi. Bağla və sıfırla ki, təzə cəhd təmiz RTCPeerConnection-dan başlasın
-        // (guestTrigger handler-indəki eyni close+null nümunəsi təkrar istifadə olunur).
-        if (peerConnection) {
-            const state = peerConnection.connectionState || peerConnection.iceConnectionState;
-            const isStale = peerConnection.signalingState !== 'stable' ||
-                state === 'failed' || state === 'disconnected' || state === 'closed';
-            if (isStale) {
-                peerConnection.close();
-                peerConnection = null;
-            }
-        }
-
         try {
-            await signalingRef.remove(); // köhnə offer/answer/candidate məlumatlarını təmizləyir
+            await signalingRef.remove(); // köhnə offer/answer/candidate məlumatlarını təmizləyir (bütün qonaqlar)
             // Mövcud startHostWebRTC-i təkrar istifadə edir (offer yaratma/göndərmə,
-            // answer dinləmə, listenForCandidates) — yalnız stream və bitrate fərqlidir.
-            await window.startHostWebRTC(stream, 3000000); // 3 Mbps
+            // answer dinləmə, listenForCandidatesFromGuest) — yalnız stream və bitrate fərqlidir.
+            await window.startHostWebRTC(3000000); // 3 Mbps
         } catch (err) {
             // Bu addım uğursuz olarsa screenShareStream sıfırlanmasa, funksiyanın
             // başındakı `if (screenShareStream) return;` keçidi SƏBƏBSİZ olaraq
@@ -731,10 +842,10 @@ function initRoom() {
 
         screenShareStream.getTracks().forEach(track => {
             track.stop();
-            if (peerConnection) {
-                const sender = peerConnection.getSenders().find(s => s.track === track);
-                if (sender) peerConnection.removeTrack(sender);
-            }
+            Object.values(peerConnections).forEach(pc => {
+                const sender = pc.getSenders().find(s => s.track === track);
+                if (sender) pc.removeTrack(sender);
+            });
         });
         screenShareStream = null;
 
@@ -750,72 +861,28 @@ function initRoom() {
     }
 
     // --- DƏQİQ AXIN: HOST ---
-    // streamOverride/bitrateOverride ekran paylaşımı (startScreenShare) tərəfindən
-    // istifadə olunur ki, eyni offer/answer/candidate axını təkrar yazılmasın —
-    // arqumentsiz çağırışda (local video yükləmə) əvvəlki davranış dəyişmir.
-    window.startHostWebRTC = async (streamOverride, bitrateOverride) => {
+    // Mövcud (yeni başlayan) stream-i (localStream və ya screenShareStream, bax:
+    // addCurrentStreamToPeerConnection) BÜTÜN qoşulu qonaqlara əlavə edir və hər
+    // biri üçün renegotiation (yeni offer/answer mübadiləsi) işə salır. Ekran
+    // paylaşımı başlatma və local video yükləmə eyni funksiyanı çağırır — YENİ
+    // qoşulan qonaqlar isə viewersRef 'child_added' axınında (bax yuxarı)
+    // avtomatik olaraq bu andakı stream-i alır.
+    window.startHostWebRTC = async (bitrateOverride) => {
         if (!isHost) return;
-        setupPeerConnection();
 
-        const streamToSend = streamOverride || localStream;
-        const maxBitrate = bitrateOverride || 10000000; // default: 10 Mbps (local fayl)
-
-        if (streamToSend) {
-            streamToSend.getTracks().forEach(track => {
-                const sender = peerConnection.addTrack(track, streamToSend);
-                if (track.kind === 'video') {
-                    const parameters = sender.getParameters();
-                    if (!parameters.encodings) parameters.encodings = [{}];
-                    parameters.encodings[0].maxBitrate = maxBitrate;
-                    sender.setParameters(parameters).catch(e => console.error("Bitrate xətası:", e));
-                }
-            });
+        const guestUids = Object.keys(peerConnections);
+        for (const guestUid of guestUids) {
+            addCurrentStreamToPeerConnection(peerConnections[guestUid], bitrateOverride);
+            await sendOfferToGuest(guestUid);
         }
-
-        const offer = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offer);
-        await signalingRef.child('offer').set({
-            sdp: offer.sdp,
-            type: offer.type,
-            uid: currentUser.uid
-        });
-        console.log("📡 Host Offer yaratdı və Firebase-ə göndərdi.");
-
-        // Host yalnız Answer-i dinləyir (Davamlı)
-        // DİQQƏT (re-entrancy qorunması): Firebase 'value' dinləyicisi eyni
-        // answer node-u üçün birdən artıq dəfə tetiklənə bilər (məs. iki hadisə
-        // demək olar eyni vaxtda gəlir, birinci hələ await-də olarkən ikincisi
-        // işə düşür). signalingState yalnız 'have-local-offer' olduqda answer-i
-        // gözləyirik — 'stable'-a keçdikdən sonra (uğurlu tətbiqdən sonra) və ya
-        // hələ offer göndərilməyibsə eyni answer-i YENİDƏN tətbiq etməyə cəhd
-        // etməmək üçün. Uğurlu tətbiqdən dərhal (await-dən ƏVVƏL, sinxron
-        // şəkildə) dinləyicini .off() ilə söndürürük ki, eyni "task" içində
-        // artıq növbəyə düşmüş ikinci hadisə yenidən setRemoteDescription
-        // çağırmasın.
-        signalingRef.child('answer').on('value', async snapshot => {
-            const data = snapshot.val();
-            if (!data || data.uid === currentUser.uid) return;
-
-            if (peerConnection.signalingState !== 'have-local-offer') {
-                console.warn('Answer gözlənilmirdi, signalingState:', peerConnection.signalingState, '- keçilir');
-                return;
-            }
-
-            signalingRef.child('answer').off('value');
-
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(data));
-            console.log("✅ Host Answer aldı, əlaqə qurulur!");
-            flushPendingIceCandidates();
-            // Yalnız setRemote bitdikdən sonra Host candidates-i oxuyur
-            listenForCandidates();
-        });
+        console.log(`📡 Host ${guestUids.length} qonağa Offer göndərdi.`);
     };
 
     // --- DƏQİQ AXIN: GUEST ---
     const listenForOffer = () => {
-        signalingRef.child('offer').on('value', async snapshot => {
+        signalingRef.child('peers').child(currentUser.uid).child('offer').on('value', async snapshot => {
             const data = snapshot.val();
-            if (data && data.uid !== currentUser.uid) {
+            if (data) {
                 console.log("📥 Qonaq Offer aldı, Answer yaradır...");
                 if (!peerConnection) setupPeerConnection();
                 if (peerConnection.signalingState === "stable") {
@@ -823,7 +890,7 @@ function initRoom() {
                     flushPendingIceCandidates();
                     const answer = await peerConnection.createAnswer();
                     await peerConnection.setLocalDescription(answer);
-                    await signalingRef.child('answer').set({
+                    await signalingRef.child('peers').child(currentUser.uid).child('answer').set({
                         sdp: answer.sdp,
                         type: answer.type,
                         uid: currentUser.uid
@@ -852,15 +919,16 @@ function initRoom() {
         console.log(`📥 Növbədəki ${queued.length} ICE candidate tətbiq edildi`);
     };
 
+    // GUEST: host-dan gələn ICE candidate-ləri dinləyir. HOST tərəfin
+    // ekvivalenti üçün bax: listenForCandidatesFromGuest (hər qonaq üçün ayrıca).
     let listeningForCandidates = false;
     const listenForCandidates = () => {
         if (listeningForCandidates) return;
         listeningForCandidates = true;
 
-        const targetToListen = isHost ? 'guest' : 'host';
-        console.log("ICE Candidates dinlənilməyə başlandı: " + targetToListen);
+        console.log("ICE Candidates dinlənilməyə başlandı: host");
 
-        signalingRef.child('candidates').child(targetToListen).on('child_added', snapshot => {
+        signalingRef.child('peers').child(currentUser.uid).child('candidates').child('host').on('child_added', snapshot => {
             const data = snapshot.val();
             if (data && data.uid !== currentUser.uid && peerConnection) {
                 const candidate = new RTCIceCandidate(data.candidate);
@@ -901,10 +969,10 @@ function initRoom() {
             if (localStream) {
                 localStream.getTracks().forEach(track => {
                     track.stop();
-                    if (peerConnection) {
-                        const sender = peerConnection.getSenders().find(s => s.track === track);
-                        if (sender) peerConnection.removeTrack(sender);
-                    }
+                    Object.values(peerConnections).forEach(pc => {
+                        const sender = pc.getSenders().find(s => s.track === track);
+                        if (sender) pc.removeTrack(sender);
+                    });
                 });
                 localStream = null;
             }
