@@ -492,6 +492,7 @@ function initRoom() {
                 `;
             }
             if (mainVideo) mainVideo.classList.add('hidden');
+            console.log("[YÜKLƏ 0] Fayl seçmə pəncərəsi açılır");
             localVideoUpload.click();
         });
     }
@@ -1001,10 +1002,12 @@ function initRoom() {
     // Fayl Seçildikdə (Local Playback və Yayımın Başlaması - Yalnız Host)
     if (localVideoUpload && mainVideo) {
         localVideoUpload.addEventListener('change', async (e) => {
+            console.log("[YÜKLƏ 1] change hadisəsi tetiklendi, isHost:" + isHost);
             if (!isHost) return;
 
             const file = e.target.files[0];
             if (!file) return;
+            console.log("[YÜKLƏ 2] Fayl qəbul edildi:" + file.name + ", ölçü:" + file.size);
 
             // TODO: Gələcəkdə premium funksiya üçün limitin qaldırılması.
             if (file.size > 500 * 1024 * 1024) {
@@ -1016,10 +1019,12 @@ function initRoom() {
             console.log("📁 Fayl seçildi, video yüklənir...");
 
             const objectURL = URL.createObjectURL(file);
+            console.log("[YÜKLƏ 3] ƏVVƏL - mainVideo hidden?:" + mainVideo.classList.contains('hidden') + ", videoPlaceholder hidden?:" + (videoPlaceholder ? videoPlaceholder.classList.contains('hidden') : 'YOX'));
             mainVideo.src = objectURL;
             mainVideo.classList.remove('hidden');
             if (videoPlaceholder) videoPlaceholder.classList.add('hidden');
             if (closeVideoBtn) closeVideoBtn.classList.remove('hidden');
+            console.log("[YÜKLƏ 4] SONRA - mainVideo hidden?:" + mainVideo.classList.contains('hidden') + ", videoPlaceholder hidden?:" + (videoPlaceholder ? videoPlaceholder.classList.contains('hidden') : 'YOX') + ", mainVideo computed display:" + getComputedStyle(mainVideo).display + ", videoPlaceholder computed display:" + (videoPlaceholder ? getComputedStyle(videoPlaceholder).display : 'YOX'));
 
             await videoActiveRef.set(true);
             
@@ -1027,6 +1032,7 @@ function initRoom() {
             mainVideo.load();
 
             mainVideo.onloadeddata = async () => {
+                console.log("[YÜKLƏ 5] onloadeddata tetiklendi");
                 console.log("⏳ Video kadrları oxundu, axın (stream) məcbur edilir...");
                 try {
                     mainVideo.loop = true; // Stream ölümünün qarşısını al
@@ -1066,6 +1072,7 @@ function initRoom() {
             // brauzer 'loadeddata'-nı HEÇ VAXT atmır — bu handler olmadan istifadəçi
             // heç bir geri bildirim almadan sonsuz "heç nə baş vermir" vəziyyətində qalırdı.
             mainVideo.onerror = () => {
+                console.log("[YÜKLƏ 6] onerror tetiklendi:" + (mainVideo.error ? mainVideo.error.code : 'naməlum'));
                 console.error("❌ Video yüklənə bilmədi:", mainVideo.error);
                 showToast("Bu video formatı dəstəklənmir. Zəhmət olmasa .mp4 və ya .webm formatını sınayın.");
                 mainVideo.onloadeddata = null;
