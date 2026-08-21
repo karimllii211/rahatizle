@@ -265,6 +265,10 @@ function initRoom() {
         const data = snapshot.val();
         if (!data) {
             // Otaq silinib, hər kəsi ana səhifəyə qaytar
+            if (guestStatsInterval) {
+                clearInterval(guestStatsInterval);
+                guestStatsInterval = null;
+            }
             window.location.replace('/');
             return;
         }
@@ -277,6 +281,8 @@ function initRoom() {
                     const conf = await showConfirmModal("Otağı tamamilə silmək istədiyinizə əminsiniz? Hər kəs otaqdan çıxarılacaq.");
                     if (conf) {
                         Object.values(peerConnections).forEach(pc => pc.close());
+                        Object.values(hostStatsIntervals).forEach(id => clearInterval(id));
+                        Object.keys(hostStatsIntervals).forEach(k => delete hostStatsIntervals[k]);
                         await signalingRef.child('peers').remove();
                         roomRef.remove();
                     }
@@ -401,6 +407,8 @@ function initRoom() {
     let peerConnection = null;
     let pendingIceCandidates = []; // remoteDescription hələ təyin olunmayanda gələn ICE candidate-lər üçün növbə
     let isHost = false;
+    // MÜVƏQQƏTİ DİAQNOSTİKA: video donma/kəsilmə problemi üçün getStats() ölçmə interval-ı (qonaq tərəf)
+    let guestStatsInterval = null;
     let youtubeVideoActive = false;
     let screenShareStream = null; // Netflix/Disney+/Prime ekran paylaşımı (yalnız host)
 
@@ -409,6 +417,8 @@ function initRoom() {
     const peerConnections = {};
     const pendingIceCandidatesByGuest = {}; // guestUid -> növbələnmiş ICE candidate-lər
     const listeningForCandidatesSet = new Set(); // hansı guestUid-lər üçün candidate dinləməsi artıq aktivdir
+    // MÜVƏQQƏTİ DİAQNOSTİKA: hər guestUid üçün getStats() ölçmə interval-ı (host tərəf)
+    const hostStatsIntervals = {};
 
     // "Videonu Dəyiş" / "Videonu Bağla" düymələrinin görünürlüyünü hər dəfə
     // mövcud vəziyyətdən (isHost, appliedPlatform, youtubeVideoActive) yenidən
@@ -589,6 +599,10 @@ function initRoom() {
                     peerConnections[guestUid].close();
                     delete peerConnections[guestUid];
                 }
+                if (hostStatsIntervals[guestUid]) {
+                    clearInterval(hostStatsIntervals[guestUid]);
+                    delete hostStatsIntervals[guestUid];
+                }
                 delete pendingIceCandidatesByGuest[guestUid];
                 listeningForCandidatesSet.delete(guestUid);
                 signalingRef.child('peers').child(guestUid).remove();
@@ -625,6 +639,30 @@ function initRoom() {
                 if (mainVideo.srcObject !== event.streams[0]) {
                     mainVideo.srcObject = event.streams[0];
                     console.log("🎥 Qonaq stream aldı və srcObject təyin edildi!");
+
+                    // MÜVƏQQƏTİ DİAQNOSTİKA: video donma/kəsilmə problemi üçün hər 3 saniyədə
+                    // WebRTC-nin öz getStats() API-si ilə real-vaxt şəbəkə göstəricilərini ölç.
+                    if (guestStatsInterval) clearInterval(guestStatsInterval);
+                    guestStatsInterval = setInterval(async () => {
+                        if (!peerConnection) return;
+                        const stats = await peerConnection.getStats();
+                        stats.forEach(stat => {
+                            if (stat.type === 'inbound-rtp' && stat.kind === 'video') {
+                                console.log('[VİDEO STATS]', {
+                                    freezeCount: stat.freezeCount,
+                                    totalFreezesDuration: stat.totalFreezesDuration,
+                                    packetsLost: stat.packetsLost,
+                                    jitter: stat.jitter,
+                                    framesDecoded: stat.framesDecoded,
+                                    framesDropped: stat.framesDropped,
+                                    frameWidth: stat.frameWidth,
+                                    frameHeight: stat.frameHeight,
+                                    bytesReceived: stat.bytesReceived
+                                });
+                            }
+                        });
+                    }, 3000);
+
                     mainVideo.autoplay = true;
                     mainVideo.muted = true;
                     mainVideo.playsInline = true;
@@ -665,11 +703,34 @@ function initRoom() {
         if (peerConnections[guestUid]) {
             peerConnections[guestUid].close();
         }
+        if (hostStatsIntervals[guestUid]) {
+            clearInterval(hostStatsIntervals[guestUid]);
+            delete hostStatsIntervals[guestUid];
+        }
         pendingIceCandidatesByGuest[guestUid] = [];
         listeningForCandidatesSet.delete(guestUid);
 
         const pc = new RTCPeerConnection(configuration);
         peerConnections[guestUid] = pc;
+
+        // MÜVƏQQƏTİ DİAQNOSTİKA: video donma/kəsilmə problemi üçün hər 3 saniyədə
+        // WebRTC-nin öz getStats() API-si ilə real-vaxt şəbəkə göstəricilərini ölç.
+        hostStatsIntervals[guestUid] = setInterval(async () => {
+            if (!peerConnections[guestUid]) return;
+            const stats = await pc.getStats();
+            stats.forEach(stat => {
+                if (stat.type === 'outbound-rtp' && stat.kind === 'video') {
+                    console.log(`[HOST STATS] [${guestUid}]`, {
+                        bytesSent: stat.bytesSent,
+                        packetsSent: stat.packetsSent,
+                        framesSent: stat.framesSent,
+                        framesEncoded: stat.framesEncoded,
+                        qualityLimitationReason: stat.qualityLimitationReason,
+                        targetBitrate: stat.targetBitrate
+                    });
+                }
+            });
+        }, 3000);
 
         // Diaqnostik: hansı qonağa aid olduğu bilinsin deyə guestUid loqa əlavə olunur
         pc.onsignalingstatechange = () => console.log(`[${guestUid}] Signaling state dəyişdi:`, pc.signalingState);
@@ -1004,6 +1065,10 @@ function initRoom() {
     videoActiveRef.on('value', snapshot => {
         const isActive = snapshot.val();
         if (!isHost && isActive === false) {
+            if (guestStatsInterval) {
+                clearInterval(guestStatsInterval);
+                guestStatsInterval = null;
+            }
             mainVideo.srcObject = null;
             mainVideo.classList.add('hidden');
             if (videoPlaceholder) videoPlaceholder.classList.remove('hidden');
