@@ -629,8 +629,11 @@ function initRoom() {
                     mainVideo.muted = true;
                     mainVideo.playsInline = true;
                     mainVideo.classList.remove('hidden');
-                    if (videoPlaceholder) videoPlaceholder.classList.add('hidden');
-                    
+                    if (videoPlaceholder) {
+                        videoPlaceholder.classList.add('hidden');
+                        videoPlaceholder.style.display = 'none'; // renderPlatformView-in təyin etdiyi inline "flex" stilini məcburi üstələ
+                    }
+
                     // Safari üçün məcburi yeniləmə
                     mainVideo.load();
                     
