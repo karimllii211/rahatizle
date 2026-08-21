@@ -241,10 +241,10 @@ function initRoom() {
 
     const changePlatformLink = document.getElementById('changePlatformLink');
     if (changePlatformLink) {
-        changePlatformLink.href = 'select-platform.html?id=' + encodeURIComponent(currentRoomId);
+        changePlatformLink.href = '/select-platform?id=' + encodeURIComponent(currentRoomId);
         changePlatformLink.addEventListener('click', (e) => {
             e.preventDefault();
-            window.location.href = 'select-platform.html?id=' + encodeURIComponent(currentRoomId);
+            window.location.href = '/select-platform?id=' + encodeURIComponent(currentRoomId);
         });
     }
 
@@ -252,7 +252,7 @@ function initRoom() {
     // keçmədən, birbaşa YouTube axtarışına aparır (yalnız YouTube rejimində göstərilir).
     const changeVideoBtn = document.getElementById('changeVideoBtn');
     if (changeVideoBtn) {
-        changeVideoBtn.href = 'youtube-search.html?id=' + encodeURIComponent(currentRoomId);
+        changeVideoBtn.href = '/youtube-search?id=' + encodeURIComponent(currentRoomId);
     }
 
     const roomRef = database.ref(`rooms/${currentRoomId}`);
@@ -703,16 +703,18 @@ function initRoom() {
         const streamToSend = screenShareStream || localStream;
         if (!streamToSend) return;
 
-        const maxBitrate = bitrateOverride || (screenShareStream ? 3000000 : 15000000); // 3 Mbps ekran paylaşımı / 15 Mbps local fayl
+        const maxBitrate = bitrateOverride || (screenShareStream ? 3000000 : 8000000); // 3 Mbps ekran paylaşımı / 8 Mbps local fayl
         streamToSend.getTracks().forEach(track => {
             const sender = pc.addTrack(track, streamToSend);
             if (track.kind === 'video') {
                 const parameters = sender.getParameters();
                 if (!parameters.encodings) parameters.encodings = [{}];
                 parameters.encodings[0].maxBitrate = maxBitrate;
-                // Yalnız local video üçün: ekranı ölçüləndirmək əvəzinə keyfiyyəti
-                // qorumağa üstünlük ver (screenShareStream aktivdirsə toxunulmur).
-                if (!screenShareStream) parameters.degradationPreference = 'maintain-resolution';
+                // Yalnız local video üçün: brauzerin rezolyusiya/hamarlıq arasında
+                // avtomatik tarazlıq qurmasına icazə ver (screenShareStream aktivdirsə
+                // toxunulmur). 'maintain-resolution' şəbəkə darlaşanda kadr
+                // atlama/donmaya səbəb olurdu.
+                if (!screenShareStream) parameters.degradationPreference = 'balanced';
                 sender.setParameters(parameters).catch(e => console.error("Bitrate xətası:", e));
             }
         });

@@ -71,7 +71,7 @@ function initYouTubeSearch() {
     }
 
     const backLink = document.getElementById('backToPlatformLink');
-    if (backLink) backLink.href = 'select-platform.html?id=' + encodeURIComponent(roomId);
+    if (backLink) backLink.href = '/select-platform?id=' + encodeURIComponent(roomId);
 
     const roomRef = database.ref(`rooms/${roomId}`);
 
@@ -116,7 +116,7 @@ function initYouTubeSearch() {
             }).then(() => 'written');
         }).then((result) => {
             if (result !== 'written') return;
-            window.location.href = 'room.html?id=' + encodeURIComponent(roomId) + '&platform=youtube';
+            window.location.href = '/room?id=' + encodeURIComponent(roomId) + '&platform=youtube';
         }).catch(() => {
             showToast('Video seçilə bilmədi. Yenidən cəhd edin.');
         });

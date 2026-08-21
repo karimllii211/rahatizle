@@ -39,13 +39,13 @@
                 <!-- Masaüstü linklər -->
                 <div class="hidden items-center gap-8 md:flex">
                     <a href="/" class="nav-link text-sm text-[#C8C8C8] hover:text-white">Ana Səhifə</a>
-                    <a href="create-room.html" class="nav-link text-sm text-[#C8C8C8] hover:text-white">Otaqlar</a>
-                    <a href="contact.html" class="nav-link text-sm text-[#C8C8C8] hover:text-white">Əlaqə</a>
+                    <a href="/create-room" class="nav-link text-sm text-[#C8C8C8] hover:text-white">Otaqlar</a>
+                    <a href="/contact" class="nav-link text-sm text-[#C8C8C8] hover:text-white">Əlaqə</a>
                 </div>
 
                 <!-- Sağ tərəf -->
                 <div class="flex items-center gap-2 sm:gap-3">
-                    <a href="create-room.html" class="btn-press btn-glow btn-lift hidden items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF014C] to-[#800020] px-4 py-2.5 text-sm font-bold text-white shadow-[0_0_15px_rgba(255,1,76,0.3)] hover:shadow-[0_0_25px_rgba(255,1,76,0.5)] sm:inline-flex">
+                    <a href="/create-room" class="btn-press btn-glow btn-lift hidden items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF014C] to-[#800020] px-4 py-2.5 text-sm font-bold text-white shadow-[0_0_15px_rgba(255,1,76,0.3)] hover:shadow-[0_0_25px_rgba(255,1,76,0.5)] sm:inline-flex">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                         <span class="nav-cta-label">OTAQ YARAT</span>
                     </a>
@@ -58,7 +58,7 @@
 
                     <!-- Daxil olmuş istifadəçi -->
                     <div id="nav-user-view" class="hidden items-center gap-3">
-                        <a href="profile.html" class="btn-press group flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2 py-1.5 hover:bg-white/10 sm:px-4 sm:py-2">
+                        <a href="/profile" class="btn-press group flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2 py-1.5 hover:bg-white/10 sm:px-4 sm:py-2">
                             <span class="relative flex h-7 w-7 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-red-900/30 transition-colors group-hover:border-[#FF014C]">
                                 <img id="navAvatar" src="" alt="" class="hidden h-full w-full object-cover">
                                 <span id="navbar-avatar-text" class="hidden text-xs font-bold tracking-widest text-[#FF014C]"></span>
@@ -81,15 +81,15 @@
             <div id="mobileMenu" class="mobile-menu absolute left-0 right-0 top-full mt-2 rounded-2xl border border-white/10 bg-[#080808] p-4 shadow-2xl md:hidden">
                 <div class="flex flex-col">
                     <a href="/" class="rounded-lg px-3 py-3 text-[#C8C8C8] transition-colors hover:bg-white/5 hover:text-white">Ana Səhifə</a>
-                    <a href="create-room.html" class="rounded-lg px-3 py-3 text-[#C8C8C8] transition-colors hover:bg-white/5 hover:text-white">Otaqlar</a>
-                    <a href="contact.html" class="rounded-lg px-3 py-3 text-[#C8C8C8] transition-colors hover:bg-white/5 hover:text-white">Əlaqə</a>
+                    <a href="/create-room" class="rounded-lg px-3 py-3 text-[#C8C8C8] transition-colors hover:bg-white/5 hover:text-white">Otaqlar</a>
+                    <a href="/contact" class="rounded-lg px-3 py-3 text-[#C8C8C8] transition-colors hover:bg-white/5 hover:text-white">Əlaqə</a>
 
-                    <a href="create-room.html" class="btn-press mt-3 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#FF014C] to-[#800020] px-4 py-3.5 text-sm font-bold text-white">
+                    <a href="/create-room" class="btn-press mt-3 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#FF014C] to-[#800020] px-4 py-3.5 text-sm font-bold text-white">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                         OTAQ YARAT
                     </a>
                     <button type="button" class="open-register-modal auth-guest-only btn-press mt-2 rounded-xl border border-[#FF014C]/50 bg-[#FF014C]/10 px-4 py-3.5 text-sm font-bold text-[#FF014C]">Qeydiyyat</button>
-                    <a href="profile.html" class="auth-user-only btn-press mt-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3.5 text-center text-sm font-bold text-white" hidden>Profilim</a>
+                    <a href="/profile" class="auth-user-only btn-press mt-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3.5 text-center text-sm font-bold text-white" hidden>Profilim</a>
                 </div>
             </div>
         </nav>
@@ -155,8 +155,8 @@
                 </div>
             </div>
             <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
-                <a href="terms.html" class="text-sm text-[#C8C8C8] transition-colors hover:text-white">Qaydalar</a>
-                <a href="privacy.html" class="text-sm text-[#C8C8C8] transition-colors hover:text-white">Məxfilik Siyasəti</a>
+                <a href="/terms" class="text-sm text-[#C8C8C8] transition-colors hover:text-white">Qaydalar</a>
+                <a href="/privacy" class="text-sm text-[#C8C8C8] transition-colors hover:text-white">Məxfilik Siyasəti</a>
                 <div id="footer-guest-links" class="flex items-center gap-6">
                     <button type="button" class="open-register-modal hidden text-sm font-bold text-[#C8C8C8] transition-colors hover:text-[#FF014C] sm:block">Qeydiyyat</button>
                 </div>

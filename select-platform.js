@@ -68,7 +68,7 @@ function initPlatformSelect() {
     }
 
     const backLink = document.getElementById('backToRoomLink');
-    if (backLink) backLink.href = 'room.html?id=' + encodeURIComponent(roomId);
+    if (backLink) backLink.href = '/room?id=' + encodeURIComponent(roomId);
 
     const roomRef = database.ref(`rooms/${roomId}`);
 
@@ -100,12 +100,12 @@ function initPlatformSelect() {
                 }
 
                 if (platform === 'youtube') {
-                    window.location.href = 'youtube-search.html?id=' + encodeURIComponent(roomId);
+                    window.location.href = '/youtube-search?id=' + encodeURIComponent(roomId);
                     return;
                 }
 
                 roomRef.child('creator/platform').set(platform).then(() => {
-                    window.location.href = 'room.html?id=' + encodeURIComponent(roomId) + '&platform=' + encodeURIComponent(platform);
+                    window.location.href = '/room?id=' + encodeURIComponent(roomId) + '&platform=' + encodeURIComponent(platform);
                 }).catch(() => {
                     showToast('Platforma dəyişdirilə bilmədi. Yenidən cəhd edin.');
                 });

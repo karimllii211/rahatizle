@@ -987,7 +987,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const enterBtn = iconButton(ICON_ENTER, 'p-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors', 'Otağa daxil ol');
                 enterBtn.addEventListener('click', () => {
-                    window.location.href = 'room.html?id=' + encodeURIComponent(roomId);
+                    window.location.href = '/room?id=' + encodeURIComponent(roomId);
                 });
 
                 const deleteBtn = iconButton(ICON_TRASH, 'p-2 bg-red-900/30 hover:bg-red-600 text-red-500 hover:text-white rounded-lg transition-colors border border-red-900/50 hover:border-red-600', 'Otağı sil');
@@ -1093,7 +1093,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } else {
             // Yalnız hesab sahibinə aid səhifələr qonaq üçün açıq qalmamalıdır.
-            if (/profile\.html$/.test(window.location.pathname)) {
+            if (/profile$/.test(window.location.pathname)) {
                 window.location.replace('/');
                 return;
             }
@@ -1183,7 +1183,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 platform: defaultPlatform,
                 createdAt: firebase.database.ServerValue.TIMESTAMP
             }).then(() => {
-                window.location.href = `room.html?id=${roomCode}&platform=${defaultPlatform}`;
+                window.location.href = `/room?id=${roomCode}&platform=${defaultPlatform}`;
             }).catch(error => {
                 showToast("Otaq yaradılarkən xəta baş verdi.");
                 console.error(error);
@@ -1195,7 +1195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         joinRoomBtn.addEventListener('click', () => {
             const code = roomCodeInput ? roomCodeInput.value.trim().toUpperCase() : '';
             if (!code) return showToast("Otaq kodunu daxil edin.");
-            window.location.href = `room.html?id=${code}`;
+            window.location.href = `/room?id=${code}`;
         });
     }
 });
