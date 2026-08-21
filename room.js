@@ -555,6 +555,11 @@ function initRoom() {
         // ona görə bu, yeganə düzgün "refresh" nöqtəsidir.
         if (isHost && appliedPlatform && logos[appliedPlatform]) {
             renderPlatformPlaceholderContent(appliedPlatform);
+        } else if (isHost && appliedPlatform === 'local') {
+            // Eyni "gecikmiş isHost" səbəbindən 'local' üçün də: əgər bu render
+            // isHost hələ `false` olarkən (qonaq gözləmə mesajı ilə) baş tutubsa,
+            // isHost bilinən kimi fayl seçicini indi aç.
+            if (localVideoBtn) localVideoBtn.click();
         }
 
         if (isHost) {
@@ -1183,8 +1188,22 @@ function initRoom() {
             // öz iframe_api skriptinin onYouTubeIframeAPIReady-i çağırması VƏ ya
             // youtubeId Firebase listener-inin pending-queue fallback-i (Section 6,
             // initOrLoadYouTubePlayer) ilə baş verir — #player artıq mövcuddur.
+        } else if (platform === 'local') {
+            restoreDefaultChatPanel();
+            if (isHost) {
+                // Otaq "Cihazdan Yüklə" ilə açılırsa, host əl ilə düyməyə basmaq
+                // məcburiyyətində qalmasın — mövcud localVideoBtn handler-i (placeholder
+                // mesajı + mainVideo gizlətmə + fayl seçici açma) təkrar istifadə olunur.
+                if (localVideoBtn) localVideoBtn.click();
+            } else if (videoPlaceholder) {
+                videoPlaceholder.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                        <svg class="h-16 w-16 text-white mb-2 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"></path></svg>
+                        <span class="text-lg font-bold tracking-wider text-white">Host video seçir, gözləyin...</span>
+                    </div>
+                `;
+            }
         }
-        // NOT: 'local' burada qəsdən emal olunmur — bax localVideoBtn handler-i, Section 4.
         refreshVideoActionButtons();
     }
 
