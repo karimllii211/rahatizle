@@ -1061,6 +1061,18 @@ function initRoom() {
                     mainVideo.onloadeddata = null; // Yalnız ilk dəfə
                 }
             };
+
+            // Format dəstəklənmirsə (məs. HEVC/H.265 kodlu .mp4, korlanmış fayl və s.)
+            // brauzer 'loadeddata'-nı HEÇ VAXT atmır — bu handler olmadan istifadəçi
+            // heç bir geri bildirim almadan sonsuz "heç nə baş vermir" vəziyyətində qalırdı.
+            mainVideo.onerror = () => {
+                console.error("❌ Video yüklənə bilmədi:", mainVideo.error);
+                showToast("Bu video formatı dəstəklənmir. Zəhmət olmasa .mp4 və ya .webm formatını sınayın.");
+                mainVideo.onloadeddata = null;
+                mainVideo.onerror = null;
+                localVideoUpload.value = ''; // eyni və ya başqa faylı yenidən seçmək mümkün olsun
+                if (closeVideoBtn) closeVideoBtn.click(); // UI-ı təmiz vəziyyətə qaytarır
+            };
         });
     }
 
