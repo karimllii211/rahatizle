@@ -449,3 +449,45 @@
 #avatarContainer:hover #profilePageAvatar:not(.hidden) ~ .avatar-overlay {
   opacity: 1;
 }
+
+/* ==========================================================================
+   7. FAQ AKKORDEON
+   Panelin hündürlüyü JS tərəfindən piksel olaraq təyin olunur (məzmun
+   uzunluğu dəyişkən olduğu üçün), CSS yalnız keçidi idarə edir.
+   ========================================================================== */
+.faq-panel {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s var(--ease-out-soft);
+}
+.faq-icon {
+  transition: transform 0.3s var(--ease-out-soft);
+}
+.faq-trigger[aria-expanded='true'] .faq-icon {
+  transform: rotate(180deg);
+}
+
+/* ==========================================================================
+   8. DİAQONAL BÖLMƏ AYIRICISI
+   Bölmələr arasında düz xətt əvəzinə həlim, brend rənginə boyanmış
+   diaqonal keçid. Dekorativdir (aria-hidden), heç bir məzmunu kəsmir —
+   yalnız öz ::before qatı clip-path ilə kəsilir.
+   ========================================================================== */
+.section-diagonal {
+  position: relative;
+  height: 56px;
+  overflow: hidden;
+}
+.section-diagonal::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(180deg, transparent 0%, rgba(255, 1, 76, 0.05) 100%);
+  clip-path: polygon(0 65%, 100% 0%, 100% 100%, 0% 100%);
+}
+
+@media (max-width: 767px) {
+  .section-diagonal {
+    height: 28px;
+  }
+}

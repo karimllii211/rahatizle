@@ -78,7 +78,82 @@
     });
   }
 
-  /* --- 3. Inline atribut əvəzediciləri (CSP üçün) ----------------------- */
+  /* --- 3. Sayğac animasiyası ("Rəqəmlərlə Rahat İzlə") ------------------- */
+  function initCounters() {
+    var targets = document.querySelectorAll('[data-count-to]');
+    if (!targets.length) return;
+
+    function renderFinal(el) {
+      el.textContent = el.getAttribute('data-count-to') + (el.getAttribute('data-count-suffix') || '');
+    }
+
+    if (reduceMotion || !('IntersectionObserver' in window)) {
+      for (var i = 0; i < targets.length; i++) renderFinal(targets[i]);
+      return;
+    }
+
+    var duration = 1200;
+
+    function animateCount(el) {
+      var target = parseInt(el.getAttribute('data-count-to'), 10);
+      var suffix = el.getAttribute('data-count-suffix') || '';
+      var start = null;
+
+      function step(timestamp) {
+        if (start === null) start = timestamp;
+        var progress = Math.min((timestamp - start) / duration, 1);
+        var eased = 1 - Math.pow(1 - progress, 3); // ease-out-cubic
+        el.textContent = Math.round(target * eased) + suffix;
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        } else {
+          renderFinal(el);
+        }
+      }
+
+      requestAnimationFrame(step);
+    }
+
+    var observer = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          animateCount(entry.target);
+          observer.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.4 }
+    );
+
+    targets.forEach(function (el) {
+      observer.observe(el);
+    });
+  }
+
+  /* --- 4. FAQ akkordeon --------------------------------------------------- */
+  function initFaq() {
+    var triggers = document.querySelectorAll('.faq-trigger');
+    if (!triggers.length) return;
+
+    triggers.forEach(function (btn) {
+      var panel = btn.nextElementSibling;
+      if (!panel) return;
+
+      btn.addEventListener('click', function () {
+        var isOpen = btn.getAttribute('aria-expanded') === 'true';
+
+        if (isOpen) {
+          btn.setAttribute('aria-expanded', 'false');
+          panel.style.maxHeight = '0px';
+        } else {
+          btn.setAttribute('aria-expanded', 'true');
+          panel.style.maxHeight = panel.scrollHeight + 'px';
+        }
+      });
+    });
+  }
+
+  /* --- 5. Inline atribut əvəzediciləri (CSP üçün) ----------------------- */
   function initInlineReplacements() {
     // Əvvəllər `onsubmit="event.preventDefault()"` idi
     document.querySelectorAll('form[data-no-submit]').forEach(function (form) {
@@ -99,6 +174,8 @@
   function init() {
     initReveal();
     initMobileMenu();
+    initCounters();
+    initFaq();
     initInlineReplacements();
   }
 
