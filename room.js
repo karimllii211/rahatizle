@@ -712,12 +712,16 @@ function initRoom() {
                 parameters.encodings[0].maxBitrate = maxBitrate;
                 // Yalnız local video üçün (screenShareStream aktivdirsə toxunulmur):
                 // getStats() ilə təsdiqləndi ki, 4K mənbələr host CPU-sunu real-vaxt
-                // kodlaşdırma üçün aşırı yükləyir (qualityLimitationReason: 'cpu'),
-                // kadr sürəti ~11-13fps-ə düşüb "donma" kimi hiss olunurdu. Mənbəni
-                // ~1080p-ə endirib (CPU yükü ~4 dəfə azalır) brauzerə həmişə kadr
-                // sürətini (hamarlığı) rezolyusiyadan üstün tutmağı deyirik.
+                // kodlaşdırma üçün aşırı yükləyir (qualityLimitationReason: 'cpu').
+                // scaleResolutionDownBy=2 (~1080p) köməklik etdi, amma tam kifayət
+                // etmədi (yüngül donma qaldı) — ~720p-ə endirib CPU yükünü daha da
+                // azaldırıq, üstəlik maxFramerate ilə encoder-in hədəf kadr sürətini
+                // açıq şəkildə 24-də sabitləyirik (dəyişkən yük altında sıçrayış
+                // əvəzinə sabit sürət). degradationPreference brauzerə lazım gəldikdə
+                // rezolyusiyanı deyil, kadr sürətini (hamarlığı) üstün tutmağı deyir.
                 if (!screenShareStream) {
-                    parameters.encodings[0].scaleResolutionDownBy = 2;
+                    parameters.encodings[0].scaleResolutionDownBy = 3;
+                    parameters.encodings[0].maxFramerate = 24;
                     parameters.degradationPreference = 'maintain-framerate';
                 }
                 sender.setParameters(parameters).catch(e => console.error("Bitrate xətası:", e));
