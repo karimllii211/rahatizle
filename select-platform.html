@@ -15,6 +15,7 @@
 
     <link rel="stylesheet" href="styles.css?v=10">
     <script src="animations.js?v=2"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body class="page-enter min-h-screen bg-gradient-to-b from-[#030303] via-[#030303] to-[#FF014C]/10 font-sans text-white antialiased">
 
@@ -49,6 +50,14 @@
             <button type="button" class="platform-select-card btn-press card-lift flex flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-black/20 hover:border-[#FF014C]/50 hover:bg-[#FF014C]/10 sm:p-7" data-platform="local">
                 <svg class="h-11 w-11 sm:h-14 sm:w-14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"></path></svg>
                 <span class="text-sm font-bold text-white sm:text-base">Cihazdan Yüklə</span>
+            </button>
+            <button type="button" class="platform-select-card btn-press card-lift flex flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-black/20 hover:border-[#0F9D58]/50 hover:bg-[#0F9D58]/10 sm:p-7" data-platform="google-drive">
+                <svg class="h-11 w-11 text-white sm:h-14 sm:w-14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 15a4 4 0 004 4h9a5 5 0 001.7-9.7 6 6 0 00-11.6-1.5A4.5 4.5 0 003 15z"></path></svg>
+                <span class="text-sm font-bold text-white sm:text-base">Google Drive</span>
+            </button>
+            <button type="button" class="platform-select-card btn-press card-lift flex flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-black/20 hover:border-[#4285F4]/50 hover:bg-[#4285F4]/10 sm:p-7" data-platform="google-photos">
+                <svg class="h-11 w-11 text-white sm:h-14 sm:w-14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 8.25V15a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 15V8.25m-18 0V6a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 6v2.25m-18 0h18M6 6h.008v.008H6V6z"></path></svg>
+                <span class="text-sm font-bold text-white sm:text-base">Google Photos</span>
             </button>
         </div>
     </main>

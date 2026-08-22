@@ -143,6 +143,35 @@ async function handleGoToPlatform(platform) {
     window.open(url, '_blank', 'noopener,noreferrer');
 }
 
+// --- GOOGLE OAUTH (1-Cİ MƏRHƏLƏ — YALNIZ ACCESS TOKEN) ---
+// Google Identity Services-in "Token Client" axınını Promise-ə bükür ki, çağıran
+// kod `const token = await requestGoogleAccessToken(scope)` şəklində istifadə edə
+// bilsin. MÜVƏQQƏTİ: Drive/Photos Picker-lərin özü hələ qurulmayıb, bu yalnız
+// token əldəetmə təməlidir.
+const GOOGLE_OAUTH_CLIENT_ID = '826788227941-b1a46gd0aeovh44uo0vaq1hd4eu61mt6.apps.googleusercontent.com';
+
+function requestGoogleAccessToken(scope) {
+    return new Promise((resolve, reject) => {
+        if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
+            reject(new Error('Google Identity Services hələ yüklənməyib.'));
+            return;
+        }
+        const tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: GOOGLE_OAUTH_CLIENT_ID,
+            scope: scope,
+            callback: (response) => {
+                if (response && response.access_token) {
+                    resolve(response.access_token);
+                } else {
+                    reject(new Error('Access token alına bilmədi.'));
+                }
+            },
+            error_callback: (err) => reject(err || new Error('Google girişi ləğv edildi.'))
+        });
+        tokenClient.requestAccessToken();
+    });
+}
+
 // Auth Guard
 auth.onAuthStateChanged(user => {
     if (!user) {
@@ -1113,6 +1142,67 @@ function initRoom() {
         'prime': 'PrimeVideo.svg.webp'
     };
 
+    // --- GOOGLE DRIVE / GOOGLE PHOTOS (1-Cİ MƏRHƏLƏ — YALNIZ OAUTH TOKEN) ---
+    // MÜVƏQQƏTİ: Picker-lərin özü hələ qurulmayıb, buradakı placeholder yalnız
+    // "Google Hesabı ilə Bağlan" axınını test etmək üçündür.
+    const GOOGLE_PLATFORM_NAMES = { 'google-drive': 'Google Drive', 'google-photos': 'Google Photos' };
+    const GOOGLE_PLATFORM_SCOPES = {
+        'google-drive': 'https://www.googleapis.com/auth/drive.file',
+        'google-photos': 'https://www.googleapis.com/auth/photospicker.mediaitems.readonly'
+    };
+    const GOOGLE_PLATFORM_ICONS = {
+        'google-drive': '<svg class="h-20 w-20 text-white mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 15a4 4 0 004 4h9a5 5 0 001.7-9.7 6 6 0 00-11.6-1.5A4.5 4.5 0 003 15z"></path></svg>',
+        'google-photos': '<svg class="h-20 w-20 text-white mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 8.25V15a2.25 2.25 0 002.25 2.25h13.5A2.25 2.25 0 0021 15V8.25m-18 0V6a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 6v2.25m-18 0h18M6 6h.008v.008H6V6z"></path></svg>'
+    };
+
+    function renderGooglePlaceholderContent(platform) {
+        if (!videoPlaceholder) return;
+
+        if (!isHost) {
+            videoPlaceholder.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                    <svg class="h-16 w-16 text-white mb-2 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"></path></svg>
+                    <span class="text-lg font-bold tracking-wider text-white">Host video seçir, gözləyin...</span>
+                </div>
+            `;
+            return;
+        }
+
+        videoPlaceholder.innerHTML = `
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%;">
+                ${GOOGLE_PLATFORM_ICONS[platform] || ''}
+                <span class="text-lg font-bold tracking-wider text-white">${GOOGLE_PLATFORM_NAMES[platform] || platform}</span>
+                <div style="display:flex; flex-direction:column; align-items:center; gap:8px; margin-top:20px;">
+                    <button type="button" id="googleConnectBtn" class="btn-press rounded-lg border border-[#4285F4]/60 bg-[#4285F4] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#4285F4]/80 sm:text-sm">Google Hesabı ilə Bağlan</button>
+                    <span id="googleConnectStatus" class="text-xs text-gray-400"></span>
+                </div>
+            </div>
+        `;
+
+        const connectBtn = document.getElementById('googleConnectBtn');
+        const statusEl = document.getElementById('googleConnectStatus');
+        if (!connectBtn) return;
+
+        connectBtn.addEventListener('click', async () => {
+            const originalText = connectBtn.textContent;
+            connectBtn.disabled = true;
+            connectBtn.textContent = 'Bağlanır...';
+            if (statusEl) statusEl.textContent = '';
+            try {
+                const token = await requestGoogleAccessToken(GOOGLE_PLATFORM_SCOPES[platform]);
+                // MÜVƏQQƏTİ YOXLAMA: yalnız tokenin uğurla alındığını göstərir.
+                console.log('[GOOGLE AUTH] Token alındı:', token.substring(0, 20) + '...');
+                if (statusEl) statusEl.textContent = 'Bağlantı uğurludur ✓';
+            } catch (err) {
+                console.error('[GOOGLE AUTH] Xəta:', err);
+                showToast('Google hesabı ilə bağlantı uğursuz oldu.');
+            } finally {
+                connectBtn.disabled = false;
+                connectBtn.textContent = originalText;
+            }
+        });
+    }
+
     // Sidebar-dakı "hazırkı platforma" nişanı üçün ayrıca xəritə — logos-a
     // 'youtube' əlavə etsək renderPlatformView onu (səhvən) statik loqo kimi
     // göstərərdi, YouTube pleyerini yaratmaq əvəzinə.
@@ -1223,6 +1313,9 @@ function initRoom() {
                     </div>
                 `;
             }
+        } else if (platform === 'google-drive' || platform === 'google-photos') {
+            restoreDefaultChatPanel();
+            renderGooglePlaceholderContent(platform);
         }
         refreshVideoActionButtons();
     }
